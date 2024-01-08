@@ -57,9 +57,9 @@ class Genotype:
         elif g_label=='chad':
             c_instance.ch(int(self.genotype_str[1]),int(self.genotype_str[2]))
         elif g_label=='phase':
-            c_instance.p(math.pi/self.genotype_str[2],int(self.genotype_str[1]))
+            c_instance.p(math.pi/int(self.genotype_str[2]),int(self.genotype_str[1]))
         elif g_label=='cphase':
-            c_instance.cp(math.pi/self.genotype_str[3],int(self.genotype_str[1]),int(self.genotype_str[2]))
+            c_instance.cp(math.pi/int(self.genotype_str[3]),int(self.genotype_str[1]),int(self.genotype_str[2]))
         elif g_label=='t':
             c_instance.t(int(self.genotype_str[1]))
         elif g_label=='t_prime':
@@ -74,7 +74,8 @@ class Genotype:
         g = ''
         while True:
             #if input_count_weighted:
-            g += random.choice(self.metadata.all_gate_combinations)
+            new_gate = random.choice(self.metadata.all_gate_combinations)
+            g += new_gate
             #else:
             #    gate = random.randint(0,len(self.metadata.gate_set)-1)
             #    inputs = []
@@ -83,6 +84,10 @@ class Genotype:
             #        if x not in inputs:
             #            inputs.append(x)
             #    g += str(gate) + ''.join(inputs)
+            if 'parameters' in self.metadata.gate_set[int(new_gate[0])]:
+                for i in range(self.metadata.gate_set[int(new_gate[0])]['parameters']):
+                    g += str(random.randint(1,9))
+
             if falloff=='linear':
                 if random.random() > intercept + gradient*len(g):
                     break
@@ -359,7 +364,7 @@ class Evolution:
 
 
             if len(population) > 0:
-                population = self.top_n_by_fitness(population)
+                population = self.top_by_fitness(population)
                 # select a random genotype, using the msf improvements as weights
                 best_genotype = random.choices(population, weights=[(g.msf - best_genotype.msf) for g in population], k=1)[0]
 
