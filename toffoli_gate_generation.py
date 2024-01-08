@@ -1,4 +1,4 @@
-from linear_genetic_programming import ProblemParameters, Genotype, list_to_state
+from linear_genetic_programming import ProblemParameters, Evolution, list_to_state
 
 class ToffoliGeneration(ProblemParameters):
     def __init__(self, set_of_gates):
@@ -28,3 +28,5 @@ if __name__=="__main__":
                 {'label':'chad','inputs':2},
                 {'label':'cphase','inputs':2,'parameters':1}]
     TOFFOLI = ToffoliGeneration(GATE_SET)
+    E = Evolution(TOFFOLI)
+    population = E.stochastic_hill_climb()

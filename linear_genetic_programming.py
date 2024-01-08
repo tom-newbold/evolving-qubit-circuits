@@ -23,7 +23,7 @@ class Genotype:
         while i<len(self.genotype_str):
             gate = self.genotype_str[i]
             j = i + self.metadata.gate_set[int(gate)]['inputs'] + 1
-            if self.metadata.gate_set[int(gate)]['parameters']:
+            if 'parameters' in self.metadata.gate_set[int(gate)]:
                 j += self.metadata.gate_set[int(gate)]['parameters']
             k = self.genotype_str[i:j]
             i = j
@@ -35,7 +35,7 @@ class Genotype:
         if self.circuit:
             return self.circuit
         else:
-            circuit_instance = QuantumCircuit(self.qubit_count)
+            circuit_instance = QuantumCircuit(self.metadata.qubit_count)
             for k in self.to_list():
                 gate = int(k[0])
                 #if len(k)-1 != self.gate_set[gate]['inputs']:
@@ -46,7 +46,7 @@ class Genotype:
     
     def construct_gate(self, c_instance):
         """constructs a single gate from a string and appends to the given ciruit"""
-        g_label = self.gate_set[int(self.genotype_str[0])]['label']
+        g_label = self.metadata.gate_set[int(self.genotype_str[0])]['label']
         
         if g_label=='not':
             c_instance.x(int(self.genotype_str[1]))
@@ -240,7 +240,7 @@ class ProblemParameters(ABC):
     def __init__(self, qubits, set_of_gates):
         self.qubit_count = qubits
         self.gate_set = set_of_gates
-        self.all_gate_combinations = self.generate_gate_combinations(set_of_gates)
+        self.all_gate_combinations = self.generate_gate_combinations()
 
     def generate_gate_combinations(self):
         """iterates through gate set to find all possible gate combinations;
@@ -341,15 +341,15 @@ class Evolution:
     def random_search(self):
         return
     
-    def stochastic_hill_climb(self, problem_parameters):
-        best_genotype = Genotype('')
+    def stochastic_hill_climb(self):
+        best_genotype = Genotype(self.metadata, '')
         best_genotype.msf = 0.0
         msf_trace = []
 
         for generation in range(self.GENERATION_COUNT):
             population = []
             for _ in range(self.GENERATION_SIZE):
-                g = Genotype(problem_parameters, min_len=30, max_len=45, random_falloff='linear')
+                g = Genotype(self.metadata, min_length=30, max_length=45, falloff='linear')
                 c = g.to_circuit()
                 m = self.metadata.specific_msf(c)
                 m_delta = m - best_genotype.msf
@@ -373,6 +373,7 @@ class Evolution:
         #best_genotype['circuit'].draw(output='mpl',style='iqp')
 
         plot_list(msf_trace, 'Generations', 'MSF')
+        return population
     
     ### ---------- EVOLUTIONARY SEARCH ----------
 
