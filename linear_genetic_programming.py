@@ -37,33 +37,33 @@ class Genotype:
         else:
             circuit_instance = QuantumCircuit(self.metadata.qubit_count)
             for k in self.to_list():
-                gate = int(k[0])
+                #gate = int(k[0])
                 #if len(k)-1 != self.gate_set[gate]['inputs']:
                 #    print('ERROR')
-                circuit_instance = self.construct_gate(circuit_instance)
+                circuit_instance = self.construct_gate(k, circuit_instance)
             self.circuit = circuit_instance
             return circuit_instance
     
-    def construct_gate(self, c_instance):
+    def construct_gate(self, genotype_string, c_instance):
         """constructs a single gate from a string and appends to the given ciruit"""
-        g_label = self.metadata.gate_set[int(self.genotype_str[0])]['label']
+        g_label = self.metadata.gate_set[int(genotype_string[0])]['label']
         
         if g_label=='not':
-            c_instance.x(int(self.genotype_str[1]))
+            c_instance.x(int(genotype_string[1]))
         elif g_label=='cnot':
-            c_instance.cx(int(self.genotype_str[1]),int(self.genotype_str[2]))
+            c_instance.cx(int(genotype_string[1]),int(genotype_string[2]))
         elif g_label=='had':
-            c_instance.h(int(self.genotype_str[1]))
+            c_instance.h(int(genotype_string[1]))
         elif g_label=='chad':
-            c_instance.ch(int(self.genotype_str[1]),int(self.genotype_str[2]))
+            c_instance.ch(int(genotype_string[1]),int(genotype_string[2]))
         elif g_label=='phase':
-            c_instance.p(math.pi/int(self.genotype_str[2]),int(self.genotype_str[1]))
+            c_instance.p(math.pi/int(genotype_string[2]),int(genotype_string[1]))
         elif g_label=='cphase':
-            c_instance.cp(math.pi/int(self.genotype_str[3]),int(self.genotype_str[1]),int(self.genotype_str[2]))
+            c_instance.cp(math.pi/int(genotype_string[3]),int(genotype_string[1]),int(genotype_string[2]))
         elif g_label=='t':
-            c_instance.t(int(self.genotype_str[1]))
+            c_instance.t(int(genotype_string[1]))
         elif g_label=='t_prime':
-            c_instance.tdg(int(self.genotype_str[1]))
+            c_instance.tdg(int(genotype_string[1]))
             
         return c_instance
     
@@ -126,7 +126,7 @@ class Genotype:
                 g_1_split = g_2_split = min(g_1_split, g_2_split)
             new_genotype_1 = genotype_1_list[:g_1_split] + genotype_2_list[g_2_split:]
             new_genotype_2 = genotype_2_list[:g_2_split] + genotype_1_list[g_1_split:]
-            return Genotype(''.join(new_genotype_1)), Genotype(''.join(new_genotype_2))
+            return Genotype(genotype_1.metadata, ''.join(new_genotype_1)), Genotype(genotype_1.metadata, ''.join(new_genotype_2))
     
     @staticmethod
     def mutation(genotype):
@@ -293,7 +293,7 @@ def plot_list(float_list, x_label=None, y_label=None):
         for j in range(len(float_list)):
             plt.plot(x_axis, float_list[-(j+1)], linewidth=20/(20+len(float_list)))
     else:
-        x_axis = [i+1 for i in range(len(float_list) + 1)]
+        x_axis = [i+1 for i in range(len(float_list))]
         plt.plot(x_axis, float_list)
     
     while len(x_axis) > 20:
@@ -357,6 +357,7 @@ class Evolution:
                 g = Genotype(self.metadata, min_length=30, max_length=45, falloff='linear')
                 c = g.to_circuit()
                 m = self.metadata.specific_msf(c)
+                g.msf = m
                 m_delta = m - best_genotype.msf
                 if m_delta > 0:
                     # only take better circuits
@@ -373,6 +374,8 @@ class Evolution:
 
 
         print('best random circuit:')
+        print(best_genotype.genotype_str)
+        print(best_genotype.to_list())
         print(best_genotype.to_circuit())
         print(best_genotype.msf)
         #best_genotype['circuit'].draw(output='mpl',style='iqp')
@@ -391,7 +394,7 @@ class Evolution:
         for g_1_index in range(len(inital_population)):
             for g_2_index in range(g_1_index+1,len(inital_population)):
                 for c in range(self.gamma):
-                    g_3, g_4 = Genotype.crossover(population[g_1_index],population[g_2_index], self.metadata.gate_set)
+                    g_3, g_4 = Genotype.crossover(population[g_1_index],population[g_2_index])
                     population.append(g_3)
                     population.append(g_4)
         # mutation operation for every genotype in the sample
@@ -400,9 +403,9 @@ class Evolution:
             for a in range(self.alpha):
                 g_2 = g_3 = g_4 = population[g_1_index]
                 for b in range(self.beta):
-                    g_2 = Genotype.mutation(g_2, self.metadata.gate_set)
-                    g_3 = Genotype.insertion(g_3, self.metadata.gate_set)
-                    g_4 = Genotype.deletion(g_4, self.metadata.gate_set)
+                    g_2 = Genotype.mutation(g_2)
+                    g_3 = Genotype.insertion(g_3)
+                    g_4 = Genotype.deletion(g_4)
                     for g in [g_2, g_3, g_4]:
                         population.append(g)
         return population
@@ -421,7 +424,7 @@ class Evolution:
                 while g_2 == g_1:
                     g_2 = random.choices(inital_population, weights=[g.msf for g in inital_population], k=1)[0]['genotype']
                 for c in range(self.gamma):
-                    g_3, g_4 = Genotype.crossover(g_1, g_2, self.metadata.gate_set)
+                    g_3, g_4 = Genotype.crossover(g_1, g_2)
                     population.append(g_3)
                     population.append(g_4)
             else:
@@ -429,11 +432,11 @@ class Evolution:
                     g_2 = g_1
                     for b in range(self.beta):
                         if operation=='mutation':
-                            g_2 = Genotype.mutation(g_2, self.metadata.gate_set)
+                            g_2 = Genotype.mutation(g_2)
                         elif operation=='insersion':
-                            g_2 = Genotype.insertion(g_2, self.metadata.gate_set)
+                            g_2 = Genotype.insertion(g_2)
                         elif operation=='deletion':
-                            g_2 = Genotype.deletion(g_2, self.metadata.gate_set)
+                            g_2 = Genotype.deletion(g_2)
                         population.append(g_2)
                 '''
                 if operation=='mutation':

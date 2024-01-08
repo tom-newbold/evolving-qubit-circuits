@@ -27,6 +27,12 @@ if __name__=="__main__":
                 {'label':'t_prime','inputs':1},
                 {'label':'chad','inputs':2},
                 {'label':'cphase','inputs':2,'parameters':1}]
+    
+    #GLOBAL_GATE_SET_SIMPLE = [{'label':'had','inputs':1},
+    #                      {'label':'cnot','inputs':2},
+    #                      {'label':'t','inputs':1},
+    #                      {'label':'t_prime','inputs':1}]
+    
     TOFFOLI = ToffoliGeneration(GATE_SET)
     E = Evolution(TOFFOLI)
     population = E.stochastic_hill_climb()
