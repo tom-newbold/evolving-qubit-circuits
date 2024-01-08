@@ -11,6 +11,7 @@ class Genotype:
         self.circuit = None
         self.metadata = problem_parameters
         self.msf = None
+        #self.source = ''
         if self.genotype_str==None:
             self.generate_random_genotype(min_length, max_length, falloff)#PARAMETERS
 
@@ -35,6 +36,7 @@ class Genotype:
         if self.circuit:
             return self.circuit
         else:
+            #print(self.to_list())
             circuit_instance = QuantumCircuit(self.metadata.qubit_count)
             for k in self.to_list():
                 #gate = int(k[0])
@@ -47,7 +49,8 @@ class Genotype:
     def construct_gate(self, genotype_string, c_instance):
         """constructs a single gate from a string and appends to the given ciruit"""
         g_label = self.metadata.gate_set[int(genotype_string[0])]['label']
-        
+
+
         if g_label=='not':
             c_instance.x(int(genotype_string[1]))
         elif g_label=='cnot':
@@ -69,6 +72,7 @@ class Genotype:
     
     #def generate_random_genotype(self, min_length=15, max_length=45, falloff='linear'):#, input_count_weighted=True):
     def generate_random_genotype(self, min_length, max_length, falloff):#, input_count_weighted=True):
+        """generates a random genotype according to the given parameters"""
         gradient = -1/(max_length-min_length)
         intercept = -max_length*gradient
         g = ''
@@ -102,6 +106,13 @@ class Genotype:
                     break
         self.genotype_str = g
         self.circuit = None
+        #self.source = 'random'
+
+    def get_msf(self):
+        """calculates msf for genotype and stores"""
+        m = self.metadata.specific_msf(self.to_circuit())
+        self.msf = m
+        return m
     
     ### ---------- EVOLUTIONARY OPERATORS ----------
     
@@ -127,6 +138,12 @@ class Genotype:
             new_genotype_1 = genotype_1_list[:g_1_split] + genotype_2_list[g_2_split:]
             new_genotype_2 = genotype_2_list[:g_2_split] + genotype_1_list[g_1_split:]
             return Genotype(genotype_1.metadata, ''.join(new_genotype_1)), Genotype(genotype_1.metadata, ''.join(new_genotype_2))
+            """g_1 = Genotype(genotype_1.metadata, ''.join(new_genotype_1))
+            g_2 = Genotype(genotype_1.metadata, ''.join(new_genotype_2))
+            g_1.source = 'crossover'
+            g_2.source = 'crossover'
+            return g_1, g_2"""
+    
     
     @staticmethod
     def mutation(genotype):
@@ -139,20 +156,13 @@ class Genotype:
         while gate==prev_gate:
             if random.random() < 0.5:
                 # mutate gate
-                # print('mutate gate')
                 old_gate_index = int(gate[0])
                 new_gate_index = random.randint(0,len(genotype.metadata.gate_set)-1)
                 if new_gate_index==old_gate_index:
                     continue
+                old_input_count = genotype.metadata.gate_set[old_gate_index]['inputs']
                 new_input_count = genotype.metadata.gate_set[new_gate_index]['inputs']
-                old_param_count = 0
-                new_param_count = 0
-                if genotype.metadata.gate_set[old_gate_index]['parameters']:
-                    old_param_count = genotype.metadata.gate_set[old_gate_index]['parameters']
-                if genotype.metadata.gate_set[new_gate_index]['parameters']:
-                    new_param_count = genotype.metadata.gate_set[new_gate_index]['parameters']
-                prev_inputs = gate[1:-old_param_count]
-                prev_params = gate[-old_param_count:]
+                prev_inputs = gate[1:1+old_input_count]
                 # adjust inputs
                 if len(prev_inputs) > new_input_count:
                     prev_inputs = prev_inputs[:new_input_count]
@@ -162,6 +172,18 @@ class Genotype:
                         i = str(random.randint(0,genotype.metadata.qubit_count-1))
                         if i not in prev_inputs:
                             prev_inputs += i
+
+                old_param_count = 0
+                new_param_count = 0
+                if 'parameters' in genotype.metadata.gate_set[old_gate_index]:
+                    old_param_count = genotype.metadata.gate_set[old_gate_index]['parameters']
+                if 'parameters' in genotype.metadata.gate_set[new_gate_index]:
+                    new_param_count = genotype.metadata.gate_set[new_gate_index]['parameters']
+                #if len(gate) != 1 + old_input_count + old_param_count:
+                #    print('## ERROR')
+                #print(f'old {old_input_count} new {new_input_count} input; old {old_param_count} new {new_param_count} param')
+
+                prev_params = gate[-old_param_count:] if old_param_count != 0 else ''
                 # adjust params
                 if len(prev_params) > new_param_count:
                     prev_params = prev_params[:new_param_count]
@@ -188,20 +210,29 @@ class Genotype:
                         # add parameters if required
                         gate += str(random.randint(1,9))"""
             else:
-                # mutate an input
-                # print('mutate input')
-                new_input = random.randint(0,genotype.metadata.qubit_count-1)
-                if len(gate)==2:
-                    gate = prev_gate[0] + str(new_input)
+                if 'parameters' in genotype.metadata.gate_set[int(gate[0])] and random.random() < 0.25:
+                    # mutate a parameter
+                    mutate_input = False
+                    param_count = genotype.metadata.gate_set[int(gate[0])]['parameters']
+                    index_to_change = random.randint(0,param_count-1)
+                    index_to_change += 1 + genotype.metadata.gate_set[int(gate[0])]['inputs']
+                    new_param = str(random.randint(1,9))
+                    gate = gate[:index_to_change] + str(new_param) + gate[index_to_change+1:]
                 else:
-                    index_to_change = random.randint(1,len(gate)-1)
-                    if str(new_input) not in prev_gate[1:index_to_change] + prev_gate[index_to_change+1:]:
+                    # mutate an input
+                    input_count = genotype.metadata.gate_set[int(gate[0])]['inputs']
+                    index_to_change = random.randint(1,input_count)
+                    new_input = random.randint(0,genotype.metadata.qubit_count-1)
+                    if str(new_input) not in prev_gate[1:1+input_count]:
                         # adds new input if not a duplicate
                         # print('inserting new input')
-                        gate = prev_gate[:index_to_change] + str(new_input) + prev_gate[index_to_change+1:]
+                        gate = gate[:index_to_change] + str(new_input) + gate[index_to_change+1:]
 
         genotype_list[mutation_point] = gate
-        return ''.join(genotype_list)
+        return Genotype(genotype.metadata, ''.join(genotype_list))
+        """g = Genotype(genotype.metadata, ''.join(genotype_list))
+        g.source = 'mutation'
+        return g"""
     
     @staticmethod
     def insertion(genotype):
@@ -215,7 +246,7 @@ class Genotype:
             if x not in inputs:
                 inputs.append(x)
         params = []
-        if genotype.metadata.gate_set[new_gate]['parameters']:
+        if 'parameters' in genotype.metadata.gate_set[new_gate]:
             while len(params) < genotype.metadata.gate_set[new_gate]['parameters']:
                 params.append(str(random.randint(1,9)))
         g_add += ''.join(inputs) + ''.join(params)
@@ -223,7 +254,11 @@ class Genotype:
         # insert at random position
         genotype_list = genotype.to_list()
         genotype_add_index = random.randint(0,len(genotype_list)-1)
-        return ''.join(genotype_list[:genotype_add_index]) + g_add + ''.join(genotype_list[genotype_add_index:])
+        new_string = ''.join(genotype_list[:genotype_add_index]) + g_add + ''.join(genotype_list[genotype_add_index:])
+        return Genotype(genotype.metadata, new_string)
+        """g = Genotype(genotype.metadata, new_string)
+        g.source = 'insertion'
+        return g"""
 
     @staticmethod
     def deletion(genotype):
@@ -232,7 +267,11 @@ class Genotype:
         if len(genotype_list)<=1:
             return genotype
         genotype_remove_index = random.randint(0,len(genotype_list)-1)
-        return ''.join(genotype_list[:genotype_remove_index] + genotype_list[genotype_remove_index+1:])
+        new_string = ''.join(genotype_list[:genotype_remove_index] + genotype_list[genotype_remove_index+1:])
+        return Genotype(genotype.metadata, new_string)
+        """g = Genotype(genotype.metadata, new_string)
+        g.source = 'deletion'
+        return g"""
 
 
 
@@ -284,6 +323,8 @@ class ProblemParameters(ABC):
     @abstractmethod
     def specific_msf(self, candidate_circuit):
         pass
+
+    # function to check correctness? unsure how to intergrate with specific and non-specific msf
 
 
 def plot_list(float_list, x_label=None, y_label=None):
@@ -344,7 +385,34 @@ class Evolution:
             return sorted(by_fitness, key=lambda genotype: len(genotype.genotype_str), reverse=prefer_long_circuits)
         
     def random_search(self):
-        return
+        msf_trace = [[] for i in range(self.SAMPLE_SIZE)]
+        population = []
+
+        for generation in range(self.GENERATION_COUNT):
+            for _ in range(self.GENERATION_SIZE):
+                g = Genotype(self.metadata, min_length=30, max_length=45, falloff='linear')
+                g.get_msf()
+                population.append(g)
+            # sort population by fitness, take top 5
+            population = self.top_by_fitness(population)
+            # each run compares the 100 new programs with the
+            # 5 carried forward from the previous generation
+            print(f'Generation {generation+1} best: {population[0].genotype_str}')
+            for x in range(self.SAMPLE_SIZE):
+                msf_trace[x].append(population[x].msf)
+
+        s = min(self.SAMPLE_SIZE, len(population))
+        print(f'top {s}:')
+        for i in range(s):
+            print(population[i].genotype_str)
+            print(population[i].msf)
+
+        print('best random circuit:')
+        #population[0]['circuit'].draw(output='mpl',style='iqp')
+        print(population[0].to_circuit())
+
+        plot_list(msf_trace, 'Generations', 'MSF')
+        return population
     
     def stochastic_hill_climb(self):
         best_genotype = Genotype(self.metadata, '')
@@ -355,9 +423,7 @@ class Evolution:
             population = []
             for _ in range(self.GENERATION_SIZE):
                 g = Genotype(self.metadata, min_length=30, max_length=45, falloff='linear')
-                c = g.to_circuit()
-                m = self.metadata.specific_msf(c)
-                g.msf = m
+                m = g.get_msf()
                 m_delta = m - best_genotype.msf
                 if m_delta > 0:
                     # only take better circuits
@@ -385,11 +451,10 @@ class Evolution:
     
     ### ---------- EVOLUTIONARY SEARCH ----------
 
-    @staticmethod
     def develop_circuits_uniform(self, inital_population):
         '''use a prespecified distribution of search operators
         population should be sorted by msf'''
-        population = [x['genotype'] for x in inital_population]
+        population = inital_population.copy()
         # crossover operation for every pair of genotypes in the sample
         for g_1_index in range(len(inital_population)):
             for g_2_index in range(g_1_index+1,len(inital_population)):
@@ -410,19 +475,18 @@ class Evolution:
                         population.append(g)
         return population
 
-    @staticmethod
     def develop_circuits_random(self, inital_population, operation_count):
         '''use a random assortment of search operators'''
-        population = [g.genotype_str for g in inital_population]
+        population = inital_population.copy()
         for o in range(operation_count):
             # randomly select from the search operators
             operation = random.choices(population=['crossover', 'mutation', 'insersion', 'deletion'],weights=[0.4,0.5,0.05,0.05], k=1)[0]
             # randomly select a genotype
-            g_1 = random.choices(inital_population, weights=[g.msf for g in inital_population], k=1)[0]['genotype']
+            g_1 = random.choices(inital_population, weights=[g.msf for g in inital_population], k=1)[0]
             if operation == 'crossover':
                 g_2 = g_1
                 while g_2 == g_1:
-                    g_2 = random.choices(inital_population, weights=[g.msf for g in inital_population], k=1)[0]['genotype']
+                    g_2 = random.choices(inital_population, weights=[g.msf for g in inital_population], k=1)[0]
                 for c in range(self.gamma):
                     g_3, g_4 = Genotype.crossover(g_1, g_2)
                     population.append(g_3)
@@ -460,13 +524,53 @@ class Evolution:
                 '''
         return population
 
-    @staticmethod
     def develop_circuits_combined(self, inital_population, operation_count=250):
-        population_uniform = self.develop_circuits_uniform(inital_population, self.metadata.gate_set)#[len(inital_population):]
+        population_uniform = self.develop_circuits_uniform(inital_population)#[len(inital_population):]
         #print(2*len(population_uniform)//3)
-        population_random = self.develop_circuits_random(inital_population, self.matadata.gate_set,
-                                                         operation_count)[len(inital_population):]
+        population_random = self.develop_circuits_random(inital_population, operation_count)[len(inital_population):]
         return population_uniform + population_random
     
-    def evolutionary_search(self):
-        return
+    def evolutionary_search(self, MINIMUM_FITNESS=0.75):
+        msf_trace = [[] for _ in range(self.SAMPLE_SIZE)]
+
+        population = []
+        while len(population) < self.SAMPLE_SIZE//2:
+            for _ in range(self.GENERATION_SIZE):
+                g = Genotype(self.metadata, min_length=30, max_length=60)
+                g.get_msf()
+                population.append(g)
+            population = self.top_by_fitness(population)
+            if population[-1].msf >= MINIMUM_FITNESS:
+                break
+            else:
+                for i in range(len(population)):
+                    if population[i].msf < MINIMUM_FITNESS:
+                        population = population[:i]
+                        break
+        print(f'Generation 1 Best Genotype: {population[0].genotype_str}')
+        print(f'Generation 1 Size: {len(population)}')
+
+        for i in range(self.GENERATION_COUNT-1):
+            new_population = self.develop_circuits_combined(population)
+            population = []
+            for g in new_population:
+                g.get_msf()
+                population.append(g)
+            population = self.top_by_fitness(population, remove_dupe=False)
+            while population[-1].msf < MINIMUM_FITNESS:
+                population.pop(-1)
+            print(f'Generation {i+2} Best Genotype: {population[0].genotype_str}')
+            print(f'Generation {i+2} Best Fitness: {population[0].msf}')
+            for k in range(self.SAMPLE_SIZE):
+                msf_trace[k].append(population[k].msf)
+
+        # output
+        print(f'Top {self.SAMPLE_SIZE} genotypes:')
+        for i in range(self.SAMPLE_SIZE):
+            print(population[i].genotype_str)
+            print(population[i].msf)
+        print('best circuit:')
+        print(population[0].to_circuit())
+        plot_list(msf_trace, 'Generations', 'MSF')
+
+        return population
