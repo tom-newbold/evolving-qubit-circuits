@@ -1,4 +1,5 @@
 from linear_genetic_programming import ProblemParameters, Evolution, list_to_state
+from time import time
 
 class ToffoliGeneration(ProblemParameters):
     def __init__(self, set_of_gates):
@@ -18,12 +19,26 @@ class ToffoliGeneration(ProblemParameters):
                         [list_to_state(x) for x in self.toffoli_inputs],
                         [list_to_state(y) for y in self.toffoli_outputs])
     
+def remaining_time_calc(i, total, start_time):
+    remaining_time = (time()-start_time)*(total-i)/i
+    if remaining_time > 0.001:
+        if remaining_time < 60:
+            remaining_time = f'{remaining_time:.03f} seconds'
+        elif remaining_time < 3600:
+            remaining_time /= 60
+            remaining_time = f'{int(remaining_time)} minuites {int((remaining_time-int(remaining_time))*60)} seconds'
+        else:
+            remaining_time /= 3600
+            remaining_time = f'{int(remaining_time)} hours {int((remaining_time-int(remaining_time))*60)} minuites'
+        print(f"expected remaining runtime = {remaining_time}")
+
 def grid_search(evolution):
     """performs a grid search of the 'primary' parameters associated with genotype generation"""
     results = []
     lengths = ([0,15,30,45],[30,45,60])
     falloff = ['linear','logarithmic','reciprocal']
 
+    start_time = time()
     i = 1
     total = len(lengths[1]) * (len(falloff)*len(lengths[0]) + 1)
     for max_len in lengths[1]:
@@ -32,15 +47,31 @@ def grid_search(evolution):
                 if min_len>=max_len:
                     i+=1
                     continue
+                remaining_time_calc(i, total ,start_time)
                 print(f"TEST {i}/{total} - checking min:{min_len} max:{max_len} falloff:{f}")
+                print(f"[{i*'#'}{(total-i)*'_'}]")
                 best_genotype = evolution.evolutionary_search(min_length=min_len, max_length=max_len, falloff=f, plot_msf=False)[0]
                 results.append({'min':min_len, 'max':max_len, 'falloff':f, 'best':best_genotype})
                 i+=1
+        remaining_time_calc(i, total ,start_time)
         print(f"TEST {i}/{total} - checking max:{max_len} falloff:None")
+        print(f"[{i*'#'}{(total-i)*'_'}]")
         best_genotype = evolution.evolutionary_search(min_length=0, max_length=max_len, falloff=None, plot_msf=False)[0]
         results.append({'min':0, 'max':max_len, 'falloff':None, 'best':best_genotype})
         i+=1
 
+    ### ---- time ----
+    time_taken = time()-start_time
+    if time_taken < 60:
+        time_taken = f'{time_taken:.03f} seconds'
+    elif time_taken < 3600:
+        time_taken /= 60
+        time_taken = f'{int(time_taken)} minuites {int((time_taken-int(time_taken))*60)} seconds'
+    else:
+        time_taken /= 3600
+        time_taken = f'{int(time_taken)} hours {int((time_taken-int(time_taken))*60)} minuites'
+    print(f"total time taken = {time_taken}")
+    
     for r in results:
         print(f"min:{r['min']} max:{r['max']} falloff:{r['falloff']}")
         print(f"genotype: {r['best'].genotype_str}")
@@ -69,6 +100,7 @@ if __name__=="__main__":
     #population = E.random_search()
     #population = E.stochastic_hill_climb()
     #population = E.evolutionary_search()
+    #for i in range(5):
     grid_search(Evolution(TOFFOLI, sample=10, number_of_generations=20,
                           individuals_per_generation=50, alpha=1, beta=2))
 
