@@ -32,7 +32,14 @@ def remaining_time_calc(i, total, start_time):
             remaining_time = f'{int(remaining_time)} hours {int((remaining_time-int(remaining_time))*60)} minuites'
         print(f"expected remaining runtime = {remaining_time}")
 
-def grid_search(evolution):
+def run_with_params(evolution, x, iterations, i, total, start_time, min_len, max_len, falloff):
+    remaining_time_calc(i, total ,start_time)
+    print(f"LOOP {x+1}/{iterations} TEST {(i-1)%total + 1}/{total} - checking min:{min_len} max:{max_len} falloff:{falloff}")
+    print(f"[{i*'#'}{(total-i)*'_'}]")
+    best_genotype = evolution.evolutionary_search(min_length=min_len, max_length=max_len, falloff=falloff, plot_msf=False)[0]
+    return {'min':min_len, 'max':max_len, 'falloff':falloff, 'best':best_genotype}
+
+def grid_search(evolution, iterations=1):
     """performs a grid search of the 'primary' parameters associated with genotype generation"""
     results = []
     lengths = ([0,15,30,45],[30,45,60])
@@ -41,24 +48,19 @@ def grid_search(evolution):
     start_time = time()
     i = 1
     total = len(lengths[1]) * (len(falloff)*len(lengths[0]) + 1)
-    for max_len in lengths[1]:
-        for f in falloff:
-            for min_len in lengths[0]:
-                if min_len>=max_len:
+    for x in range(iterations):
+        for max_len in lengths[1]:
+            for f in falloff:
+                for min_len in lengths[0]:
+                    if min_len>=max_len:
+                        i+=1
+                        continue
+                    results.append(run_with_params(evolution, x, iterations, i, total,
+                                                   start_time, min_len, max_len, f))
                     i+=1
-                    continue
-                remaining_time_calc(i, total ,start_time)
-                print(f"TEST {i}/{total} - checking min:{min_len} max:{max_len} falloff:{f}")
-                print(f"[{i*'#'}{(total-i)*'_'}]")
-                best_genotype = evolution.evolutionary_search(min_length=min_len, max_length=max_len, falloff=f, plot_msf=False)[0]
-                results.append({'min':min_len, 'max':max_len, 'falloff':f, 'best':best_genotype})
-                i+=1
-        remaining_time_calc(i, total ,start_time)
-        print(f"TEST {i}/{total} - checking max:{max_len} falloff:None")
-        print(f"[{i*'#'}{(total-i)*'_'}]")
-        best_genotype = evolution.evolutionary_search(min_length=0, max_length=max_len, falloff=None, plot_msf=False)[0]
-        results.append({'min':0, 'max':max_len, 'falloff':None, 'best':best_genotype})
-        i+=1
+            results.append(run_with_params(evolution, x, iterations, i, total,
+                                           start_time, 0, max_len, None))
+            i+=1
 
     ### ---- time ----
     time_taken = time()-start_time
@@ -71,8 +73,11 @@ def grid_search(evolution):
         time_taken /= 3600
         time_taken = f'{int(time_taken)} hours {int((time_taken-int(time_taken))*60)} minuites'
     print(f"total time taken = {time_taken}")
+
+    results = sorted(results, key=lambda result: result['best'].msf, reverse=True)
     
-    for r in results:
+    for j, r in enumerate(results):
+        print(f'## {j}')
         print(f"min:{r['min']} max:{r['max']} falloff:{r['falloff']}")
         print(f"genotype: {r['best'].genotype_str}")
         print(f"msf: {r['best'].msf}")
@@ -100,9 +105,9 @@ if __name__=="__main__":
     #population = E.random_search()
     #population = E.stochastic_hill_climb()
     #population = E.evolutionary_search()
-    #for i in range(5):
     grid_search(Evolution(TOFFOLI, sample=10, number_of_generations=20,
                           individuals_per_generation=50, alpha=1, beta=2))
+    #grid_search(Evolution(TOFFOLI),3)
 
     ### --- check best circuit ---
     """
