@@ -151,3 +151,98 @@ q_1: ┤ P(π/2) ├─■───────┤ P(π/2) ├──■───
      └────────┘ │P(π/2) └─┬───┬──┘          ┌─┴─┐┌─┴─┐┌─┴─┐┌───┐          │P(π/2) 
 q_2: ───────────■─────────┤ X ├─────────────┤ H ├┤ X ├┤ H ├┤ X ├──────────■───────
                           └───┘             └───┘└───┘└───┘└───┘         
+
+
+first grid search
+params: sample=10, gen_count=20, gen_size=50, alpha=1, beta=2
+
+min:0 max:30 falloff:linear
+genotype: 71027015
+msf: 0.76171875
+min:15 max:30 falloff:linear
+genotype: 314512121212
+msf: 0.76171875
+min:0 max:30 falloff:logarithmic
+genotype: 212221221201201220220
+msf: 0.76171875
+min:15 max:30 falloff:logarithmic
+genotype: 602202612202602612
+msf: 1.013671875 <<<---
+min:0 max:30 falloff:reciprocal
+genotype: 202
+msf: 0.76171875
+min:15 max:30 falloff:reciprocal
+genotype: 720172016026125270222024261260250
+msf: 1.013671875 <<<---
+min:0 max:30 falloff:None
+genotype: 20271062021111221221
+msf: 0.76171875
+min:0 max:45 falloff:linear
+genotype: 610610
+msf: 0.76171875
+min:15 max:45 falloff:linear
+genotype: 701121271087109212202202
+msf: 0.76171875
+min:30 max:45 falloff:linear
+genotype: 1102111212612720102612202
+msf: 1.013671875 <<<---
+min:0 max:45 falloff:logarithmic
+genotype: 7015
+msf: 0.76171875
+min:15 max:45 falloff:logarithmic
+genotype: 612720272026124252221221
+msf: 1.013671875 <<<---
+min:30 max:45 falloff:logarithmic
+genotype: 70137014701560272167013712272157128602
+msf: 1.0097227906219448
+min:0 max:45 falloff:reciprocal
+genotype: 7105
+msf: 0.76171875
+min:15 max:45 falloff:reciprocal
+genotype: 6127201612
+msf: 1.013671875 <<<---
+min:30 max:45 falloff:reciprocal
+genotype: 60270151261261271217107126027014
+msf: 1.009765625
+min:0 max:45 falloff:None
+genotype: 710321260240101220210314517102504050212507101602
+msf: 1.0078124999999993
+min:0 max:60 falloff:linear
+genotype: 601202601
+msf: 0.76171875
+min:15 max:60 falloff:linear
+genotype: 6027213721371297219712960212120000
+msf: 1.013671875 <<<---
+min:30 max:60 falloff:linear
+genotype: 6021170137206612702270237017612712711602
+msf: 1.005783012225599
+min:45 max:60 falloff:linear
+genotype: 7124212210702450304602712160221051
+msf: 1.01171875
+min:0 max:60 falloff:logarithmic
+genotype: 202
+msf: 0.76171875
+min:15 max:60 falloff:logarithmic
+genotype: 5121260221260241
+msf: 1.013671875 <<<---
+min:30 max:60 falloff:logarithmic
+genotype: 20272087021312702272146122023167108612313
+msf: 1.0078125
+min:45 max:60 falloff:logarithmic
+genotype: 710350318517104612720140710761270173187201
+msf: 1.01171875
+min:0 max:60 falloff:reciprocal
+genotype: 7109
+msf: 0.76171875
+min:15 max:60 falloff:reciprocal
+genotype: 7101212212212212
+msf: 0.76171875
+min:30 max:60 falloff:reciprocal
+genotype: 610610221221602721130460250
+msf: 1.013671875 <<<---
+min:45 max:60 falloff:reciprocal
+genotype: 402012021212612702370237023516124021050701221020150
+msf: 1.013671875 <<<---
+min:0 max:60 falloff:None
+genotype: 72167216702170125012602424042423240012712571257122005160211602117129602
+msf: 1.0057832283773864

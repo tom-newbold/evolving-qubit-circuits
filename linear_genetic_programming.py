@@ -96,7 +96,10 @@ class Genotype:
                 if random.random() > intercept + gradient*len(g):
                     break
             elif falloff=='logarithmic':
-                if random.random() > math.log10(1-9*(len(g)-max_length)/(max_length-min_length)):
+                try:
+                    if random.random() > math.log10(1-9*(len(g)-max_length)/(max_length-min_length)):
+                        break
+                except:
                     break
             elif falloff=='reciprocal':
                 if random.random() > min_length/len(g):
@@ -530,13 +533,13 @@ class Evolution:
         population_random = self.develop_circuits_random(inital_population, operation_count)[len(inital_population):]
         return population_uniform + population_random
     
-    def evolutionary_search(self, MINIMUM_FITNESS=0.75):
+    def evolutionary_search(self, min_length=30, max_length=60, falloff=None, MINIMUM_FITNESS=0.75, plot_msf=True):
         msf_trace = [[] for _ in range(self.SAMPLE_SIZE)]
 
         population = []
         while len(population) < self.SAMPLE_SIZE//2:
             for _ in range(self.GENERATION_SIZE):
-                g = Genotype(self.metadata, min_length=30, max_length=60)
+                g = Genotype(self.metadata, min_length=min_length, max_length=max_length, falloff=falloff)
                 g.get_msf()
                 population.append(g)
             population = self.top_by_fitness(population)
@@ -571,6 +574,8 @@ class Evolution:
             print(population[i].msf)
         print('best circuit:')
         print(population[0].to_circuit())
-        plot_list(msf_trace, 'Generations', 'MSF')
+
+        if plot_msf:
+            plot_list(msf_trace, 'Generations', 'MSF')
 
         return population
