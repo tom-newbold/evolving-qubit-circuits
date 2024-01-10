@@ -387,7 +387,7 @@ class Evolution:
         else:
             return sorted(by_fitness, key=lambda genotype: len(genotype.genotype_str), reverse=prefer_long_circuits)
         
-    def random_search(self):
+    def random_search(self, output=True):
         msf_trace = [[] for i in range(self.SAMPLE_SIZE)]
         population = []
 
@@ -400,24 +400,26 @@ class Evolution:
             population = self.top_by_fitness(population)
             # each run compares the 100 new programs with the
             # 5 carried forward from the previous generation
-            print(f'Generation {generation+1} best: {population[0].genotype_str}')
-            for x in range(self.SAMPLE_SIZE):
-                msf_trace[x].append(population[x].msf)
+            if output:
+                print(f'Generation {generation+1} best: {population[0].genotype_str}')
+                for x in range(self.SAMPLE_SIZE):
+                    msf_trace[x].append(population[x].msf)
 
-        s = min(self.SAMPLE_SIZE, len(population))
-        print(f'top {s}:')
-        for i in range(s):
-            print(population[i].genotype_str)
-            print(population[i].msf)
+        if output:
+            s = min(self.SAMPLE_SIZE, len(population))
+            print(f'top {s}:')
+            for i in range(s):
+                print(population[i].genotype_str)
+                print(population[i].msf)
 
-        print('best random circuit:')
-        #population[0]['circuit'].draw(output='mpl',style='iqp')
-        print(population[0].to_circuit())
+            print('best random circuit:')
+            #population[0]['circuit'].draw(output='mpl',style='iqp')
+            print(population[0].to_circuit())
 
-        plot_list(msf_trace, 'Generations', 'MSF')
+            plot_list(msf_trace, 'Generations', 'MSF')
         return population
     
-    def stochastic_hill_climb(self):
+    def stochastic_hill_climb(self, output=True):
         best_genotype = Genotype(self.metadata, '')
         best_genotype.msf = 0.0
         msf_trace = []
@@ -438,18 +440,19 @@ class Evolution:
                 # select a random genotype, using the msf improvements as weights
                 best_genotype = random.choices(population, weights=[(g.msf - best_genotype.msf) for g in population], k=1)[0]
 
-            print(f'Generation {generation+1} best: {best_genotype.genotype_str}')
-            msf_trace.append(best_genotype.msf)
+            if output:
+                print(f'Generation {generation+1} best: {best_genotype.genotype_str}')
+                msf_trace.append(best_genotype.msf)
 
+        if output:
+            print('best random circuit:')
+            print(best_genotype.genotype_str)
+            print(best_genotype.to_list())
+            print(best_genotype.to_circuit())
+            print(best_genotype.msf)
+            #best_genotype['circuit'].draw(output='mpl',style='iqp')
 
-        print('best random circuit:')
-        print(best_genotype.genotype_str)
-        print(best_genotype.to_list())
-        print(best_genotype.to_circuit())
-        print(best_genotype.msf)
-        #best_genotype['circuit'].draw(output='mpl',style='iqp')
-
-        plot_list(msf_trace, 'Generations', 'MSF')
+            plot_list(msf_trace, 'Generations', 'MSF')
         return population
     
     ### ---------- EVOLUTIONARY SEARCH ----------
@@ -533,7 +536,7 @@ class Evolution:
         population_random = self.develop_circuits_random(inital_population, operation_count)[len(inital_population):]
         return population_uniform + population_random
     
-    def evolutionary_search(self, min_length=30, max_length=60, falloff=None, MINIMUM_FITNESS=0.75, plot_msf=True):
+    def evolutionary_search(self, min_length=30, max_length=60, falloff=None, MINIMUM_FITNESS=0.75, output=True):
         msf_trace = [[] for _ in range(self.SAMPLE_SIZE)]
 
         population = []
@@ -550,8 +553,9 @@ class Evolution:
                     if population[i].msf < MINIMUM_FITNESS:
                         population = population[:i]
                         break
-        print(f'Generation 1 Best Genotype: {population[0].genotype_str}')
-        print(f'Generation 1 Size: {len(population)}')
+        if output:
+            print(f'Generation 1 Best Genotype: {population[0].genotype_str}')
+            print(f'Generation 1 Size: {len(population)}')
 
         for i in range(self.GENERATION_COUNT-1):
             new_population = self.develop_circuits_combined(population)
@@ -562,20 +566,22 @@ class Evolution:
             population = self.top_by_fitness(population, remove_dupe=False)
             while population[-1].msf < MINIMUM_FITNESS:
                 population.pop(-1)
-            print(f'Generation {i+2} Best Genotype: {population[0].genotype_str}')
-            print(f'Generation {i+2} Best Fitness: {population[0].msf}')
-            for k in range(self.SAMPLE_SIZE):
-                msf_trace[k].append(population[k].msf)
+            
+            if output:
+                print(f'Generation {i+2} Best Genotype: {population[0].genotype_str}')
+                print(f'Generation {i+2} Best Fitness: {population[0].msf}')
+                for k in range(self.SAMPLE_SIZE):
+                    msf_trace[k].append(population[k].msf)
 
         # output
-        print(f'Top {self.SAMPLE_SIZE} genotypes:')
-        for i in range(self.SAMPLE_SIZE):
-            print(population[i].genotype_str)
-            print(population[i].msf)
-        print('best circuit:')
-        print(population[0].to_circuit())
+        if output:
+            print(f'Top {self.SAMPLE_SIZE} genotypes:')
+            for i in range(self.SAMPLE_SIZE):
+                print(population[i].genotype_str)
+                print(population[i].msf)
+            print('best circuit:')
+            print(population[0].to_circuit())
 
-        if plot_msf:
             plot_list(msf_trace, 'Generations', 'MSF')
 
         return population
