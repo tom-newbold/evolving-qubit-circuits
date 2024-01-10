@@ -1,5 +1,6 @@
-from linear_genetic_programming import ProblemParameters, Evolution, list_to_state, plot_list
+from linear_genetic_programming import ProblemParameters, Evolution, list_to_state
 from time import time
+import matplotlib.pyplot as plt
 
 class ToffoliGeneration(ProblemParameters):
     def __init__(self, set_of_gates):
@@ -22,20 +23,25 @@ class ToffoliGeneration(ProblemParameters):
 def remaining_time_calc(remaining_time):
     if remaining_time > 0.001:
         if remaining_time < 60:
-            remaining_time = f'{remaining_time:.03f} seconds'
+            remaining_time = f'{remaining_time:.01f} seconds'
         elif remaining_time < 3600:
             remaining_time /= 60
             remaining_time = f'{int(remaining_time)} minuites {int((remaining_time-int(remaining_time))*60)} seconds'
         else:
             remaining_time /= 3600
             remaining_time = f'{int(remaining_time)} hours {int((remaining_time-int(remaining_time))*60)} minuites'
+    return remaining_time
 
 def run_with_params(evolution, x, iterations, i, total, start_time, min_len, max_len, falloff):
     run_start = time()
     estimated_total_time = (run_start-start_time)*total/i
-    print(f"expected total runtime = {remaining_time_calc(estimated_total_time)}")
     remaining_time = estimated_total_time*(1+total-i)/total
-    print(f"expected remaining runtime = {remaining_time_calc(remaining_time)}")
+    estimated_total_time = remaining_time_calc(estimated_total_time)
+    if estimated_total_time:
+        print(f"expected total runtime = {estimated_total_time}")
+    remaining_time = remaining_time_calc(remaining_time)
+    if remaining_time:
+        print(f"expected remaining runtime = {remaining_time}")
     print(f"LOOP {x+1}/{iterations} TEST {(i-1)%total + 1}/{total} - checking min:{min_len} max:{max_len} falloff:{falloff}")
     best_genotype = evolution.evolutionary_search(min_length=min_len, max_length=max_len, falloff=falloff, output=False)[0]
     print(f"actual runtime = {remaining_time_calc(time()-run_start)}")
@@ -53,7 +59,7 @@ def grid_search(evolution, iterations=1):
     i = 1
     total = len(lengths[1]) * (len(falloff)*len(lengths[0]) + 1)
     for x in range(iterations):
-        for max_len in lengths[1]:
+        for max_len in lengths[1][::-1]:#reversed for more accurate time estimates??
             for f in falloff:
                 for min_len in lengths[0]:
                     if min_len>=max_len:
@@ -71,7 +77,9 @@ def grid_search(evolution, iterations=1):
     ### ---- time ----
     time_taken = time()-start_time
     print(f"total time taken = {remaining_time_calc(time_taken)}")
-    plot_list(_time_estimate_plot)
+    plt.plot([x/60 for x in _time_estimate_plot])
+    plt.ylabel('minuites')
+    plt.show()
 
     results = sorted(results, key=lambda result: result['best'].msf, reverse=True)
     
@@ -104,9 +112,10 @@ if __name__=="__main__":
     #population = E.random_search()
     #population = E.stochastic_hill_climb()
     #population = E.evolutionary_search()
-    grid_search(Evolution(TOFFOLI, sample=10, number_of_generations=20,
-                          individuals_per_generation=50, alpha=1, beta=2))
-    #grid_search(Evolution(TOFFOLI),3)
+    
+    #grid_search(Evolution(TOFFOLI, sample=10, number_of_generations=20,
+    #                      individuals_per_generation=50, alpha=1, beta=2))
+    grid_search(Evolution(TOFFOLI),3)
 
     ### --- check best circuit ---
     """
