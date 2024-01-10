@@ -30,22 +30,24 @@ def remaining_time_calc(remaining_time):
         else:
             remaining_time /= 3600
             remaining_time = f'{int(remaining_time)} hours {int((remaining_time-int(remaining_time))*60)} minuites'
-    return remaining_time
+        return remaining_time
 
-def run_with_params(evolution, x, iterations, i, total, start_time, min_len, max_len, falloff):
+def run_with_params(evolution, x, iterations, i, total, start_time, min_len, max_len, falloff, _time_estimate_plot):
     run_start = time()
-    estimated_total_time = (run_start-start_time)*total*iterations/(i + x*iterations)
-    remaining_time = estimated_total_time*(1+total*iterations-(i + x*iterations))/total*iterations
-    estimated_total_time = remaining_time_calc(estimated_total_time)
-    if estimated_total_time:
-        print(f"expected total runtime = {estimated_total_time}")
-    remaining_time = remaining_time_calc(remaining_time)
-    if remaining_time:
-        print(f"expected remaining runtime = {remaining_time}")
+    if i!=1:
+        estimated_total_time = (run_start-start_time)*total*iterations/(i-1)
+        _time_estimate_plot.append(estimated_total_time)
+        remaining_time = estimated_total_time*(total*iterations-(i-1))/(total*iterations)
+        estimated_total_time = remaining_time_calc(estimated_total_time)
+        if estimated_total_time:
+            print(f"expected total runtime = {estimated_total_time}")
+        remaining_time = remaining_time_calc(remaining_time)
+        if remaining_time:
+            print(f"expected remaining runtime = {remaining_time}")
     print(f"LOOP {x+1}/{iterations} TEST {(i-1)%total + 1}/{total} - checking min:{min_len} max:{max_len} falloff:{falloff}")
     best_genotype = evolution.evolutionary_search(min_length=min_len, max_length=max_len, falloff=falloff, output=False)[0]
     print(f"actual runtime = {remaining_time_calc(time()-run_start)}")
-    print(f"[{i*'#'}{(total-i)*'_'}]")
+    print(f"[{x*'0'}{(iterations-x)*'.'}] [{(i%total)*'#'}{(total-(i%total))*'_'}]")
     return {'min':min_len, 'max':max_len, 'falloff':falloff, 'best':best_genotype}
 
 def grid_search(evolution, iterations=1):
@@ -65,13 +67,13 @@ def grid_search(evolution, iterations=1):
                     if min_len>=max_len:
                         i+=1
                         continue
-                    _time_estimate_plot.append((time()-start_time)*total/i)
                     results.append(run_with_params(evolution, x, iterations, i, total,
-                                                   start_time, min_len, max_len, f))
+                                                   start_time, min_len, max_len, f,
+                                                   _time_estimate_plot))
                     i+=1
-            _time_estimate_plot.append((time()-start_time)*total/i)
             results.append(run_with_params(evolution, x, iterations, i, total,
-                                           start_time, 0, max_len, None))
+                                           start_time, 0, max_len, None,
+                                           _time_estimate_plot))
             i+=1
 
     ### ---- time ----
