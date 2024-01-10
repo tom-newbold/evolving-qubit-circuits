@@ -34,8 +34,8 @@ def remaining_time_calc(remaining_time):
 
 def run_with_params(evolution, x, iterations, i, total, start_time, min_len, max_len, falloff):
     run_start = time()
-    estimated_total_time = (run_start-start_time)*total/i
-    remaining_time = estimated_total_time*(1+total-i)/total
+    estimated_total_time = (run_start-start_time)*total*iterations/(i + x*iterations)
+    remaining_time = estimated_total_time*(1+total*iterations-(i + x*iterations))/total*iterations
     estimated_total_time = remaining_time_calc(estimated_total_time)
     if estimated_total_time:
         print(f"expected total runtime = {estimated_total_time}")
@@ -112,7 +112,7 @@ if __name__=="__main__":
     #population = E.random_search()
     #population = E.stochastic_hill_climb()
     #population = E.evolutionary_search()
-    
+
     #grid_search(Evolution(TOFFOLI, sample=10, number_of_generations=20,
     #                      individuals_per_generation=50, alpha=1, beta=2))
     grid_search(Evolution(TOFFOLI),3)
