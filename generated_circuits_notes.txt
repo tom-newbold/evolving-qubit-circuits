@@ -246,3 +246,369 @@ msf: 1.013671875 <<<---
 min:0 max:60 falloff:None
 genotype: 72167216702170125012602424042423240012712571257122005160211602117129602
 msf: 1.0057832283773864
+
+
+GRID SEARCH RESULTS
+3 loops; 39 combinations
+
+total time taken = 3 hours 51 minuites
+## 1
+min:15 max:60 falloff:linear
+genotype: 40602507121602
+msf: 1.013671875
+## 2
+min:30 max:60 falloff:linear
+genotype: 415160202212202602123011230102202
+msf: 1.013671875
+## 3
+min:45 max:60 falloff:linear
+genotype: 51712102701270121072127122602212524122110324221602
+msf: 1.013671875
+## 4
+min:15 max:60 falloff:logarithmic
+genotype: 6127201612
+msf: 1.013671875
+## 5
+min:30 max:60 falloff:logarithmic
+genotype: 3142122126127028702470227028106121051
+msf: 1.013671875
+## 6
+min:45 max:60 falloff:logarithmic
+genotype: 101011116127206220220720672067202612
+msf: 1.013671875
+## 7
+min:15 max:60 falloff:reciprocal
+genotype: 602212602212
+msf: 1.013671875
+## 8
+min:30 max:60 falloff:reciprocal
+genotype: 6125141201212201602612602202612612
+msf: 1.013671875
+## 9
+min:45 max:60 falloff:reciprocal
+genotype: 31431461220261242522025151
+msf: 1.013671875
+## 10
+min:0 max:45 falloff:linear
+genotype: 6027211602
+msf: 1.013671875
+## 11
+min:15 max:45 falloff:linear
+genotype: 202612202612
+msf: 1.013671875
+## 12
+min:30 max:45 falloff:linear
+genotype: 60251210210513167211313602
+msf: 1.013671875
+## 13
+min:0 max:45 falloff:logarithmic
+genotype: 612720272026123217121
+msf: 1.013671875
+## 14
+min:15 max:45 falloff:logarithmic
+genotype: 6027101712111116027011
+msf: 1.013671875
+## 15
+min:30 max:45 falloff:logarithmic
+genotype: 6027101417211414141602
+msf: 1.013671875
+## 16
+min:15 max:45 falloff:reciprocal
+genotype: 6127021612
+msf: 1.013671875
+## 17
+min:30 max:45 falloff:reciprocal
+genotype: 612720370267202612
+msf: 1.013671875
+## 18
+min:0 max:45 falloff:None
+genotype: 7011602721160201422015201
+msf: 1.013671875
+## 19
+min:0 max:30 falloff:linear
+genotype: 61272027202612
+msf: 1.013671875
+## 20
+min:15 max:30 falloff:linear
+genotype: 6027121602
+msf: 1.013671875
+## 21
+min:0 max:30 falloff:logarithmic
+genotype: 2026027211602202
+msf: 1.013671875
+## 22
+min:15 max:30 falloff:logarithmic
+genotype: 512126127121417021612
+msf: 1.013671875
+## 23
+min:15 max:30 falloff:reciprocal
+genotype: 6027121602
+msf: 1.013671875
+## 24
+min:0 max:30 falloff:None
+genotype: 21061221021270117201212612
+msf: 1.013671875
+## 25
+min:30 max:60 falloff:linear
+genotype: 701160221220260221240507201
+msf: 1.013671875
+## 26
+min:45 max:60 falloff:linear
+genotype: 6027121322710271024131421052524121060241
+msf: 1.013671875
+## 27
+min:0 max:60 falloff:logarithmic
+genotype: 61272027202612
+msf: 1.013671875
+## 28
+min:15 max:60 falloff:logarithmic
+genotype: 2126022124050602
+msf: 1.013671875
+## 29
+min:30 max:60 falloff:logarithmic
+genotype: 60271214122051220602
+msf: 1.013671875
+## 30
+min:45 max:60 falloff:logarithmic
+genotype: 71026022012012126022127102221221212212
+msf: 1.013671875
+## 31
+min:15 max:60 falloff:reciprocal
+genotype: 6127021612
+msf: 1.013671875
+## 32
+min:30 max:60 falloff:reciprocal
+genotype: 60272164151620620524272127123602220220
+msf: 1.013671875
+## 33
+min:45 max:60 falloff:reciprocal
+genotype: 20261231131241202314612
+msf: 1.013671875
+## 34
+min:0 max:60 falloff:None
+genotype: 2126122217202702670232217211612
+msf: 1.013671875
+## 35
+min:15 max:45 falloff:linear
+genotype: 6127201212212612
+msf: 1.013671875
+## 36
+min:0 max:45 falloff:logarithmic
+genotype: 6127021612
+msf: 1.013671875
+## 37
+min:15 max:45 falloff:logarithmic
+genotype: 6127021612
+msf: 1.013671875
+## 38
+min:30 max:45 falloff:logarithmic
+genotype: 21220160202201022106027201210612
+msf: 1.013671875
+## 39
+min:15 max:45 falloff:reciprocal
+genotype: 60272116025040
+msf: 1.013671875
+## 40
+min:30 max:45 falloff:reciprocal
+genotype: 202202612602202602612202202
+msf: 1.013671875
+## 41
+min:0 max:45 falloff:None
+genotype: 202422024150104251702260210612712160261202
+msf: 1.013671875
+## 42
+min:0 max:30 falloff:logarithmic
+genotype: 6127201612
+msf: 1.013671875
+## 43
+min:15 max:30 falloff:reciprocal
+genotype: 51612720161231251
+msf: 1.013671875
+## 44
+min:0 max:30 falloff:None
+genotype: 72016127021612
+msf: 1.013671875
+## 45
+min:15 max:60 falloff:linear
+genotype: 6127021612
+msf: 1.013671875
+## 46
+min:45 max:60 falloff:linear
+genotype: 1240122022026025072127212602
+msf: 1.013671875
+## 47
+min:30 max:60 falloff:logarithmic
+genotype: 60250324527121602407121
+msf: 1.013671875
+## 48
+min:45 max:60 falloff:logarithmic
+genotype: 41202612303712112301701141202721130620112312201612
+msf: 1.013671875
+## 49
+min:30 max:60 falloff:reciprocal
+genotype: 212602212602221221
+msf: 1.013671875
+## 50
+min:45 max:60 falloff:reciprocal
+genotype: 6027216712272136026206205040
+msf: 1.013671875
+## 51
+min:0 max:60 falloff:None
+genotype: 6124131261260261231430420260221221231150612
+msf: 1.013671875
+## 52
+min:0 max:45 falloff:linear
+genotype: 6127021612
+msf: 1.013671875
+## 53
+min:15 max:45 falloff:linear
+genotype: 6027218721272187214602
+msf: 1.013671875
+## 54
+min:30 max:45 falloff:linear
+genotype: 42522106022124160221051
+msf: 1.013671875
+## 55
+min:15 max:45 falloff:logarithmic
+genotype: 61242720152612
+msf: 1.013671875
+## 56
+min:30 max:45 falloff:logarithmic
+genotype: 2126026127121612602
+msf: 1.013671875
+## 57
+min:30 max:45 falloff:reciprocal
+genotype: 5060272127213712660240
+msf: 1.013671875
+## 58
+min:0 max:45 falloff:None
+genotype: 61251720162162131211612110251
+msf: 1.013671875
+## 59
+min:15 max:30 falloff:linear
+genotype: 6127201612
+msf: 1.013671875
+## 60
+min:15 max:30 falloff:logarithmic
+genotype: 416021072111060251
+msf: 1.013671875
+## 61
+min:15 max:30 falloff:reciprocal
+genotype: 612702161200510041
+msf: 1.013671875
+## 62
+min:0 max:30 falloff:None
+genotype: 61270127022701170127022612
+msf: 1.013671875
+## 63
+min:15 max:60 falloff:reciprocal
+genotype: 720272020251212527123702272162022123044202
+msf: 1.01171875
+## 64
+min:30 max:60 falloff:linear
+genotype: 112021150701170163043042024050506127205720872067202612
+msf: 1.0097227906219448
+## 65
+min:0 max:60 falloff:None
+genotype: 31902720931770167016317702302602212202702472057129212313301304602301
+msf: 1.003868173789098
+## 66
+min:30 max:45 falloff:linear
+genotype: 01621602621701670167016016024160151
+msf: 0.9345891952966365
+## 67
+min:0 max:60 falloff:linear
+genotype: 70197104
+msf: 0.76171875
+## 68
+min:0 max:60 falloff:logarithmic
+genotype: 5141
+msf: 0.76171875
+## 69
+min:0 max:60 falloff:reciprocal
+genotype: 212
+msf: 0.76171875
+## 70
+min:0 max:45 falloff:reciprocal
+genotype: 7108
+msf: 0.76171875
+## 71
+min:0 max:30 falloff:reciprocal
+genotype: 212
+msf: 0.76171875
+## 72
+min:0 max:60 falloff:linear
+genotype: 202
+msf: 0.76171875
+## 73
+min:15 max:60 falloff:linear
+genotype: 70187013
+msf: 0.76171875
+## 74
+min:0 max:60 falloff:reciprocal
+genotype: 7012
+msf: 0.76171875
+## 75
+min:0 max:45 falloff:linear
+genotype: 7102
+msf: 0.76171875
+## 76
+min:0 max:45 falloff:reciprocal
+genotype: 7102
+msf: 0.76171875
+## 77
+min:0 max:30 falloff:linear
+genotype: 202
+msf: 0.76171875
+## 78
+min:15 max:30 falloff:linear
+genotype: 71042024120251
+msf: 0.76171875
+## 79
+min:15 max:30 falloff:logarithmic
+genotype: 4142517013505230471027017
+msf: 0.76171875
+## 80
+min:0 max:30 falloff:reciprocal
+genotype: 7017
+msf: 0.76171875
+## 81
+min:0 max:60 falloff:linear
+genotype: 7019
+msf: 0.76171875
+## 82
+min:0 max:60 falloff:logarithmic
+genotype: 7011
+msf: 0.76171875
+## 83
+min:15 max:60 falloff:logarithmic
+genotype: 7108321321
+msf: 0.76171875
+## 84
+min:0 max:60 falloff:reciprocal
+genotype: 202
+msf: 0.76171875
+## 85
+min:0 max:45 falloff:logarithmic
+genotype: 7011
+msf: 0.76171875
+## 86
+min:0 max:45 falloff:reciprocal
+genotype: 202
+msf: 0.76171875
+## 87
+min:15 max:45 falloff:reciprocal
+genotype: 7108201201
+msf: 0.76171875
+## 88
+min:0 max:30 falloff:linear
+genotype: 1111
+msf: 0.76171875
+## 89
+min:0 max:30 falloff:logarithmic
+genotype: 7012
+msf: 0.76171875
+## 90
+min:0 max:30 falloff:reciprocal
+genotype: 202
+msf: 0.76171875
