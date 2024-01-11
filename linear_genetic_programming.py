@@ -76,6 +76,7 @@ class Genotype:
         gradient = -1/(max_length-min_length)
         intercept = -max_length*gradient
         g = ''
+        """
         while True:
             #if input_count_weighted:
             new_gate = random.choice(self.metadata.all_gate_combinations)
@@ -105,6 +106,50 @@ class Genotype:
                 if random.random() > min_length/len(g):
                     break
             else:
+                if len(g) > max_length:
+                    break
+        """
+        if falloff=='linear':
+            while True:
+                new_gate = random.choice(self.metadata.all_gate_combinations)
+                g += new_gate
+                if 'parameters' in self.metadata.gate_set[int(new_gate[0])]:
+                    for _ in range(self.metadata.gate_set[int(new_gate[0])]['parameters']):
+                        g += str(random.randint(1,9))
+
+                if random.random() > intercept + gradient*len(g):
+                    break
+        elif falloff=='logarithmic':
+            while True:
+                new_gate = random.choice(self.metadata.all_gate_combinations)
+                g += new_gate
+                if 'parameters' in self.metadata.gate_set[int(new_gate[0])]:
+                    for _ in range(self.metadata.gate_set[int(new_gate[0])]['parameters']):
+                        g += str(random.randint(1,9))
+
+                try:
+                    if random.random() > math.log10(1-9*(len(g)-max_length)/(max_length-min_length)):
+                        break
+                except:
+                    break
+        elif falloff=='reciprocal':
+            while True:
+                new_gate = random.choice(self.metadata.all_gate_combinations)
+                g += new_gate
+                if 'parameters' in self.metadata.gate_set[int(new_gate[0])]:
+                    for _ in range(self.metadata.gate_set[int(new_gate[0])]['parameters']):
+                        g += str(random.randint(1,9))
+
+                if random.random() > min_length/len(g):
+                    break
+        else:
+            while True:
+                new_gate = random.choice(self.metadata.all_gate_combinations)
+                g += new_gate
+                if 'parameters' in self.metadata.gate_set[int(new_gate[0])]:
+                    for _ in range(self.metadata.gate_set[int(new_gate[0])]['parameters']):
+                        g += str(random.randint(1,9))
+
                 if len(g) > max_length:
                     break
         self.genotype_str = g
@@ -387,7 +432,7 @@ class Evolution:
         else:
             return sorted(by_fitness, key=lambda genotype: len(genotype.genotype_str), reverse=prefer_long_circuits)
         
-    def random_search(self, output=True):
+    def random_search(self, output=True, plot_msf=True):
         msf_trace = [[] for i in range(self.SAMPLE_SIZE)]
         population = []
 
@@ -402,8 +447,9 @@ class Evolution:
             # 5 carried forward from the previous generation
             if output:
                 print(f'Generation {generation+1} best: {population[0].genotype_str}')
-                for x in range(self.SAMPLE_SIZE):
-                    msf_trace[x].append(population[x].msf)
+                if plot_msf:
+                    for x in range(self.SAMPLE_SIZE):
+                        msf_trace[x].append(population[x].msf)
 
         if output:
             s = min(self.SAMPLE_SIZE, len(population))
@@ -416,10 +462,11 @@ class Evolution:
             #population[0]['circuit'].draw(output='mpl',style='iqp')
             print(population[0].to_circuit())
 
-            plot_list(msf_trace, 'Generations', 'MSF')
+            if plot_msf:
+                plot_list(msf_trace, 'Generations', 'MSF')
         return population
     
-    def stochastic_hill_climb(self, output=True):
+    def stochastic_hill_climb(self, output=True, plot_msf=True):
         best_genotype = Genotype(self.metadata, '')
         best_genotype.msf = 0.0
         msf_trace = []
@@ -442,7 +489,8 @@ class Evolution:
 
             if output:
                 print(f'Generation {generation+1} best: {best_genotype.genotype_str}')
-                msf_trace.append(best_genotype.msf)
+                if plot_msf:
+                    msf_trace.append(best_genotype.msf)
 
         if output:
             print('best random circuit:')
@@ -451,8 +499,8 @@ class Evolution:
             print(best_genotype.to_circuit())
             print(best_genotype.msf)
             #best_genotype['circuit'].draw(output='mpl',style='iqp')
-
-            plot_list(msf_trace, 'Generations', 'MSF')
+            if plot_msf:
+                plot_list(msf_trace, 'Generations', 'MSF')
         return population
     
     ### ---------- EVOLUTIONARY SEARCH ----------
@@ -536,7 +584,7 @@ class Evolution:
         population_random = self.develop_circuits_random(inital_population, operation_count)[len(inital_population):]
         return population_uniform + population_random
     
-    def evolutionary_search(self, min_length=30, max_length=60, falloff=None, MINIMUM_FITNESS=0.75, output=True):
+    def evolutionary_search(self, min_length=30, max_length=60, falloff=None, MINIMUM_FITNESS=0.75, output=True, plot_msf=True):
         msf_trace = [[] for _ in range(self.SAMPLE_SIZE)]
 
         population = []
@@ -570,8 +618,9 @@ class Evolution:
             if output:
                 print(f'Generation {i+2} Best Genotype: {population[0].genotype_str}')
                 print(f'Generation {i+2} Best Fitness: {population[0].msf}')
-                for k in range(self.SAMPLE_SIZE):
-                    msf_trace[k].append(population[k].msf)
+                if plot_msf:
+                    for k in range(self.SAMPLE_SIZE):
+                        msf_trace[k].append(population[k].msf)
 
         # output
         if output:
@@ -582,6 +631,7 @@ class Evolution:
             print('best circuit:')
             print(population[0].to_circuit())
 
-            plot_list(msf_trace, 'Generations', 'MSF')
+            if plot_msf:
+                plot_list(msf_trace, 'Generations', 'MSF')
 
         return population
