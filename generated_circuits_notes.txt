@@ -612,3 +612,9 @@ msf: 0.76171875
 min:0 max:30 falloff:reciprocal
 genotype: 202
 msf: 0.76171875
+
+
+#1 logarithmic
+#2 linear
+#3 reciprocal
+#4 None
