@@ -33,6 +33,7 @@ def remaining_time_calc(remaining_time):
         return remaining_time
 
 def run_with_params(evolution, x, iterations, i, total, start_time, min_len, max_len, falloff, _time_estimate_plot):
+    print(f"LOOP {x+1}/{iterations} TEST {(i-1)%total + 1}/{total} - checking min:{min_len} max:{max_len} falloff:{falloff}")
     run_start = time()
     if i!=1:
         estimated_total_time = (run_start-start_time)*total*iterations/(i-1)
@@ -44,7 +45,6 @@ def run_with_params(evolution, x, iterations, i, total, start_time, min_len, max
         remaining_time = remaining_time_calc(remaining_time)
         if remaining_time:
             print(f"expected remaining runtime = {remaining_time}")
-    print(f"LOOP {x+1}/{iterations} TEST {(i-1)%total + 1}/{total} - checking min:{min_len} max:{max_len} falloff:{falloff}")
     best_genotype = evolution.evolutionary_search(min_length=min_len, max_length=max_len, falloff=falloff, output=False)[0]
     print(f"actual runtime = {remaining_time_calc(time()-run_start)}")
     print(f"[{x*'0'}{(iterations-x)*'.'}] [{(i%total)*'#'}{(total-(i%total))*'_'}]")
