@@ -53,4 +53,4 @@ if __name__=="__main__":
     
     #population = E.random_search()
     #population = E.stochastic_hill_climb()
-    population = E.evolutionary_search(MINIMUM_FITNESS=0.05)
+    population = E.evolutionary_search(min_length=20, max_length=30, falloff='reciprocal', MINIMUM_FITNESS=0)
