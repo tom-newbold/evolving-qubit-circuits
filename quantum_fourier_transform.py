@@ -2,9 +2,7 @@ from linear_genetic_programming import ProblemParameters, Evolution
 
 from qiskit.quantum_info import Statevector, random_statevector
 
-from time import time
-import math, random
-
+import math
 def to_state(x):
     i = 0
     for j in range(len(x)):
@@ -25,10 +23,10 @@ def qft(state):
     return Statevector(y)
 
 class QFT3Generation(ProblemParameters):
-    def __init__(self, set_of_gates):
+    def __init__(self, set_of_gates, number_of_states_to_check=10):
         super().__init__(3, set_of_gates)
 
-        self.input_states = [random_statevector(2**3) for _ in range(2**3)]
+        self.input_states = [random_statevector(2**3) for _ in range(number_of_states_to_check)]
         self.output_states = [qft(s) for s in self.input_states]
     
     def specific_msf(self, candidate_circuit):
@@ -50,9 +48,9 @@ if __name__=="__main__":
                 {'label':'chad','inputs':2},
                 {'label':'cphase','inputs':2,'parameters':1}]
     
-    QFT_GEN = QFT3Generation(GATE_SET)
+    QFT_GEN = QFT3Generation(GATE_SET, 20)
     E = Evolution(QFT_GEN, sample=50)
     
     #population = E.random_search()
     #population = E.stochastic_hill_climb()
-    population = E.evolutionary_search( MINIMUM_FITNESS=0)
+    population = E.evolutionary_search(MINIMUM_FITNESS=0.05)
