@@ -36,9 +36,10 @@ class QFT3Generation(ProblemParameters):
     
 if __name__=="__main__":
     GATE_SET_SIMPLE = [{'label':'had','inputs':1},
+                       {'label':'chad','inputs':2},
                        {'label':'cnot','inputs':2},
-                       {'label':'t','inputs':1},
-                       {'label':'t_prime','inputs':1}]
+                       {'label':'phase','inputs':1,'parameters':1},
+                       {'label':'cphase','inputs':2,'parameters':1}]
                               
     GATE_SET = [{'label':'had','inputs':1},
                 {'label':'not','inputs':1},
@@ -49,7 +50,7 @@ if __name__=="__main__":
                 {'label':'chad','inputs':2},
                 {'label':'cphase','inputs':2,'parameters':1}]
     
-    QFT_GEN = QFT3Generation(GATE_SET, 20)
+    QFT_GEN = QFT3Generation(GATE_SET_SIMPLE, 20)
     E = Evolution(QFT_GEN, individuals_per_generation=250, alpha=4, beta=5, gamma=3)
     
     #population = E.random_search()
