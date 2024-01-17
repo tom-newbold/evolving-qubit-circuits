@@ -584,7 +584,7 @@ class Evolution:
         population_random = self.develop_circuits_random(inital_population, operation_count)[len(inital_population):]
         return population_uniform + population_random
     
-    def evolutionary_search(self, min_length=30, max_length=60, falloff=None, MINIMUM_FITNESS=0.75, output=True, plot_msf=True):
+    def evolutionary_search(self, min_length=30, max_length=60, falloff=None, MINIMUM_FITNESS=0.75, output=True, plot_msf=True, random_sample_size=0):
         msf_trace = [[] for _ in range(self.SAMPLE_SIZE)]
 
         population = []
@@ -609,6 +609,11 @@ class Evolution:
             new_population = self.develop_circuits_combined(population)
             population = []
             for g in new_population:
+                g.get_msf()
+                population.append(g)
+            # added random sample
+            for _ in range(random_sample_size):
+                g = Genotype(self.metadata, min_length=min_length, max_length=max_length, falloff=falloff)
                 g.get_msf()
                 population.append(g)
             population = self.top_by_fitness(population, remove_dupe=False)

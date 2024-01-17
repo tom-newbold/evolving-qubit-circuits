@@ -31,6 +31,7 @@ class QFT3Generation(ProblemParameters):
     
     def specific_msf(self, candidate_circuit):
         """overrides with the required truth table"""
+        # TODO change lgp line 366 : 2*qubit_count to case_count
         return self.msf(candidate_circuit, self.input_states, self.output_states)
     
 if __name__=="__main__":
@@ -49,8 +50,8 @@ if __name__=="__main__":
                 {'label':'cphase','inputs':2,'parameters':1}]
     
     QFT_GEN = QFT3Generation(GATE_SET, 20)
-    E = Evolution(QFT_GEN, sample=50)
+    E = Evolution(QFT_GEN, individuals_per_generation=250, alpha=4, beta=5, gamma=3)
     
     #population = E.random_search()
     #population = E.stochastic_hill_climb()
-    population = E.evolutionary_search(min_length=20, max_length=30, falloff='reciprocal', MINIMUM_FITNESS=0)
+    population = E.evolutionary_search(min_length=20, max_length=30, falloff='reciprocal', MINIMUM_FITNESS=0, random_sample_size=50)
