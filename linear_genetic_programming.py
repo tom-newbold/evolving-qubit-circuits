@@ -363,7 +363,8 @@ class ProblemParameters(ABC):
             state = input_states[i]
             calc_state = state.evolve(M)
             if calc_state==output_states[i]:
-                fidelity_sum += 1.0 + 1/(2**(2*self.qubit_count))
+                #fidelity_sum += 1.0 + 1/(2**(2*self.qubit_count))
+                fidelity_sum += 1.0 + 1/case_count
             else:
                 fidelity_sum += abs(np.inner(output_states[i].data, calc_state.data).item())**2
         return fidelity_sum/case_count
@@ -584,7 +585,7 @@ class Evolution:
         population_random = self.develop_circuits_random(inital_population, operation_count)[len(inital_population):]
         return population_uniform + population_random
     
-    def evolutionary_search(self, min_length=30, max_length=60, falloff=None, MINIMUM_FITNESS=0.75, output=True, plot_msf=True, random_sample_size=0):
+    def evolutionary_search(self, min_length=30, max_length=60, falloff=None, remove_duplicates=False, MINIMUM_FITNESS=0.75, output=True, plot_msf=True, random_sample_size=0):
         msf_trace = [[] for _ in range(self.SAMPLE_SIZE)]
 
         population = []
@@ -616,7 +617,7 @@ class Evolution:
                 g = Genotype(self.metadata, min_length=min_length, max_length=max_length, falloff=falloff)
                 g.get_msf()
                 population.append(g)
-            population = self.top_by_fitness(population, remove_dupe=False)
+            population = self.top_by_fitness(population, remove_dupe=remove_duplicates)
             while population[-1].msf < MINIMUM_FITNESS:
                 population.pop(-1)
             

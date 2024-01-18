@@ -1,6 +1,7 @@
-from linear_genetic_programming import ProblemParameters, Evolution
+from linear_genetic_programming import ProblemParameters, Evolution, Genotype
 
-from qiskit.quantum_info import Statevector, random_statevector
+from qiskit.quantum_info import Operator, Statevector, random_statevector
+from qiskit.circuit.library import QFT as QFT_blueprint
 
 import math
 def to_state(x):
@@ -27,11 +28,11 @@ class QFT3Generation(ProblemParameters):
         super().__init__(3, set_of_gates)
 
         self.input_states = [random_statevector(2**3) for _ in range(number_of_states_to_check)]
-        self.output_states = [qft(s) for s in self.input_states]
-    
+        #self.output_states = [qft(s) for s in self.input_states]
+        self.output_states = [s.evolve(Operator(QFT_blueprint(3))) for s in self.input_states]
+
     def specific_msf(self, candidate_circuit):
         """overrides with the required truth table"""
-        # TODO change lgp line 366 : 2*qubit_count to case_count
         return self.msf(candidate_circuit, self.input_states, self.output_states)
     
 if __name__=="__main__":
@@ -50,9 +51,20 @@ if __name__=="__main__":
                 {'label':'chad','inputs':2},
                 {'label':'cphase','inputs':2,'parameters':1}]
     
-    QFT_GEN = QFT3Generation(GATE_SET_SIMPLE, 20)
+    QFT_GEN = QFT3Generation(GATE_SET_SIMPLE, 16)
     E = Evolution(QFT_GEN, individuals_per_generation=250, alpha=4, beta=5, gamma=3)
+
+    """
+    simple_set_qft_genotype = '004102420401421202'
+    g = Genotype(QFT_GEN, simple_set_qft_genotype)
+    print(g.to_circuit())
+    print(g.get_msf())
+
+    c = QFT_blueprint(3)
+    print(c)
+    print(QFT_GEN.specific_msf(c))
+    """
     
     #population = E.random_search()
     #population = E.stochastic_hill_climb()
-    population = E.evolutionary_search(min_length=20, max_length=30, falloff='reciprocal', MINIMUM_FITNESS=0, random_sample_size=50)
+    population = E.evolutionary_search(min_length=10, max_length=30, MINIMUM_FITNESS=0, random_sample_size=25) # remove_duplicates=True,
