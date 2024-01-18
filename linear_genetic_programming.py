@@ -581,10 +581,10 @@ class Evolution:
         return population
 
     def develop_circuits_combined(self, inital_population, operation_count=250):
-        population_uniform = self.develop_circuits_uniform(inital_population)#[len(inital_population):]
-        #print(2*len(population_uniform)//3)
-        population_random = self.develop_circuits_random(inital_population, operation_count)[len(inital_population):]
-        return population_uniform + population_random
+        population_uniform = self.develop_circuits_uniform(inital_population)[len(inital_population):]
+        #population_random = self.develop_circuits_random(inital_population, operation_count)[len(inital_population):]
+        population_random = self.develop_circuits_random(inital_population, len(population_uniform)//10)[len(inital_population):]
+        return inital_population + population_uniform + population_random
     
     def evolutionary_search(self, min_length=30, max_length=60, falloff=None, remove_duplicates=False, MINIMUM_FITNESS=0.75, output=True, plot_msf=True, random_sample_size=0):
         msf_trace = [[] for _ in range(self.SAMPLE_SIZE)]
