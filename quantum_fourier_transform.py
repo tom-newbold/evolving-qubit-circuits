@@ -23,13 +23,13 @@ def qft(state):
         y.append(probability)
     return Statevector(y)
 
-class QFT3Generation(ProblemParameters):
-    def __init__(self, set_of_gates, number_of_states_to_check=10):
-        super().__init__(3, set_of_gates)
+class QFTGeneration(ProblemParameters):
+    def __init__(self, set_of_gates, N=3, number_of_states_to_check=10):
+        super().__init__(N, set_of_gates)
 
-        self.input_states = [random_statevector(2**3) for _ in range(number_of_states_to_check)]
+        self.input_states = [random_statevector(2**N) for _ in range(number_of_states_to_check)]
         #self.output_states = [qft(s) for s in self.input_states]
-        self.output_states = [s.evolve(Operator(QFT_blueprint(3))) for s in self.input_states]
+        self.output_states = [s.evolve(Operator(QFT_blueprint(N))) for s in self.input_states]
 
     def specific_msf(self, candidate_circuit):
         """overrides with the required truth table"""
@@ -51,9 +51,10 @@ if __name__=="__main__":
                 {'label':'chad','inputs':2},
                 {'label':'cphase','inputs':2,'parameters':1}]
     
-    QFT_GEN = QFT3Generation(GATE_SET_SIMPLE, 16)
-    E = Evolution(QFT_GEN, individuals_per_generation=250, alpha=4, beta=5, gamma=3)
+    QFT_GEN = QFTGeneration(GATE_SET_SIMPLE, 3, 16)
+    E = Evolution(QFT_GEN, individuals_per_generation=250, alpha=4, beta=6, gamma=3)
 
+    
     """
     simple_set_qft_genotype = '00401442040141244208402402220202'#'004102420401421202'
     g = Genotype(QFT_GEN, simple_set_qft_genotype)
@@ -64,8 +65,10 @@ if __name__=="__main__":
     print(c)
     print(QFT_GEN.specific_msf(c))
     """
+    
 
     
     #population = E.random_search()
     #population = E.stochastic_hill_climb()
-    population = E.evolutionary_search(min_length=10, max_length=20, MINIMUM_FITNESS=0, random_sample_size=25, remove_duplicates=True)
+    null_circuit_fitness = Genotype(QFT_GEN, '201201').get_msf() # 0.14189542316752254
+    population = E.evolutionary_search(min_length=10, max_length=20, MINIMUM_FITNESS=null_circuit_fitness, random_sample_size=25, remove_duplicates=True)
