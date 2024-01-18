@@ -55,7 +55,7 @@ if __name__=="__main__":
     E = Evolution(QFT_GEN, individuals_per_generation=250, alpha=4, beta=5, gamma=3)
 
     """
-    simple_set_qft_genotype = '004102420401421202'
+    simple_set_qft_genotype = '00401442040141244208402402220202'#'004102420401421202'
     g = Genotype(QFT_GEN, simple_set_qft_genotype)
     print(g.to_circuit())
     print(g.get_msf())
@@ -64,7 +64,8 @@ if __name__=="__main__":
     print(c)
     print(QFT_GEN.specific_msf(c))
     """
+
     
     #population = E.random_search()
     #population = E.stochastic_hill_climb()
-    population = E.evolutionary_search(min_length=10, max_length=30, MINIMUM_FITNESS=0, random_sample_size=25) # remove_duplicates=True,
+    population = E.evolutionary_search(min_length=10, max_length=20, MINIMUM_FITNESS=0, random_sample_size=25, remove_duplicates=True)
