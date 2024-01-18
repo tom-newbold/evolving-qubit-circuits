@@ -400,6 +400,7 @@ def plot_list(float_list, x_label=None, y_label=None):
         max_value = max([max(float_list[i]) for i in range(len(float_list))]+[1])
     plt.ylim([0,max_value])
     plt.yticks([x/10 for x in range(1+math.ceil(10*max_value))])
+    plt.grid()
     plt.show()
 
 def remove_duplicates(genotype_list):
