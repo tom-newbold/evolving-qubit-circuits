@@ -39,7 +39,12 @@ def grid_search(evolution, lengths=([0],[30]), falloff=[], iterations=1, MINIMUM
 
     start_time = time()
     i = 1
-    total = len(lengths[1]) * (len(falloff)*len(lengths[0]) + 1)
+    total = 0
+    for l_max in lengths[1]:
+        for l_min in lengths[0]:
+            if l_max>l_min:
+                total += 1
+    total *= len(falloff)+1
     for x in range(iterations):
         for max_len in lengths[1][::-1]: # reversed for more accurate time estimates
             for f in falloff:
