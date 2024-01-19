@@ -54,7 +54,7 @@ if __name__=="__main__":
     
     QFT_GEN = QFTGeneration(GATE_SET_SIMPLE, 3, 16)
     E = Evolution(QFT_GEN, individuals_per_generation=250, alpha=4, beta=6, gamma=3)
-    
+
     """
     simple_set_qft_genotype = '00401442040141244208402402220202'#'004102420401421202'
     g = Genotype(QFT_GEN, simple_set_qft_genotype)
@@ -70,7 +70,6 @@ if __name__=="__main__":
     #population = E.evolutionary_search(min_length=10, max_length=25, MINIMUM_FITNESS=null_circuit_fitness,
     #                                   random_sample_size=25, remove_duplicates=True)
     
-    grid_search(E,lengths=([0,10,20,30],[10,20,25,30,40]), iterations=1,
-                MINIMUM_FITNESS=null_circuit_fitness, random_sample_size=25,
-                remove_duplicates=True)
-    #falloff=['linear','logarithmic','reciprocal'],
+    grid_search(Evolution(QFT_GEN),lengths=([0,10,20,30],[10,20,25,30,40]),
+                falloff=['linear','logarithmic','reciprocal'], iterations=1,
+                MINIMUM_FITNESS=null_circuit_fitness, remove_duplicates=True ,random_sample_size=25)

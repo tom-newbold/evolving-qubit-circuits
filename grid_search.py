@@ -1,5 +1,5 @@
 from time import time
-import matplotlib as plt
+import matplotlib.pyplot as plt
 
 def remaining_time_calc(remaining_time):
     if remaining_time > 0.001:
@@ -29,7 +29,7 @@ def run_with_params(evolution, x, iterations, i, total, start_time, min_len, max
     best_genotype = evolution.evolutionary_search(min_length=min_len, max_length=max_len, falloff=falloff, MINIMUM_FITNESS=min_fitness,
                                                   random_sample_size=random_sample_size, remove_duplicates=remove_duplicates, output=False)[0]
     print(f"actual runtime = {remaining_time_calc(time()-run_start)}")
-    print(f"[{x*'0'}{(iterations-x)*'.'}] [{(i%total)*'#'}{(total-(i%total))*'_'}]")
+    print(f"[{x*'0'}{(iterations-x)*'.'}] [{(i%total)*'#'}{(total-(i%total))*'_'}]") # TODO fix this for final run
     return {'min':min_len, 'max':max_len, 'falloff':falloff, 'best':best_genotype}
 
 def grid_search(evolution, lengths=([0],[30]), falloff=[], iterations=1, MINIMUM_FITNESS=0, random_sample_size=0, remove_duplicates=False):
@@ -43,8 +43,8 @@ def grid_search(evolution, lengths=([0],[30]), falloff=[], iterations=1, MINIMUM
     for l_max in lengths[1]:
         for l_min in lengths[0]:
             if l_max>l_min:
-                total += 1
-    total *= len(falloff)+1
+                total += len(falloff)
+        total += 1
     for x in range(iterations):
         for max_len in lengths[1][::-1]: # reversed for more accurate time estimates
             for f in falloff:
@@ -64,11 +64,13 @@ def grid_search(evolution, lengths=([0],[30]), falloff=[], iterations=1, MINIMUM
             i+=1
 
     ### ---- time ----
+    '''
     time_taken = time()-start_time
     print(f"total time taken = {remaining_time_calc(time_taken)}")
     plt.plot([x/60 for x in _time_estimate_plot])
     plt.ylabel('minuites')
     plt.show()
+    '''
 
     results = sorted(results, key=lambda result: result['best'].msf, reverse=True)
     
