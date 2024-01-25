@@ -418,7 +418,7 @@ class Evolution:
     def __init__(self, problem_parameters, sample=5, number_of_generations=50, individuals_per_generation=100, alpha=2, beta=3, gamma=2):
         self.metadata = problem_parameters
         self.SAMPLE_SIZE = max(int(individuals_per_generation*0.05), sample)#sample
-        print(self.SAMPLE_SIZE)
+        print(f'sample size: {self.SAMPLE_SIZE}')
         self.GENERATION_COUNT = number_of_generations
         self.GENERATION_SIZE = individuals_per_generation
         self.alpha = alpha
