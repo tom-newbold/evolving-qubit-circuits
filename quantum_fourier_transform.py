@@ -54,7 +54,7 @@ if __name__=="__main__":
                 {'label':'cphase','inputs':2,'parameters':1}]
     
     QFT_GEN = QFTGeneration(GATE_SET_SIMPLE, 3, 16)
-    E = Evolution(QFT_GEN, individuals_per_generation=500, alpha=4, beta=6, gamma=3)
+    E = Evolution(QFT_GEN, individuals_per_generation=300, alpha=4, beta=6, gamma=3)
 
     """
     simple_set_qft_genotype = '024122014024401200202220202'
@@ -71,7 +71,7 @@ if __name__=="__main__":
     
     print(f'Best generated / Best Possible: {100 * population[0].msf / QFT_GEN.specific_msf(QFT_blueprint(3))} %')
 
-    states = [random_statevector(2**3) for _ in range(30)]
+    states = [random_statevector(2**3) for _ in range(50)]
     fitness_from_sample = QFT_GEN.msf(population[0].to_circuit(), states, [s.evolve(Operator(QFT_blueprint(3))) for s in states])
     print(f'From sample percentage: {100 * fitness_from_sample / QFT_GEN.specific_msf(QFT_blueprint(3))} %')
     
