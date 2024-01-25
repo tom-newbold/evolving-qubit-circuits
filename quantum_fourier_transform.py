@@ -28,7 +28,8 @@ class QFTGeneration(ProblemParameters):
     def __init__(self, set_of_gates, N=3, number_of_states_to_check=10):
         super().__init__(N, set_of_gates)
 
-        self.input_states = [random_statevector(2**N) for _ in range(number_of_states_to_check)]
+        #self.input_states = [random_statevector(2**N) for _ in range(number_of_states_to_check)]
+        self.input_states = [to_state([i//4 %2, i//2 %2, i%2]) for i in range(8)]
         #self.output_states = [qft(s) for s in self.input_states]
         self.output_states = [s.evolve(Operator(QFT_blueprint(N))) for s in self.input_states]
 
@@ -53,7 +54,7 @@ if __name__=="__main__":
                 {'label':'cphase','inputs':2,'parameters':1}]
     
     QFT_GEN = QFTGeneration(GATE_SET_SIMPLE, 3, 16)
-    E = Evolution(QFT_GEN, individuals_per_generation=250, alpha=4, beta=6, gamma=3)
+    E = Evolution(QFT_GEN)#, individuals_per_generation=250, alpha=4, beta=6, gamma=3)
 
     """
     simple_set_qft_genotype = '00401442040141244208402402220202'#'004102420401421202'
@@ -61,15 +62,15 @@ if __name__=="__main__":
     print(g.to_circuit())
     print(g.get_msf())
 
-    c = QFT_blueprint(3)
-    print(c)
-    print(QFT_GEN.specific_msf(c))
     """
         
     null_circuit_fitness = Genotype(QFT_GEN, '201201').get_msf()
-    #population = E.evolutionary_search(min_length=10, max_length=25, MINIMUM_FITNESS=null_circuit_fitness,
-    #                                   random_sample_size=25, remove_duplicates=True)
+    population = E.evolutionary_search(min_length=10, max_length=25, MINIMUM_FITNESS=null_circuit_fitness,
+                                       random_sample_size=25, remove_duplicates=True)
     
-    grid_search(Evolution(QFT_GEN),lengths=([0,10,20,30],[10,20,25,30,40]),
-                falloff=['linear','logarithmic','reciprocal'], iterations=1,
-                MINIMUM_FITNESS=null_circuit_fitness, remove_duplicates=True ,random_sample_size=25)
+    print(f'Ideal fitness: {QFT_GEN.specific_msf(QFT_blueprint(3))}')
+    print(f'Best generated / Best Possible: {100 * population[0].msf / QFT_GEN.specific_msf(QFT_blueprint(3))} %')
+    
+    #grid_search(Evolution(QFT_GEN),lengths=([0,10,20,30],[10,20,25,30,40]),
+    #            falloff=['linear','logarithmic','reciprocal'], iterations=1,
+    #            MINIMUM_FITNESS=null_circuit_fitness, remove_duplicates=True ,random_sample_size=25)
