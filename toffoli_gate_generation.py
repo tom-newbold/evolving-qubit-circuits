@@ -24,7 +24,7 @@ import threading
 def run_with_params_for_thread(results, evolution, x, iterations, i, total, min_len, max_len, falloff):
     run_start = time()
     print(f"STARING LOOP {x+1}/{iterations} TEST {(i-1)%total + 1}/{total} - checking min:{min_len} max:{max_len} falloff:{falloff}")
-    best_genotype = evolution.evolutionary_search(min_length=min_len, max_length=max_len, falloff=falloff, MINIMUM_FITNESS=0.75, output=False)[0]
+    best_genotype = evolution.evolutionary_search(min_length=min_len, max_length=max_len, falloff=falloff, MINIMUM_FITNESS=0.7, output=False)[0]
     print(f"LOOP {x+1}/{iterations} TEST {(i-1)%total + 1}/{total} runtime = {remaining_time_calc(time()-run_start)}")
     results.append({'min':min_len, 'max':max_len, 'falloff':falloff, 'best':best_genotype})
     i -= 1
