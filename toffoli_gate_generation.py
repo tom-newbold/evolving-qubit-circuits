@@ -24,7 +24,7 @@ import threading
 def run_with_params_for_thread(results, evolution, x, iterations, i, total, min_len, max_len, falloff):
     run_start = time()
     print(f"STARING LOOP {x+1}/{iterations} TEST {(i-1)%total + 1}/{total} - checking min:{min_len} max:{max_len} falloff:{falloff}")
-    best_genotype = evolution.evolutionary_search(min_length=min_len, max_length=max_len, falloff=falloff, output=False)[0]
+    best_genotype = evolution.evolutionary_search(min_length=min_len, max_length=max_len, falloff=falloff, MINIMUM_FITNESS=0.75, output=False)[0]
     print(f"LOOP {x+1}/{iterations} TEST {(i-1)%total + 1}/{total} runtime = {remaining_time_calc(time()-run_start)}")
     results.append({'min':min_len, 'max':max_len, 'falloff':falloff, 'best':best_genotype})
     i -= 1
@@ -94,47 +94,17 @@ if __name__=="__main__":
                 {'label':'cphase','inputs':2,'parameters':1}]
     
     TOFFOLI = ToffoliGeneration(GATE_SET)
-    E = Evolution(TOFFOLI)
+    E = Evolution(TOFFOLI, alpha=3, beta=5, gamma=3)
     
     #population = E.random_search()
     #population = E.stochastic_hill_climb()
-    #population = E.evolutionary_search()
+    population = E.evolutionary_search(MINIMUM_FITNESS=0.5)
 
     #grid_search(Evolution(TOFFOLI, sample=10, number_of_generations=20,
     #                      individuals_per_generation=50, alpha=1, beta=2))
+
     #grid_search_threaded(Evolution(TOFFOLI, sample=10, number_of_generations=20,
     #                               individuals_per_generation=50, alpha=1, beta=2))
-    grid_search(Evolution(TOFFOLI),lengths=([0,15,30,45],[30,45,60]),
-                falloff=['linear','logarithmic','reciprocal'], iterations=3)
 
-    ### --- check best circuit ---
-    """
-    from qiskit.quantum_info import Operator
-    import numpy as np
-
-    input_states = [list_to_state(x) for x in TOFFOLI.toffoli_inputs]
-    output_states = [list_to_state(y) for y in TOFFOLI.toffoli_outputs]
-
-    c = population[0].to_circuit()
-    differences = {'global':0,'local':0}
-    M = Operator(c)
-    for i in range(len(input_states)):
-        state = input_states[i]
-        calc_state = state.evolve(M)
-        print(f"target: {output_states[i].draw(output='latex_source')} --> actual: {calc_state.draw(output='latex_source')}")
-        #output_states[i].draw(output='latex')
-        if calc_state==output_states[i]:
-            #print('exacly correct')
-            pass
-        else:
-            if abs(np.inner(output_states[i].data, calc_state.data).item())**2 == 1.0:
-                print('state correct up to global phase')
-                differences['global'] += 1
-            else:
-                #print('state incorrect')
-                differences['local'] += 1
-
-    print(f"exactly correct for {8-differences['global']-differences['local']} states")
-    if differences['global']+differences['local'] != 0:
-        print(f"correct (up to global phase) for {8-differences['local']} states")
-    """
+    #grid_search(Evolution(TOFFOLI),lengths=([0,15,30,45],[30,45,60]),
+    #            falloff=['linear','logarithmic','reciprocal'], iterations=3)
