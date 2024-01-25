@@ -415,9 +415,10 @@ def remove_duplicates(genotype_list):
 
 
 class Evolution:
-    def __init__(self, problem_parameters, sample=20, number_of_generations=50, individuals_per_generation=100, alpha=2, beta=3, gamma=2):
+    def __init__(self, problem_parameters, sample=5, number_of_generations=50, individuals_per_generation=100, alpha=2, beta=3, gamma=2):
         self.metadata = problem_parameters
-        self.SAMPLE_SIZE = sample
+        self.SAMPLE_SIZE = max(int(individuals_per_generation*0.05), sample)#sample
+        print(self.SAMPLE_SIZE)
         self.GENERATION_COUNT = number_of_generations
         self.GENERATION_SIZE = individuals_per_generation
         self.alpha = alpha
@@ -586,7 +587,7 @@ class Evolution:
         population_random = self.develop_circuits_random(inital_population, len(population_uniform)//10)[len(inital_population):]
         return inital_population + population_uniform + population_random
     
-    def evolutionary_search(self, min_length=30, max_length=60, falloff=None, remove_duplicates=False, MINIMUM_FITNESS=0.75, output=True, plot_msf=True, random_sample_size=0):
+    def evolutionary_search(self, min_length=30, max_length=60, falloff=None, remove_duplicates=False, MINIMUM_FITNESS=0, output=True, plot_msf=True, random_sample_size=0):
         msf_trace = [[] for _ in range(self.SAMPLE_SIZE)]
 
         population = []
