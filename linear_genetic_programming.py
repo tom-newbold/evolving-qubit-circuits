@@ -1,8 +1,11 @@
 from qiskit import QuantumCircuit
 from qiskit.quantum_info import Operator, Statevector
 
+from grid_search import remaining_time_calc
+
 import matplotlib.pyplot as plt
 import random, math
+from time import time
 import numpy as np
 
 class Genotype:
@@ -364,9 +367,11 @@ class ProblemParameters(ABC):
             calc_state = state.evolve(M)
             if calc_state==output_states[i]:
                 #fidelity_sum += 1.0 + 1/(2**(2*self.qubit_count))
-                fidelity_sum += 1.0 + 1/case_count
+                #fidelity_sum += 1.0 + 1/case_count
+                fidelity_sum += 1.0
             else:
                 fidelity_sum += abs(np.inner(output_states[i].data, calc_state.data).item())**2
+                fidelity_sum -= 1/case_count
         return fidelity_sum/case_count
     
     @abstractmethod
@@ -587,7 +592,8 @@ class Evolution:
         population_random = self.develop_circuits_random(inital_population, len(population_uniform)//10)[len(inital_population):]
         return inital_population + population_uniform + population_random
     
-    def evolutionary_search(self, min_length=30, max_length=60, falloff=None, remove_duplicates=False, MINIMUM_FITNESS=0, output=True, plot_msf=True, random_sample_size=0):
+    def evolutionary_search(self, min_length=30, max_length=60, falloff=None, remove_duplicates=False,
+                            MINIMUM_FITNESS=0, output=True, plot_msf=True, random_sample_size=0):
         msf_trace = [[] for _ in range(self.SAMPLE_SIZE)]
 
         population = []
@@ -608,7 +614,14 @@ class Evolution:
             print(f'Generation 1 Best Genotype: {population[0].genotype_str}')
             print(f'Generation 1 Size: {len(population)}')
 
+        start_time = time()
         for i in range(self.GENERATION_COUNT-1):
+            if (i+2)%5==0:
+                remaining_time = (time()-start_time) * (self.GENERATION_COUNT-i)/(i+1)
+                remaining_time = remaining_time_calc(remaining_time)
+                if remaining_time:
+                    print(f"[ estimated time remaining for run ~ {remaining_time} ]")
+
             new_population = self.develop_circuits_combined(population)
             population = []
             for g in new_population:
