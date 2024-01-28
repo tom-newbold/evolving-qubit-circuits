@@ -79,39 +79,7 @@ class Genotype:
         gradient = -1/(max_length-min_length)
         intercept = -max_length*gradient
         g = ''
-        """
-        while True:
-            #if input_count_weighted:
-            new_gate = random.choice(self.metadata.all_gate_combinations)
-            g += new_gate
-            #else:
-            #    gate = random.randint(0,len(self.metadata.gate_set)-1)
-            #    inputs = []
-            #    while len(inputs) < self.metadata.gate_set[gate]['inputs']:
-            #        x = str(random.randint(0,self.metadata.qubit_count-1))
-            #        if x not in inputs:
-            #            inputs.append(x)
-            #    g += str(gate) + ''.join(inputs)
-            if 'parameters' in self.metadata.gate_set[int(new_gate[0])]:
-                for i in range(self.metadata.gate_set[int(new_gate[0])]['parameters']):
-                    g += str(random.randint(1,9))
-
-            if falloff=='linear':
-                if random.random() > intercept + gradient*len(g):
-                    break
-            elif falloff=='logarithmic':
-                try:
-                    if random.random() > math.log10(1-9*(len(g)-max_length)/(max_length-min_length)):
-                        break
-                except:
-                    break
-            elif falloff=='reciprocal':
-                if random.random() > min_length/len(g):
-                    break
-            else:
-                if len(g) > max_length:
-                    break
-        """
+        
         if falloff=='linear':
             while True:
                 new_gate = random.choice(self.metadata.all_gate_combinations)
@@ -611,7 +579,7 @@ class Evolution:
         return inital_population + population_uniform + population_random
     
     def evolutionary_search(self, min_length=30, max_length=60, falloff=None, remove_duplicates=False,
-                            MINIMUM_FITNESS=0, output=True, plot_msf=True, random_sample_size=0):
+                            MINIMUM_FITNESS=0, output=True, plot_msf=True, random_sample_size=0, use_double_point_crossover=True):
         msf_trace = [[] for _ in range(self.SAMPLE_SIZE)]
 
         population = []
@@ -640,7 +608,7 @@ class Evolution:
                 if remaining_time:
                     print(f"[ estimated time remaining for run ~ {remaining_time} ]")
 
-            new_population = self.develop_circuits_combined(population)
+            new_population = self.develop_circuits_combined(population, double_point_crossover=use_double_point_crossover)
             population = []
             for g in new_population:
                 g.get_msf()
