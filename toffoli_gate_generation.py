@@ -1,25 +1,20 @@
-from linear_genetic_programming import ProblemParameters, Evolution, list_to_state
+from linear_genetic_programming import AppliedProblemParameters, Evolution, list_to_state
 from time import time
 from grid_search import grid_search, remaining_time_calc
 
-class ToffoliGeneration(ProblemParameters):
-    def __init__(self, set_of_gates):
-        super().__init__(3, set_of_gates)
+def ToffoliGeneration(set_of_gates):
+    """creates a ProblemParameters object using the toffoli gate truth table"""
+    toffoli_inputs = [[i//4 %2, i//2 %2, i%2] for i in range(8)]
+    toffoli_outputs = []
+    for i in range(8):
+        x = toffoli_inputs[i].copy()
+        if bool(x[0]) and bool(x[1]):
+            x[2] = int(not bool(x[2]))
+        toffoli_outputs.append(x)
 
-        self.toffoli_inputs = [[i//4 %2, i//2 %2, i%2] for i in range(8)]
-        self.toffoli_outputs = []
-        for i in range(8):
-            x = self.toffoli_inputs[i].copy()
-            if bool(x[0]) and bool(x[1]):
-                x[2] = int(not bool(x[2]))
-            self.toffoli_outputs.append(x)
-    
-    def specific_msf(self, candidate_circuit):
-        """overrides with the required truth table"""
-        return self.msf(candidate_circuit,
-                        [list_to_state(x) for x in self.toffoli_inputs],
-                        [list_to_state(y) for y in self.toffoli_outputs])
-    
+    return AppliedProblemParameters(set_of_gates, [list_to_state(x) for x in toffoli_inputs],
+                                    [list_to_state(y) for y in toffoli_outputs], 3)
+
 import threading
 def run_with_params_for_thread(results, evolution, x, iterations, i, total, min_len, max_len, falloff):
     run_start = time()

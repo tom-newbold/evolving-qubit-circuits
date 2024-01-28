@@ -380,6 +380,17 @@ class ProblemParameters(ABC):
 
     # function to check correctness? unsure how to intergrate with specific and non-specific msf
 
+class AppliedProblemParameters(ProblemParameters):
+    def __init__(self, set_of_gates, input_states, output_states, N=3):
+        super().__init__(N, set_of_gates)
+
+        self.input_states = input_states
+        self.output_states = output_states
+
+    def specific_msf(self, candidate_circuit):
+        """overrides with the required truth table"""
+        return self.msf(candidate_circuit, self.input_states, self.output_states)
+
 
 def plot_list(float_list, x_label=None, y_label=None):
     """plots a list of floats (between 0 and 1)"""
@@ -616,7 +627,7 @@ class Evolution:
 
         start_time = time()
         for i in range(self.GENERATION_COUNT-1):
-            if (i+2)%5==0:
+            if (i+2)%10==0:
                 remaining_time = (time()-start_time) * (self.GENERATION_COUNT-i)/(i+1)
                 remaining_time = remaining_time_calc(remaining_time)
                 if remaining_time:
