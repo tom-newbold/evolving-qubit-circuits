@@ -66,15 +66,15 @@ if __name__=="__main__":
 
         
     null_circuit_fitness = Genotype(QFT_GEN, '201201').get_msf()
-    population = E.evolutionary_search(min_length=10, max_length=25, MINIMUM_FITNESS=null_circuit_fitness,
-                                       random_sample_size=25, remove_duplicates=True, use_double_point_crossover=True)
+    #population = E.evolutionary_search(min_length=10, max_length=25, MINIMUM_FITNESS=null_circuit_fitness,
+    #                                   random_sample_size=25, remove_duplicates=True, use_double_point_crossover=True)
     
-    print(f'Best generated / Best Possible: {100 * population[0].msf / QFT_GEN.specific_msf(QFT_blueprint(3))} %')
-    states = [random_statevector(2**3) for _ in range(50)]
-    fitness_from_sample = QFT_GEN.msf(population[0].to_circuit(), states, [s.evolve(Operator(QFT_blueprint(3))) for s in states])
-    print(f'From sample percentage: {100 * fitness_from_sample / QFT_GEN.specific_msf(QFT_blueprint(3))} %')
+    #print(f'Best generated / Best Possible: {100 * population[0].msf / QFT_GEN.specific_msf(QFT_blueprint(3))} %')
+    #states = [random_statevector(2**3) for _ in range(50)]
+    #fitness_from_sample = QFT_GEN.msf(population[0].to_circuit(), states, [s.evolve(Operator(QFT_blueprint(3))) for s in states])
+    #print(f'From sample percentage: {100 * fitness_from_sample / QFT_GEN.specific_msf(QFT_blueprint(3))} %')
     
     
-    #grid_search(Evolution(QFT_GEN),lengths=([0,10,20,30],[10,20,25,30,40]),
-    #            falloff=['linear','logarithmic','reciprocal'], iterations=1,
-    #            MINIMUM_FITNESS=null_circuit_fitness, remove_duplicates=True, random_sample_size=25)
+    grid_search(Evolution(QFT_GEN),lengths=([0,10,20,30],[10,20,25,30,40]),
+                falloff=['linear','logarithmic','reciprocal'], iterations=1,
+                MINIMUM_FITNESS=null_circuit_fitness, remove_duplicates=True, random_sample_size=25)
