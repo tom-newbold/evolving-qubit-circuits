@@ -168,9 +168,9 @@ class Genotype:
     ### ---------- EVOLUTIONARY OPERATORS ----------
     
     @staticmethod
-    def crossover(genotype_1, genotype_2, uniform=True):
+    def single_crossover(genotype_1, genotype_2, uniform=True):
         """computes the random crossover of two genotypes; the point is selected
-           separately on each genotype, allowing for length variations"""
+           separately on each genotype, allowing for length variations if uniform=False"""
         genotype_1_list = genotype_1.to_list()
         if len(genotype_1_list) <= 1:
             g_1_split = 0
@@ -189,11 +189,30 @@ class Genotype:
             new_genotype_1 = genotype_1_list[:g_1_split] + genotype_2_list[g_2_split:]
             new_genotype_2 = genotype_2_list[:g_2_split] + genotype_1_list[g_1_split:]
             return Genotype(genotype_1.metadata, ''.join(new_genotype_1)), Genotype(genotype_1.metadata, ''.join(new_genotype_2))
-            """g_1 = Genotype(genotype_1.metadata, ''.join(new_genotype_1))
-            g_2 = Genotype(genotype_1.metadata, ''.join(new_genotype_2))
-            g_1.source = 'crossover'
-            g_2.source = 'crossover'
-            return g_1, g_2"""
+        
+    @staticmethod
+    def double_crossover(genotype_1, genotype_2, uniform=True):
+        """computes the random crossover of two genotypes; two points are selected
+           on each genotype; length variations can occur if uniform=False"""
+        genotype_1_list = genotype_1.to_list()
+        if len(genotype_1_list) <= 1:
+            g_1_split_left = g_1_split_right = 0
+        else:
+            g_1_split_left, g_1_split_right = sorted([random.randint(1,len(genotype_1_list)-1) for _ in range(2)])
+        genotype_2_list = genotype_2.to_list()
+        if len(genotype_2_list) <= 1:
+            g_2_split_left = g_2_split_right = 0
+        else:
+            g_2_split_left, g_2_split_right = sorted([random.randint(1,len(genotype_2_list)-1) for _ in range(2)])
+        if g_1_split_left == 0 and g_2_split_left == 0:
+            return genotype_1, genotype_2
+        else:
+            if uniform:
+                g_1_split_left = g_2_split_left = min(g_1_split_left, g_2_split_left)
+                g_1_split_right = g_2_split_right = min(g_1_split_right, g_2_split_right)
+            new_genotype_1 = genotype_1_list[:g_1_split_left] + genotype_2_list[g_2_split_left:g_2_split_right] + genotype_1_list[g_1_split_right:]
+            new_genotype_2 = genotype_2_list[:g_2_split_left] + genotype_1_list[g_1_split_left:g_1_split_right] + genotype_2_list[g_2_split_right:]
+            return Genotype(genotype_1.metadata, ''.join(new_genotype_1)), Genotype(genotype_1.metadata, ''.join(new_genotype_2))
     
     
     @staticmethod
@@ -244,22 +263,6 @@ class Genotype:
                         prev_params += str(random.randint(1,9))
                 
                 gate = str(new_gate_index) + prev_inputs + prev_params
-                """# check length
-                expected_len = genotype.metadata.gate_set[int(gate)]['inputs']+1
-                if len(gate) > expected_len:
-                    # print('mutate gate: truncating inputs')
-                    # truncate extra inputs
-                    gate = gate[:expected_len]
-                else:
-                    target_len = genotype.metadata.gate_set[new_gate]['inputs']+1
-                    while len(gate) < target_len:
-                        # add inputs to satify new gate
-                        new_input = str(random.randint(0,genotype.metadata.qubit_count-1))
-                        if str(new_input) not in gate[1:]:
-                            gate += str(new_input)
-                    while len(gate) < target_len+genotype.metadata.gate_set[int(gate)]['parameters']:
-                        # add parameters if required
-                        gate += str(random.randint(1,9))"""
             else:
                 if 'parameters' in genotype.metadata.gate_set[int(gate[0])] and random.random() < 0.25:
                     # mutate a parameter
@@ -281,9 +284,6 @@ class Genotype:
 
         genotype_list[mutation_point] = gate
         return Genotype(genotype.metadata, ''.join(genotype_list))
-        """g = Genotype(genotype.metadata, ''.join(genotype_list))
-        g.source = 'mutation'
-        return g"""
     
     @staticmethod
     def insertion(genotype):
@@ -307,9 +307,6 @@ class Genotype:
         genotype_add_index = random.randint(0,len(genotype_list)-1)
         new_string = ''.join(genotype_list[:genotype_add_index]) + g_add + ''.join(genotype_list[genotype_add_index:])
         return Genotype(genotype.metadata, new_string)
-        """g = Genotype(genotype.metadata, new_string)
-        g.source = 'insertion'
-        return g"""
 
     @staticmethod
     def deletion(genotype):
@@ -320,9 +317,6 @@ class Genotype:
         genotype_remove_index = random.randint(0,len(genotype_list)-1)
         new_string = ''.join(genotype_list[:genotype_remove_index] + genotype_list[genotype_remove_index+1:])
         return Genotype(genotype.metadata, new_string)
-        """g = Genotype(genotype.metadata, new_string)
-        g.source = 'deletion'
-        return g"""
 
 
 
@@ -524,7 +518,7 @@ class Evolution:
     
     ### ---------- EVOLUTIONARY SEARCH ----------
 
-    def develop_circuits_uniform(self, inital_population):
+    def develop_circuits_uniform(self, inital_population, use_double_point_crossover=True):
         '''use a prespecified distribution of search operators
         population should be sorted by msf'''
         population = inital_population.copy()
@@ -532,9 +526,16 @@ class Evolution:
         for g_1_index in range(len(inital_population)):
             for g_2_index in range(g_1_index+1,len(inital_population)):
                 for c in range(self.gamma):
-                    g_3, g_4 = Genotype.crossover(population[g_1_index],population[g_2_index])
+                    g_3, g_4 = Genotype.single_crossover(population[g_1_index],population[g_2_index])
                     population.append(g_3)
                     population.append(g_4)
+        if use_double_point_crossover==True:
+            for g_1_index in range(len(inital_population)):
+                for g_2_index in range(g_1_index+1,len(inital_population)):
+                    for c in range(self.gamma):
+                        g_3, g_4 = Genotype.double_crossover(population[g_1_index],population[g_2_index])
+                        population.append(g_3)
+                        population.append(g_4)
         # mutation operation for every genotype in the sample
         # insertion/deletion for each genotype in the sample
         for g_1_index in range(len(inital_population)):
@@ -548,22 +549,28 @@ class Evolution:
                         population.append(g)
         return population
 
-    def develop_circuits_random(self, inital_population, operation_count):
+    def develop_circuits_random(self, inital_population, operation_count, use_double_point_crossover=True):
         '''use a random assortment of search operators'''
         population = inital_population.copy()
         for o in range(operation_count):
             # randomly select from the search operators
-            operation = random.choices(population=['crossover', 'mutation', 'insersion', 'deletion'],weights=[0.4,0.5,0.05,0.05], k=1)[0]
+            operation = random.choices(population=['crossover', 'mutation', 'insersion', 'deletion'], weights=[0.4,0.5,0.05,0.05], k=1)[0]
             # randomly select a genotype
             g_1 = random.choices(inital_population, weights=[g.msf for g in inital_population], k=1)[0]
             if operation == 'crossover':
                 g_2 = g_1
                 while g_2 == g_1:
                     g_2 = random.choices(inital_population, weights=[g.msf for g in inital_population], k=1)[0]
-                for c in range(self.gamma):
-                    g_3, g_4 = Genotype.crossover(g_1, g_2)
-                    population.append(g_3)
-                    population.append(g_4)
+                if use_double_point_crossover==True:
+                    for c in range(self.gamma):
+                        g_3, g_4 = Genotype.double_crossover(g_1, g_2)
+                        population.append(g_3)
+                        population.append(g_4)
+                else:
+                    for c in range(self.gamma):
+                        g_3, g_4 = Genotype.single_crossover(g_1, g_2)
+                        population.append(g_3)
+                        population.append(g_4)
             else:
                 for a in range(self.alpha):
                     g_2 = g_1
@@ -597,10 +604,10 @@ class Evolution:
                 '''
         return population
 
-    def develop_circuits_combined(self, inital_population, operation_count=250):
-        population_uniform = self.develop_circuits_uniform(inital_population)[len(inital_population):]
+    def develop_circuits_combined(self, inital_population, operation_count=250, double_point_crossover=True):
+        population_uniform = self.develop_circuits_uniform(inital_population, double_point_crossover)[len(inital_population):]
         #population_random = self.develop_circuits_random(inital_population, operation_count)[len(inital_population):]
-        population_random = self.develop_circuits_random(inital_population, len(population_uniform)//10)[len(inital_population):]
+        population_random = self.develop_circuits_random(inital_population, len(population_uniform)//10, double_point_crossover)[len(inital_population):]
         return inital_population + population_uniform + population_random
     
     def evolutionary_search(self, min_length=30, max_length=60, falloff=None, remove_duplicates=False,

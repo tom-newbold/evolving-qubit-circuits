@@ -89,7 +89,7 @@ if __name__=="__main__":
                 {'label':'cphase','inputs':2,'parameters':1}]
     
     TOFFOLI = ToffoliGeneration(GATE_SET)
-    E = Evolution(TOFFOLI, alpha=3, beta=5, gamma=3)
+    E = Evolution(TOFFOLI, individuals_per_generation=200, alpha=3, beta=5, gamma=3)
     
     #population = E.random_search()
     #population = E.stochastic_hill_climb()
