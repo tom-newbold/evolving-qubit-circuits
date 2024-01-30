@@ -26,9 +26,10 @@ class Genotype:
         i = 0
         while i<len(self.genotype_str):
             gate = self.genotype_str[i]
-            j = i + self.metadata.gate_set[int(gate)]['inputs'] + 1
-            if 'parameters' in self.metadata.gate_set[int(gate)]:
-                j += self.metadata.gate_set[int(gate)]['parameters']
+            j = i + self.metadata.gate_set[int(gate)].num_qubits + 1
+            #if 'parameters' in self.metadata.gate_set[int(gate)]:
+            #    j += self.metadata.gate_set[int(gate)]['parameters']
+            j += len(self.metadata.gate_set[int(gate)].params)
             k = self.genotype_str[i:j]
             i = j
             out.append(k)
@@ -51,10 +52,19 @@ class Genotype:
     
     def construct_gate(self, genotype_string, c_instance):
         """constructs a single gate from a string and appends to the given ciruit"""
-        g_label = self.metadata.gate_set[int(genotype_string[0])]['label']
+        #g_label = self.metadata.gate_set[int(genotype_string[0])]['label']
+        g_list = [int(x) for x in genotype_string]
 
 
-        if g_label=='not':
+        g = self.metadata.gate_set[int(genotype_string[0])]
+        if len(g.params) > 0:
+            g.params = [math.pi/x for x in g_list[-len(g.params):]] # better way TODO this?
+
+        c_instance.append(
+            g,
+            g_list[1:1+g.num_qubits]
+        )
+        """if g_label=='not':
             c_instance.x(int(genotype_string[1]))
         elif g_label=='cnot':
             c_instance.cx(int(genotype_string[1]),int(genotype_string[2]))
@@ -69,7 +79,7 @@ class Genotype:
         elif g_label=='t':
             c_instance.t(int(genotype_string[1]))
         elif g_label=='t_prime':
-            c_instance.tdg(int(genotype_string[1]))
+            c_instance.tdg(int(genotype_string[1]))"""
             
         return c_instance
     
@@ -117,9 +127,11 @@ class Genotype:
             while True:
                 new_gate = random.choice(self.metadata.all_gate_combinations)
                 g += new_gate
-                if 'parameters' in self.metadata.gate_set[int(new_gate[0])]:
-                    for _ in range(self.metadata.gate_set[int(new_gate[0])]['parameters']):
-                        g += str(random.randint(1,9))
+                #if 'parameters' in self.metadata.gate_set[int(new_gate[0])]:
+                #    for _ in range(self.metadata.gate_set[int(new_gate[0])]['parameters']):
+                #        g += str(random.randint(1,9))
+                for _ in range(len(self.metadata.gate_set[int(new_gate[0])].params)):
+                    g += str(random.randint(1,9))
 
                 if len(g) > max_length:
                     break
@@ -198,8 +210,8 @@ class Genotype:
                 new_gate_index = random.randint(0,len(genotype.metadata.gate_set)-1)
                 if new_gate_index==old_gate_index:
                     continue
-                old_input_count = genotype.metadata.gate_set[old_gate_index]['inputs']
-                new_input_count = genotype.metadata.gate_set[new_gate_index]['inputs']
+                old_input_count = genotype.metadata.gate_set[old_gate_index].num_qubits
+                new_input_count = genotype.metadata.gate_set[new_gate_index].num_qubits
                 prev_inputs = gate[1:1+old_input_count]
                 # adjust inputs
                 if len(prev_inputs) > new_input_count:
@@ -211,12 +223,8 @@ class Genotype:
                         if i not in prev_inputs:
                             prev_inputs += i
 
-                old_param_count = 0
-                new_param_count = 0
-                if 'parameters' in genotype.metadata.gate_set[old_gate_index]:
-                    old_param_count = genotype.metadata.gate_set[old_gate_index]['parameters']
-                if 'parameters' in genotype.metadata.gate_set[new_gate_index]:
-                    new_param_count = genotype.metadata.gate_set[new_gate_index]['parameters']
+                old_param_count = len(genotype.metadata.gate_set[old_gate_index].params)
+                new_param_count = len(genotype.metadata.gate_set[new_gate_index].params)
                 #if len(gate) != 1 + old_input_count + old_param_count:
                 #    print('## ERROR')
                 #print(f'old {old_input_count} new {new_input_count} input; old {old_param_count} new {new_param_count} param')
@@ -232,17 +240,17 @@ class Genotype:
                 
                 gate = str(new_gate_index) + prev_inputs + prev_params
             else:
-                if 'parameters' in genotype.metadata.gate_set[int(gate[0])] and random.random() < 0.25:
+                param_count = len(genotype.metadata.gate_set[int(gate[0])].params)
+                if param_count > 0 and random.random() < 0.25:
                     # mutate a parameter
                     mutate_input = False
-                    param_count = genotype.metadata.gate_set[int(gate[0])]['parameters']
                     index_to_change = random.randint(0,param_count-1)
-                    index_to_change += 1 + genotype.metadata.gate_set[int(gate[0])]['inputs']
+                    index_to_change += 1 + genotype.metadata.gate_set[int(gate[0])].num_qubits
                     new_param = str(random.randint(1,9))
                     gate = gate[:index_to_change] + str(new_param) + gate[index_to_change+1:]
                 else:
                     # mutate an input
-                    input_count = genotype.metadata.gate_set[int(gate[0])]['inputs']
+                    input_count = genotype.metadata.gate_set[int(gate[0])].num_qubits
                     index_to_change = random.randint(1,input_count)
                     new_input = random.randint(0,genotype.metadata.qubit_count-1)
                     if str(new_input) not in prev_gate[1:1+input_count]:
@@ -259,15 +267,14 @@ class Genotype:
         new_gate = random.randint(0,len(genotype.metadata.gate_set)-1)
         g_add = str(new_gate)
         inputs = []
-        while len(inputs) < genotype.metadata.gate_set[new_gate]['inputs']:
+        while len(inputs) < genotype.metadata.gate_set[new_gate].num_qubits:
             # generates the right number of inputs
             x = str(random.randint(0,genotype.metadata.qubit_count-1))
             if x not in inputs:
                 inputs.append(x)
         params = []
-        if 'parameters' in genotype.metadata.gate_set[new_gate]:
-            while len(params) < genotype.metadata.gate_set[new_gate]['parameters']:
-                params.append(str(random.randint(1,9)))
+        while len(params) < len(genotype.metadata.gate_set[new_gate].params):
+            params.append(str(random.randint(1,9)))
         g_add += ''.join(inputs) + ''.join(params)
 
         # insert at random position
@@ -311,10 +318,10 @@ class ProblemParameters(ABC):
 
         all_gates = []
         for index, gate in enumerate(self.gate_set):
-            if gate['inputs']==1:
+            if gate.num_qubits==1:
                 for q in range(self.qubit_count):
                     all_gates.append(str(index)+str(q))
-            elif gate['inputs']==2:
+            elif gate.num_qubits==2:
                 for q in double_input_combinations:
                     all_gates.append(str(index)+str(q))
         return all_gates
@@ -443,10 +450,9 @@ class Evolution:
         if remove_dupe:
             population = remove_duplicates(population)
         by_fitness = sorted(population, key=lambda genotype: genotype.msf, reverse=True)
-        if prefer_short_circuits == prefer_long_circuits:
-            return by_fitness[:self.SAMPLE_SIZE]
-        else:
-            return sorted(by_fitness, key=lambda genotype: len(genotype.genotype_str), reverse=prefer_long_circuits)
+        if prefer_short_circuits != prefer_long_circuits:
+            by_fitness = sorted(by_fitness, key=lambda genotype: len(genotype.genotype_str), reverse=prefer_long_circuits)
+        return by_fitness[:self.SAMPLE_SIZE]# + by_fitness[self.SAMPLE_SIZE:self.SAMPLE_SIZE**2:self.SAMPLE_SIZE]
         
     def random_search(self, output=True, plot_msf=True):
         msf_trace = [[] for i in range(self.SAMPLE_SIZE)]
@@ -653,6 +659,7 @@ class Evolution:
                 g = Genotype(self.metadata, min_length=min_length, max_length=max_length, falloff=falloff)
                 g.get_msf()
                 population.append(g)
+            
             population = self.top_by_fitness(population, remove_dupe=remove_duplicates)
             while population[-1].msf < MINIMUM_FITNESS:
                 population.pop(-1)

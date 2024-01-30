@@ -1,4 +1,4 @@
-from linear_genetic_programming import AppliedProblemParameters, Evolution, list_to_state#, Genotype, ProblemParametersMatrix
+from linear_genetic_programming import AppliedProblemParameters, Evolution, list_to_state, Genotype, ProblemParametersCombined
 from time import time
 from grid_search import grid_search, remaining_time_calc
 
@@ -13,11 +13,11 @@ def ToffoliGeneration(set_of_gates):
         toffoli_outputs.append(x)
 
     
-    return AppliedProblemParameters(set_of_gates, [list_to_state(x) for x in toffoli_inputs],
+    a = AppliedProblemParameters(set_of_gates, [list_to_state(x) for x in toffoli_inputs],
                                     [list_to_state(y) for y in toffoli_outputs], 3)
-    #c = Genotype(a, '022125220242212522024142201024051201').to_circuit()
+    c = Genotype(a, '022125220242212522024142201024051201').to_circuit()
     #print(c)
-    #return ProblemParametersMatrix(set_of_gates, c)
+    return ProblemParametersCombined(set_of_gates, [list_to_state(x) for x in toffoli_inputs], c)
 
 import threading
 def run_with_params_for_thread(results, evolution, x, iterations, i, total, min_len, max_len, falloff):
@@ -91,13 +91,22 @@ if __name__=="__main__":
                 {'label':'t_prime','inputs':1},
                 {'label':'chad','inputs':2},
                 {'label':'cphase','inputs':2,'parameters':1}]
+
+    from qiskit.circuit.library import *
+    GATE_SET = [HGate(), XGate(), CXGate(), PhaseGate(0),
+                TGate(), TdgGate(), CHGate(), CPhaseGate(0)]
+    
     
     TOFFOLI = ToffoliGeneration(GATE_SET)
     E = Evolution(TOFFOLI, individuals_per_generation=200, alpha=3, beta=5, gamma=3)
+
+    #g = Genotype(TOFFOLI, '022125220242212522024142201024051201')
+    #print(g.genotype_str)
+    #print(g.to_circuit())
     
     #population = E.random_search()
     #population = E.stochastic_hill_climb()
-    population = E.evolutionary_search(MINIMUM_FITNESS=0.5, remove_duplicates=True, random_sample_size=10)
+    population = E.evolutionary_search(MINIMUM_FITNESS=0, remove_duplicates=True)#, random_sample_size=20)
 
     #grid_search(Evolution(TOFFOLI, sample=10, number_of_generations=20,
     #                      individuals_per_generation=50, alpha=1, beta=2))

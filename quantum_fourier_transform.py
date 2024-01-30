@@ -54,6 +54,9 @@ if __name__=="__main__":
                 {'label':'chad','inputs':2},
                 {'label':'cphase','inputs':2,'parameters':1}]
     
+    from qiskit.circuit.library import *
+    GATE_SET = [HGate(), XGate(), CXGate(), PhaseGate(0),
+                TGate(), TdgGate(), CHGate(), CPhaseGate(0)]
 
     QFT_GEN = QFTGeneration(GATE_SET, 3)#, 16)
     E = Evolution(QFT_GEN, individuals_per_generation=300, alpha=3, beta=6, gamma=4)
