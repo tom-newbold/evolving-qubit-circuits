@@ -78,24 +78,12 @@ def grid_search_threaded(evolution, iterations=1):
 
 
 if __name__=="__main__":
-    GATE_SET_SIMPLE = [{'label':'had','inputs':1},
-                       {'label':'cnot','inputs':2},
-                       {'label':'t','inputs':1},
-                       {'label':'t_prime','inputs':1}]
-                              
-    GATE_SET = [{'label':'had','inputs':1},
-                {'label':'not','inputs':1},
-                {'label':'cnot','inputs':2},
-                {'label':'phase','inputs':1,'parameters':1},
-                {'label':'t','inputs':1},
-                {'label':'t_prime','inputs':1},
-                {'label':'chad','inputs':2},
-                {'label':'cphase','inputs':2,'parameters':1}]
-
     from qiskit.circuit.library import *
+
+    GATE_SET_SIMPLE = [HGate(), XGate(), TGate(), TdgGate()]
+    
     GATE_SET = [HGate(), XGate(), CXGate(), PhaseGate(0),
                 TGate(), TdgGate(), CHGate(), CPhaseGate(0)]
-    
     
     TOFFOLI = ToffoliGeneration(GATE_SET)
     E = Evolution(TOFFOLI, individuals_per_generation=200, alpha=3, beta=5, gamma=3)
