@@ -352,7 +352,27 @@ class AppliedProblemParameters(ProblemParameters):
     def specific_msf(self, candidate_circuit):
         """overrides with the required truth table"""
         return self.msf(candidate_circuit, self.input_states, self.output_states)
+    
+def matrix_difference_fitness(m_1, m_2, tolerance=0.01):
+    '''takes the difference betweens two matricies and counts the
+       proportion of entries which are zero (elements are identical
+       in both matricies, up to a tolerance)'''
+    difference_matrix = (m_1-m_2).data.flatten()
+    count = 0
+    for x in difference_matrix:
+        if abs(x) < tolerance:
+            count += 1
+    return count / len(difference_matrix)
+    
 
+
+class ProblemParametersMatrix(ProblemParameters):
+    def __init__(self, set_of_gates, target_behaviour_circuit, N=3):
+        super().__init__(N, set_of_gates)
+        self.M = Operator(target_behaviour_circuit)
+
+    def specific_msf(self, candidate_circuit):
+        return matrix_difference_fitness(self.M, Operator(candidate_circuit))
 
 def plot_list(float_list, x_label=None, y_label=None):
     """plots a list of floats (between 0 and 1)"""

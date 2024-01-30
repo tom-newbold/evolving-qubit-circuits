@@ -1,4 +1,4 @@
-from linear_genetic_programming import AppliedProblemParameters, Evolution, list_to_state
+from linear_genetic_programming import AppliedProblemParameters, Evolution, list_to_state#, Genotype, ProblemParametersMatrix
 from time import time
 from grid_search import grid_search, remaining_time_calc
 
@@ -12,8 +12,12 @@ def ToffoliGeneration(set_of_gates):
             x[2] = int(not bool(x[2]))
         toffoli_outputs.append(x)
 
+    
     return AppliedProblemParameters(set_of_gates, [list_to_state(x) for x in toffoli_inputs],
                                     [list_to_state(y) for y in toffoli_outputs], 3)
+    #c = Genotype(a, '022125220242212522024142201024051201').to_circuit()
+    #print(c)
+    #return ProblemParametersMatrix(set_of_gates, c)
 
 import threading
 def run_with_params_for_thread(results, evolution, x, iterations, i, total, min_len, max_len, falloff):
