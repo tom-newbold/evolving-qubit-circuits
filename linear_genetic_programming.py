@@ -311,46 +311,45 @@ class ProblemParameters(ABC):
     def __init__(self, qubits, set_of_gates):
         self.qubit_count = qubits
         if type(set_of_gates) == dict:
+            # checks chosen symbols
             set_of_gates_dict = {}
             for key in set_of_gates:
-                set_of_gates_dict[str(key)] = set_of_gates[key]
-            set_of_gates = set_of_gates_dict.copy()
-            set_of_gates_dict = {}
-            # TODO fix remapping
-            for key in set_of_gates:
+                old_key = key
+                key = str(key)
                 if len(key) > 1:
                     print(f'Gate identifier {key} uses more than one symbol, attempting to remap')
                     for k in key:
                         if k not in set_of_gates:
-                            set_of_gates_dict[k] = set_of_gates[key]
+                            set_of_gates_dict[k] = set_of_gates[old_key]
                             break
                     i=0
                     if k not in set_of_gates_dict:
                         while i<79:
                             if encodeToLetter(i) not in set_of_gates:
                                 if encodeToLetter(i) not in set_of_gates_dict:
-                                    set_of_gates_dict[encodeToLetter(i)] = set_of_gates[key]
+                                    set_of_gates_dict[encodeToLetter(i)] = set_of_gates[old_key]
                                     break
                             i+=1
                         if i==79:
                             raise RuntimeError('Could not remap gate')
                 else:
-                    set_of_gates_dict[str(key)] = set_of_gates[key]
+                    set_of_gates_dict[key] = set_of_gates[old_key]
             self.gate_set = set_of_gates_dict
-            print(self.gate_set)
         elif type(set_of_gates) == list:
+            # assigns symbols
             if len(set_of_gates) > 79:
                 raise ValueError('List exceeds inbuilt base-79: Insufficient symbols')
             set_of_gates_dict = {}
             if len(set_of_gates) < 10:
                 for i in range(len(set_of_gates)):
                     set_of_gates_dict[str(i)] = set_of_gates[i]
-            for i in range(len(set_of_gates)):
-                set_of_gates_dict[encodeToLetter(i)] = set_of_gates[i]
+            else:
+                for i in range(len(set_of_gates)):
+                    set_of_gates_dict[encodeToLetter(i)] = set_of_gates[i]
             self.gate_set = set_of_gates_dict
         else:
             raise TypeError('set_of_gates is not a dictionary or list')
-        #print(self.gate_set)
+        print(self.gate_set)
         self.all_gate_combinations = self.generate_gate_combinations()
 
     def generate_gate_combinations(self):
