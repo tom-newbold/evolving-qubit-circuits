@@ -10,17 +10,17 @@ import numpy as np
 
 def encodeToLetter(n):
     '''26 (english) capitals , 26 (english) lower case,
-       9 valid (greek) upper case, 18 valid (greek) lower case
-       79 allowable symbols'''
+       10 valid (greek) upper case, 18 valid (greek) lower case
+       80 allowable symbols'''
     if n < 26:
         key = chr(ord('A')+n)
     elif n < 52:
         key = chr(ord('a')+n-26)
-    elif n < 61:
-        key = ['Γ','Δ','Θ','Λ','Ξ','Σ','Φ','Ψ','Ω'][n-52]
-    elif n < 79:
+    elif n < 62:
+        key = ['Γ','Δ','Θ','Λ','Ξ','Π','Σ','Φ','Ψ','Ω'][n-52]
+    elif n < 80:
         key = ['α','β','γ','δ','ε','ζ','η','θ','λ','μ',
-               'ξ','ρ','σ','τ','φ','χ','ψ','ω'][n-61]
+               'ξ','ρ','σ','τ','φ','χ','ψ','ω'][n-62]
     #elif n < 62:
     #    key = str(n-52)
     #elif n < 64:
@@ -341,8 +341,8 @@ class ProblemParameters(ABC):
             self.gate_set = set_of_gates_dict
         elif type(set_of_gates) == list:
             # assigns symbols
-            if len(set_of_gates) > 79:
-                raise ValueError('List exceeds inbuilt base-79: Insufficient symbols')
+            if len(set_of_gates) > 80:
+                raise ValueError('List exceeds inbuilt base-80: Insufficient symbols')
             set_of_gates_dict = {}
             if len(set_of_gates) < 10:
                 for i in range(len(set_of_gates)):
