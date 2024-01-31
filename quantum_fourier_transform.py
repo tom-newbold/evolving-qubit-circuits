@@ -53,9 +53,8 @@ if __name__=="__main__":
     E = Evolution(QFT_GEN)
         
     null_circuit_fitness = Genotype(QFT_GEN, '').get_msf()
-    print(null_circuit_fitness)
     population = E.evolutionary_search(min_length=10, max_length=25, MINIMUM_FITNESS=null_circuit_fitness,
-                                       random_sample_size=50, remove_duplicates=True, use_double_point_crossover=True)
+                                       random_sample_size=10, remove_duplicates=True, use_double_point_crossover=True)
 
     
     

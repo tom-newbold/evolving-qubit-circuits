@@ -9,12 +9,12 @@ from time import time
 import numpy as np
 
 def toBase64(n):
-    if n < 10:
-        key = str(n)
-    elif n < 36:
-        key = chr(ord('a')+n-10)
+    if n < 26:
+        key = chr(ord('A')+n)
+    elif n < 52:
+        key = chr(ord('a')+n-26)
     elif n < 62:
-        key = chr(ord('A')+n-10)
+        key = str(n-52)
     elif n < 64:
         key = ['+','/'][n-62]
     else:
@@ -490,7 +490,10 @@ class Evolution:
                 print(f'Generation {generation+1} best: {population[0].genotype_str}')
                 if plot_msf:
                     for x in range(self.SAMPLE_SIZE):
-                        msf_trace[x].append(population[x].msf)
+                        try:
+                            msf_trace[x].append(population[x].msf)
+                        except:
+                            msf_trace[x].append(0)
 
         if output:
             s = min(self.SAMPLE_SIZE, len(population))
@@ -531,7 +534,10 @@ class Evolution:
             if output:
                 print(f'Generation {generation+1} best: {best_genotype.genotype_str}')
                 if plot_msf:
-                    msf_trace.append(best_genotype.msf)
+                    try:
+                        msf_trace.append(best_genotype.msf)
+                    except:
+                        msf_trace.append(0)
 
         if output:
             print('best random circuit:')
@@ -643,7 +649,7 @@ class Evolution:
         msf_trace = [[] for _ in range(self.SAMPLE_SIZE)]
 
         population = []
-        while len(population) < self.SAMPLE_SIZE//2:
+        while len(population) < self.SAMPLE_SIZE:
             for _ in range(self.GENERATION_SIZE):
                 g = Genotype(self.metadata, min_length=min_length, max_length=max_length, falloff=falloff)
                 g.get_msf()
@@ -668,27 +674,33 @@ class Evolution:
                 if remaining_time:
                     print(f"[ estimated time remaining for run ~ {remaining_time} ]")
 
-            new_population = self.develop_circuits_combined(population, double_point_crossover=use_double_point_crossover)
-            population = []
-            for g in new_population:
-                g.get_msf()
-                population.append(g)
             # added random sample
             for _ in range(random_sample_size):
                 g = Genotype(self.metadata, min_length=min_length, max_length=max_length, falloff=falloff)
+                g.get_msf()
+                population.append(g)
+
+            new_population = self.develop_circuits_combined(population, double_point_crossover=use_double_point_crossover)
+            population = []
+            for g in new_population:
                 g.get_msf()
                 population.append(g)
             
             population = self.top_by_fitness(population, remove_dupe=remove_duplicates)
             while population[-1].msf < MINIMUM_FITNESS:
                 population.pop(-1)
+            #print(f'pop size: {len(population)}')
             
             if output:
                 print(f'Generation {i+2} Best Genotype: {population[0].genotype_str}')
                 print(f'Generation {i+2} Best Fitness: {population[0].msf}')
                 if plot_msf:
                     for k in range(self.SAMPLE_SIZE):
-                        msf_trace[k].append(population[k].msf)
+                        try:
+                            msf_trace[k].append(population[k].msf)
+                        except:
+                            msf_trace[k].append(0)
+                        
 
         # output
         if output:
