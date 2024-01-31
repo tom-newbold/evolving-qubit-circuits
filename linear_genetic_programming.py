@@ -8,15 +8,23 @@ import random, math
 from time import time
 import numpy as np
 
-def toBase64(n):
+def encodeToLetter(n):
+    '''26 (english) capitals , 26 (english) lower case,
+       9 valid (greek) upper case, 18 valid (greek) lower case
+       79 allowable symbols'''
     if n < 26:
         key = chr(ord('A')+n)
     elif n < 52:
         key = chr(ord('a')+n-26)
-    elif n < 62:
-        key = str(n-52)
-    elif n < 64:
-        key = ['+','/'][n-62]
+    elif n < 61:
+        key = ['Γ','Δ','Θ','Λ','Ξ','Σ','Φ','Ψ','Ω'][n-52]
+    elif n < 79:
+        key = ['α','β','γ','δ','ε','ζ','η','θ','λ','μ',
+               'ξ','ρ','σ','τ','φ','χ','ψ','ω'][n-61]
+    #elif n < 62:
+    #    key = str(n-52)
+    #elif n < 64:
+    #    key = ['+','/'][n-62]
     else:
         return None
     return key
@@ -306,17 +314,39 @@ class ProblemParameters(ABC):
             set_of_gates_dict = {}
             for key in set_of_gates:
                 set_of_gates_dict[str(key)] = set_of_gates[key]
+            set_of_gates = set_of_gates_dict.copy()
+            set_of_gates_dict = {}
+            # TODO fix remapping
             for key in set_of_gates:
                 if len(key) > 1:
-                    # TODO attempt to remap
-                    raise ValueError('Provided set uses more than one symbol to represent a gate')
-            self.gate_set = set_of_gates
+                    print(f'Gate identifier {key} uses more than one symbol, attempting to remap')
+                    for k in key:
+                        if k not in set_of_gates:
+                            set_of_gates_dict[k] = set_of_gates[key]
+                            break
+                    i=0
+                    if k not in set_of_gates_dict:
+                        while i<79:
+                            if encodeToLetter(i) not in set_of_gates:
+                                if encodeToLetter(i) not in set_of_gates_dict:
+                                    set_of_gates_dict[encodeToLetter(i)] = set_of_gates[key]
+                                    break
+                            i+=1
+                        if i==79:
+                            raise RuntimeError('Could not remap gate')
+                else:
+                    set_of_gates_dict[str(key)] = set_of_gates[key]
+            self.gate_set = set_of_gates_dict
+            print(self.gate_set)
         elif type(set_of_gates) == list:
-            if len(set_of_gates) > 64:
-                raise ValueError('List exceeds inbuilt base-64: Insufficient symbols')
+            if len(set_of_gates) > 79:
+                raise ValueError('List exceeds inbuilt base-79: Insufficient symbols')
             set_of_gates_dict = {}
+            if len(set_of_gates) < 10:
+                for i in range(len(set_of_gates)):
+                    set_of_gates_dict[str(i)] = set_of_gates[i]
             for i in range(len(set_of_gates)):
-                set_of_gates_dict[toBase64(i)] = set_of_gates[i]
+                set_of_gates_dict[encodeToLetter(i)] = set_of_gates[i]
             self.gate_set = set_of_gates_dict
         else:
             raise TypeError('set_of_gates is not a dictionary or list')
