@@ -309,6 +309,10 @@ from abc import ABC, abstractmethod
 
 class ProblemParameters(ABC):
     def __init__(self, qubits, set_of_gates):
+        """if set_of_gates is a dictionary, any invalid keys are remapped;
+           if set_of_gates is a list, keys are assigned (single digit ints
+           if there are less than 10 gate, otherwise a range of english and
+           greek letters are used - the set can contain at most 79 gates)"""
         self.qubit_count = qubits
         if type(set_of_gates) == dict:
             # checks chosen symbols
@@ -373,7 +377,7 @@ class ProblemParameters(ABC):
                     all_gates.append(str(index)+q)
         return all_gates
     
-    def msf(self, candidate_circuit, input_states, output_states, test_all_states=True):
+    def msf(self, candidate_circuit, input_states, output_states):
         """mean square fidelity function over a set of input and output states"""
         M = Operator(candidate_circuit)
         fidelity_sum = 0
@@ -382,8 +386,6 @@ class ProblemParameters(ABC):
             state = input_states[i]
             calc_state = state.evolve(M)
             if calc_state==output_states[i]:
-                #fidelity_sum += 1.0 + 1/(2**(2*self.qubit_count))
-                #fidelity_sum += 1.0 + 1/case_count
                 fidelity_sum += 1.0
             else:
                 fidelity_sum += abs(np.inner(output_states[i].data, calc_state.data).item())**2
