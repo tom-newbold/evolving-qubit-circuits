@@ -1,21 +1,25 @@
-from linear_genetic_programming import AppliedProblemParameters, Evolution, list_to_state, Genotype, ProblemParametersCombined
+from linear_genetic_programming import AppliedProblemParameters, Evolution, list_to_state, ProblemParametersCombined
 from time import time
 from grid_search import grid_search, remaining_time_calc
+
+from qiskit import QuantumCircuit
 
 def ToffoliGeneration(set_of_gates):
     """creates a ProblemParameters object using the toffoli gate truth table"""
     toffoli_inputs = [[i//4 %2, i//2 %2, i%2] for i in range(8)]
+    
+    '''
     toffoli_outputs = []
     for i in range(8):
         x = toffoli_inputs[i].copy()
         if bool(x[0]) and bool(x[1]):
             x[2] = int(not bool(x[2]))
         toffoli_outputs.append(x)
-
-    
-    a = AppliedProblemParameters(set_of_gates, [list_to_state(x) for x in toffoli_inputs],
-                                    [list_to_state(y) for y in toffoli_outputs], 3)
-    c = Genotype(a, '022125220242212522024142201024051201').to_circuit()
+    '''
+    #a = AppliedProblemParameters(set_of_gates, [list_to_state(x) for x in toffoli_inputs],
+    #                                [list_to_state(y) for y in toffoli_outputs], 3)
+    c = QuantumCircuit(3)
+    c.ccx(0,1,2)
     #print(c)
     return ProblemParametersCombined(set_of_gates, [list_to_state(x) for x in toffoli_inputs], c)
 

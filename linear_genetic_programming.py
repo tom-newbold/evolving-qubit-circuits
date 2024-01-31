@@ -8,6 +8,19 @@ import random, math
 from time import time
 import numpy as np
 
+def toBase64(n):
+    if n < 10:
+        key = str(n)
+    elif n < 36:
+        key = chr(ord('a')+n-10)
+    elif n < 62:
+        key = chr(ord('A')+n-10)
+    elif n < 64:
+        key = ['+','/'][n-62]
+    else:
+        return None
+    return key
+
 class Genotype:
     def __init__(self, problem_parameters, genotype_string=None, min_length=15, max_length=45, falloff='linear'):            
         self.genotype_str = genotype_string
@@ -26,10 +39,10 @@ class Genotype:
         i = 0
         while i<len(self.genotype_str):
             gate = self.genotype_str[i]
-            j = i + self.metadata.gate_set[int(gate)].num_qubits + 1
+            j = i + self.metadata.gate_set[gate].num_qubits + 1
             #if 'parameters' in self.metadata.gate_set[int(gate)]:
             #    j += self.metadata.gate_set[int(gate)]['parameters']
-            j += len(self.metadata.gate_set[int(gate)].params)
+            j += len(self.metadata.gate_set[gate].params)
             k = self.genotype_str[i:j]
             i = j
             out.append(k)
@@ -46,41 +59,31 @@ class Genotype:
                 #gate = int(k[0])
                 #if len(k)-1 != self.gate_set[gate]['inputs']:
                 #    print('ERROR')
-                circuit_instance = self.construct_gate(k, circuit_instance)
+                try:
+                    circuit_instance = self.construct_gate(k, circuit_instance)
+                except ValueError:
+                    print(self.genotype_str)
+                    print(self.to_list())
+                    raise ValueError
             self.circuit = circuit_instance
             return circuit_instance
     
     def construct_gate(self, genotype_string, c_instance):
         """constructs a single gate from a string and appends to the given ciruit"""
-        #g_label = self.metadata.gate_set[int(genotype_string[0])]['label']
-        g_list = [int(x) for x in genotype_string]
+        g_list = [int(x) for x in genotype_string[1:]]
 
-
-        g = self.metadata.gate_set[int(genotype_string[0])]
+        g = self.metadata.gate_set[genotype_string[0]]
         if len(g.params) > 0:
-            g.params = [math.pi/x for x in g_list[-len(g.params):]] # better way TODO this?
+            g.params = [math.pi/x for x in g_list[g.num_qubits:]]
 
-        c_instance.append(
-            g,
-            g_list[1:1+g.num_qubits]
-        )
-        """if g_label=='not':
-            c_instance.x(int(genotype_string[1]))
-        elif g_label=='cnot':
-            c_instance.cx(int(genotype_string[1]),int(genotype_string[2]))
-        elif g_label=='had':
-            c_instance.h(int(genotype_string[1]))
-        elif g_label=='chad':
-            c_instance.ch(int(genotype_string[1]),int(genotype_string[2]))
-        elif g_label=='phase':
-            c_instance.p(math.pi/int(genotype_string[2]),int(genotype_string[1]))
-        elif g_label=='cphase':
-            c_instance.cp(math.pi/int(genotype_string[3]),int(genotype_string[1]),int(genotype_string[2]))
-        elif g_label=='t':
-            c_instance.t(int(genotype_string[1]))
-        elif g_label=='t_prime':
-            c_instance.tdg(int(genotype_string[1]))"""
-            
+        try:
+            c_instance.append(
+                g,
+                g_list[:g.num_qubits]
+            )
+        except:
+            print(g_list)
+            raise ValueError()
         return c_instance
     
     #def generate_random_genotype(self, min_length=15, max_length=45, falloff='linear'):#, input_count_weighted=True):
@@ -94,9 +97,8 @@ class Genotype:
             while True:
                 new_gate = random.choice(self.metadata.all_gate_combinations)
                 g += new_gate
-                if 'parameters' in self.metadata.gate_set[int(new_gate[0])]:
-                    for _ in range(self.metadata.gate_set[int(new_gate[0])]['parameters']):
-                        g += str(random.randint(1,9))
+                for _ in range(len(self.metadata.gate_set[new_gate[0]].params)):
+                    g += str(random.randint(1,9))
 
                 if random.random() > intercept + gradient*len(g):
                     break
@@ -104,9 +106,8 @@ class Genotype:
             while True:
                 new_gate = random.choice(self.metadata.all_gate_combinations)
                 g += new_gate
-                if 'parameters' in self.metadata.gate_set[int(new_gate[0])]:
-                    for _ in range(self.metadata.gate_set[int(new_gate[0])]['parameters']):
-                        g += str(random.randint(1,9))
+                for _ in range(len(self.metadata.gate_set[new_gate[0]].params)):
+                    g += str(random.randint(1,9))
 
                 try:
                     if random.random() > math.log10(1-9*(len(g)-max_length)/(max_length-min_length)):
@@ -117,9 +118,8 @@ class Genotype:
             while True:
                 new_gate = random.choice(self.metadata.all_gate_combinations)
                 g += new_gate
-                if 'parameters' in self.metadata.gate_set[int(new_gate[0])]:
-                    for _ in range(self.metadata.gate_set[int(new_gate[0])]['parameters']):
-                        g += str(random.randint(1,9))
+                for _ in range(len(self.metadata.gate_set[new_gate[0]].params)):
+                    g += str(random.randint(1,9))
 
                 if random.random() > min_length/len(g):
                     break
@@ -127,17 +127,14 @@ class Genotype:
             while True:
                 new_gate = random.choice(self.metadata.all_gate_combinations)
                 g += new_gate
-                #if 'parameters' in self.metadata.gate_set[int(new_gate[0])]:
-                #    for _ in range(self.metadata.gate_set[int(new_gate[0])]['parameters']):
-                #        g += str(random.randint(1,9))
-                for _ in range(len(self.metadata.gate_set[int(new_gate[0])].params)):
+                
+                for _ in range(len(self.metadata.gate_set[new_gate[0]].params)):
                     g += str(random.randint(1,9))
 
                 if len(g) > max_length:
                     break
         self.genotype_str = g
         self.circuit = None
-        #self.source = 'random'
 
     def get_msf(self):
         """calculates msf for genotype and stores"""
@@ -206,8 +203,8 @@ class Genotype:
         while gate==prev_gate:
             if random.random() < 0.5:
                 # mutate gate
-                old_gate_index = int(gate[0])
-                new_gate_index = random.randint(0,len(genotype.metadata.gate_set)-1)
+                old_gate_index = gate[0]
+                new_gate_index = random.choice(list(genotype.metadata.gate_set))
                 if new_gate_index==old_gate_index:
                     continue
                 old_input_count = genotype.metadata.gate_set[old_gate_index].num_qubits
@@ -240,17 +237,17 @@ class Genotype:
                 
                 gate = str(new_gate_index) + prev_inputs + prev_params
             else:
-                param_count = len(genotype.metadata.gate_set[int(gate[0])].params)
+                param_count = len(genotype.metadata.gate_set[gate[0]].params)
                 if param_count > 0 and random.random() < 0.25:
                     # mutate a parameter
                     mutate_input = False
                     index_to_change = random.randint(0,param_count-1)
-                    index_to_change += 1 + genotype.metadata.gate_set[int(gate[0])].num_qubits
+                    index_to_change += 1 + genotype.metadata.gate_set[gate[0]].num_qubits
                     new_param = str(random.randint(1,9))
                     gate = gate[:index_to_change] + str(new_param) + gate[index_to_change+1:]
                 else:
                     # mutate an input
-                    input_count = genotype.metadata.gate_set[int(gate[0])].num_qubits
+                    input_count = genotype.metadata.gate_set[gate[0]].num_qubits
                     index_to_change = random.randint(1,input_count)
                     new_input = random.randint(0,genotype.metadata.qubit_count-1)
                     if str(new_input) not in prev_gate[1:1+input_count]:
@@ -264,18 +261,20 @@ class Genotype:
     @staticmethod
     def insertion(genotype):
         """inserts a new random gate at a randomly chosen point in the genotype"""
-        new_gate = random.randint(0,len(genotype.metadata.gate_set)-1)
-        g_add = str(new_gate)
+        g_add = random.choice(genotype.metadata.all_gate_combinations)
+        new_gate = g_add[0]
+        '''
         inputs = []
         while len(inputs) < genotype.metadata.gate_set[new_gate].num_qubits:
             # generates the right number of inputs
             x = str(random.randint(0,genotype.metadata.qubit_count-1))
             if x not in inputs:
                 inputs.append(x)
+        '''
         params = []
         while len(params) < len(genotype.metadata.gate_set[new_gate].params):
             params.append(str(random.randint(1,9)))
-        g_add += ''.join(inputs) + ''.join(params)
+        g_add += ''.join(params)
 
         # insert at random position
         genotype_list = genotype.to_list()
@@ -303,7 +302,25 @@ from abc import ABC, abstractmethod
 class ProblemParameters(ABC):
     def __init__(self, qubits, set_of_gates):
         self.qubit_count = qubits
-        self.gate_set = set_of_gates
+        if type(set_of_gates) == dict:
+            set_of_gates_dict = {}
+            for key in set_of_gates:
+                set_of_gates_dict[str(key)] = set_of_gates[key]
+            for key in set_of_gates:
+                if len(key) > 1:
+                    # TODO attempt to remap
+                    raise ValueError('Provided set uses more than one symbol to represent a gate')
+            self.gate_set = set_of_gates
+        elif type(set_of_gates) == list:
+            if len(set_of_gates) > 64:
+                raise ValueError('List exceeds inbuilt base-64: Insufficient symbols')
+            set_of_gates_dict = {}
+            for i in range(len(set_of_gates)):
+                set_of_gates_dict[toBase64(i)] = set_of_gates[i]
+            self.gate_set = set_of_gates_dict
+        else:
+            raise TypeError('set_of_gates is not a dictionary or list')
+        #print(self.gate_set)
         self.all_gate_combinations = self.generate_gate_combinations()
 
     def generate_gate_combinations(self):
@@ -317,13 +334,14 @@ class ProblemParameters(ABC):
                 double_input_combinations.append(str(i)+str(j))
 
         all_gates = []
-        for index, gate in enumerate(self.gate_set):
+        for index in self.gate_set:
+            gate = self.gate_set[index]
             if gate.num_qubits==1:
                 for q in range(self.qubit_count):
                     all_gates.append(str(index)+str(q))
             elif gate.num_qubits==2:
                 for q in double_input_combinations:
-                    all_gates.append(str(index)+str(q))
+                    all_gates.append(str(index)+q)
         return all_gates
     
     def msf(self, candidate_circuit, input_states, output_states, test_all_states=True):
@@ -360,7 +378,7 @@ class AppliedProblemParameters(ProblemParameters):
         """overrides with the required truth table"""
         return self.msf(candidate_circuit, self.input_states, self.output_states)
     
-def matrix_difference_fitness(m_1, m_2, tolerance=0.01):
+def matrix_difference_fitness(m_1, m_2, tolerance=0.05):
     '''takes the difference betweens two matricies and counts the
        proportion of entries which are zero (elements are identical
        in both matricies, up to a tolerance)'''
@@ -368,8 +386,8 @@ def matrix_difference_fitness(m_1, m_2, tolerance=0.01):
     count = 0
     for x in difference_matrix:
         if abs(x) < tolerance:
-            count += 1
-            #count += (tolerance-abs(x)) / tolerance
+            #count += 1
+            count += (tolerance-abs(x)) / tolerance
     return count / len(difference_matrix)
 
 class ProblemParametersMatrix(ProblemParameters):
@@ -381,14 +399,15 @@ class ProblemParametersMatrix(ProblemParameters):
         return matrix_difference_fitness(self.M, Operator(candidate_circuit))
 
 class ProblemParametersCombined(AppliedProblemParameters):
-    def __init__(self, set_of_gates, input_states, target_behaviour_circuit):
+    def __init__(self, set_of_gates, input_states, target_behaviour_circuit, mdf_tolerance=0.05):
         self.M = Operator(target_behaviour_circuit)
         output_states = [s.evolve(self.M) for s in input_states]
         super().__init__(set_of_gates, input_states, output_states, target_behaviour_circuit.num_qubits)
+        self.tolerance = mdf_tolerance
 
     def mdf(self, circuit):
         '''matrix difference fitness for circuit'''
-        return matrix_difference_fitness(self.M, Operator(circuit))
+        return matrix_difference_fitness(self.M, Operator(circuit), self.tolerance)
 
     def specific_msf(self, candidate_circuit):
         '''re-overrides with combination of msf and mdf'''

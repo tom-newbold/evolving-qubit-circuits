@@ -25,7 +25,7 @@ def qft(state):
         y.append(probability)
     return Statevector(y)
 
-def QFTGeneration(set_of_gates, N=3, number_of_states_to_check=10):
+def QFTGeneration(set_of_gates, N=3, number_of_states_to_check=10, t=0.05):
     '''creates a ProblemParameters object with the desired input and output states,
        a sample of the specified size generated based on the number of qubits'''
     input_states_sample = [random_statevector(2**N) for _ in range(number_of_states_to_check)]
@@ -35,7 +35,7 @@ def QFTGeneration(set_of_gates, N=3, number_of_states_to_check=10):
 
     #return AppliedProblemParameters(set_of_gates, input_states_sample, output_states_sample, N)
     #return ProblemParametersMatrix(set_of_gates, QFT_blueprint(N), N)
-    return ProblemParametersCombined(set_of_gates, input_states_sample, QFT_blueprint(N))
+    return ProblemParametersCombined(set_of_gates, input_states_sample, QFT_blueprint(N), t)
 
     
 if __name__=="__main__":
@@ -43,14 +43,17 @@ if __name__=="__main__":
 
     GATE_SET_SIMPLE = [HGate(), CHGate(), CXGate(), PhaseGate(0), CPhaseGate(0)]
     
-    GATE_SET = [HGate(), XGate(), CXGate(), PhaseGate(0),
+    GATE_SET = [HGate(), XGate(), YGate(), CXGate(), PhaseGate(0), RGate(0, 0), 
                 TGate(), TdgGate(), CHGate(), CPhaseGate(0)]
+    GATE_SET = {'A': HGate(), 'B': XGate(), 'C': YGate(), 'D': ZGate(), 'E': CXGate(), 'F': PhaseGate(0),
+                'G': RGate(0, 0), 'H': TGate(), 'I': TdgGate(), 'J': CHGate(), 'K': CPhaseGate(0)}
 
-    QFT_GEN = QFTGeneration(GATE_SET, 3)#, 16)
-    E = Evolution(QFT_GEN, individuals_per_generation=300, alpha=3, beta=6, gamma=4)
-
+    QFT_GEN = QFTGeneration(GATE_SET, 3, t=0.5)#, 16)
+    #E = Evolution(QFT_GEN, individuals_per_generation=300, alpha=3, beta=6, gamma=4)
+    E = Evolution(QFT_GEN)
         
-    null_circuit_fitness = Genotype(QFT_GEN, '201201').get_msf()
+    null_circuit_fitness = Genotype(QFT_GEN, '').get_msf()
+    print(null_circuit_fitness)
     population = E.evolutionary_search(min_length=10, max_length=25, MINIMUM_FITNESS=null_circuit_fitness,
                                        random_sample_size=50, remove_duplicates=True, use_double_point_crossover=True)
 
