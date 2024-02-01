@@ -28,8 +28,8 @@ def qft(state):
 def QFTGeneration(set_of_gates, N=3, number_of_states_to_check=10, t=0.05):
     '''creates a ProblemParameters object with the desired input and output states,
        a sample of the specified size generated based on the number of qubits'''
-    input_states_sample = [random_statevector(2**N) for _ in range(number_of_states_to_check)]
-    #[to_state([i//4 %2, i//2 %2, i%2]) for i in range(8)]
+    #input_states_sample = [random_statevector(2**N) for _ in range(number_of_states_to_check)]
+    input_states_sample = [to_state([i//4 %2, i//2 %2, i%2]) for i in range(8)]
     output_states_sample = [s.evolve(Operator(QFT_blueprint(N))) for s in input_states_sample]
     #[qft(s) for s in input_states_sample]
 

@@ -8,16 +8,16 @@ def ToffoliGeneration(set_of_gates):
     """creates a ProblemParameters object using the toffoli gate truth table"""
     toffoli_inputs = [[i//4 %2, i//2 %2, i%2] for i in range(8)]
     
-    '''
     toffoli_outputs = []
     for i in range(8):
         x = toffoli_inputs[i].copy()
         if bool(x[0]) and bool(x[1]):
             x[2] = int(not bool(x[2]))
         toffoli_outputs.append(x)
-    '''
-    #a = AppliedProblemParameters(set_of_gates, [list_to_state(x) for x in toffoli_inputs],
-    #                                [list_to_state(y) for y in toffoli_outputs], 3)
+    
+    a = AppliedProblemParameters(set_of_gates, [list_to_state(x) for x in toffoli_inputs],
+                                    [list_to_state(y) for y in toffoli_outputs], 3)
+    return a
     c = QuantumCircuit(3)
     c.ccx(0,1,2)
     #from qiskit.quantum_info import random_statevector
@@ -92,7 +92,7 @@ if __name__=="__main__":
                 TGate(), TdgGate(), CHGate(), CPhaseGate(0)]
     
     TOFFOLI = ToffoliGeneration(GATE_SET)
-    E = Evolution(TOFFOLI, individuals_per_generation=200, alpha=3, beta=5, gamma=3)
+    E = Evolution(TOFFOLI, individuals_per_generation=100, alpha=3, beta=5, gamma=3)
 
     #g = Genotype(TOFFOLI, '022125220242212522024142201024051201')
     #print(g.genotype_str)
@@ -100,7 +100,8 @@ if __name__=="__main__":
     
     #population = E.random_search()
     #population = E.stochastic_hill_climb()
-    population = E.evolutionary_search(MINIMUM_FITNESS=0, remove_duplicates=True)#, random_sample_size=20)
+    population = E.evolutionary_search(MINIMUM_FITNESS=0, remove_duplicates=True)#, random_sample_size=5)
+    print(population[0].to_list())
 
     #grid_search(Evolution(TOFFOLI, sample=10, number_of_generations=20,
     #                      individuals_per_generation=50, alpha=1, beta=2))

@@ -80,7 +80,7 @@ class Genotype:
         """constructs a single gate from a string and appends to the given ciruit"""
         g_list = [int(x) for x in genotype_string[1:]]
 
-        g = self.metadata.gate_set[genotype_string[0]]
+        g = self.metadata.gate_set[genotype_string[0]].copy()
         if len(g.params) > 0:
             g.params = [math.pi/x for x in g_list[g.num_qubits:]]
 
@@ -512,13 +512,17 @@ class Evolution:
         self.beta = beta
         self.gamma = gamma
 
-    def top_by_fitness(self, population, prefer_short_circuits=False, prefer_long_circuits=False, remove_dupe=True):
+    def top_by_fitness(self, population, prefer_short_circuits=False, prefer_long_circuits=False, remove_dupe=True, use_qiskit_depth=False):
         """finds the best circuits in the population"""
+        by_fitness = population.copy()
         if remove_dupe:
-            population = remove_duplicates(population)
-        by_fitness = sorted(population, key=lambda genotype: genotype.msf, reverse=True)
+            by_fitness = remove_duplicates(by_fitness)
         if prefer_short_circuits != prefer_long_circuits:
-            by_fitness = sorted(by_fitness, key=lambda genotype: len(genotype.genotype_str), reverse=prefer_long_circuits)
+            if use_qiskit_depth:
+                by_fitness = sorted(by_fitness, key=lambda genotype: genotype.to_circuit().depth, reverse=prefer_long_circuits)
+            else:
+                by_fitness = sorted(by_fitness, key=lambda genotype: len(genotype.genotype_str), reverse=prefer_long_circuits)
+        by_fitness = sorted(by_fitness, key=lambda genotype: genotype.msf, reverse=True)
         return by_fitness[:self.SAMPLE_SIZE]# + by_fitness[self.SAMPLE_SIZE:self.SAMPLE_SIZE**2:self.SAMPLE_SIZE]
         
     def random_search(self, output=True, plot_msf=True):
@@ -734,7 +738,7 @@ class Evolution:
                 g.get_msf()
                 population.append(g)
             
-            population = self.top_by_fitness(population, remove_dupe=remove_duplicates)
+            population = self.top_by_fitness(population, remove_dupe=remove_duplicates)#, prefer_short_circuits=True)
             while population[-1].msf < MINIMUM_FITNESS:
                 population.pop(-1)
             #print(f'pop size: {len(population)}')
