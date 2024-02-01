@@ -417,10 +417,15 @@ class ProblemParameters(ABC):
 
 class AppliedProblemParameters(ProblemParameters):
     def __init__(self, set_of_gates, input_states, output_states, N=3):
-        super().__init__(N, set_of_gates)
-
+        """if output_states is a circuit object, uses to evaluate truth table;
+           otherwise, assumed to be a precalulated list of states"""
         self.input_states = input_states
-        self.output_states = output_states
+        try:
+            self.output_states = [s.evolve(Operator(output_states)) for s in input_states]
+            super().__init__(output_states.num_qubits, set_of_gates)
+        except:
+            self.output_states = output_states
+            super().__init__(N, set_of_gates)
 
     def specific_msf(self, candidate_circuit):
         """overrides with the required truth table"""
@@ -448,6 +453,7 @@ class ProblemParametersMatrix(ProblemParameters):
 
 class ProblemParametersCombined(AppliedProblemParameters):
     def __init__(self, set_of_gates, input_states, target_behaviour_circuit, mdf_tolerance=0.05):
+        """evaluates the truth table on the provided input_states using target_behaviour_circuit"""
         self.M = Operator(target_behaviour_circuit)
         output_states = [s.evolve(self.M) for s in input_states]
         super().__init__(set_of_gates, input_states, output_states, target_behaviour_circuit.num_qubits)
@@ -746,6 +752,7 @@ class Evolution:
             if output:
                 print(f'Generation {i+2} Best Genotype: {population[0].genotype_str}')
                 print(f'Generation {i+2} Best Fitness: {population[0].msf}')
+                print(f'Generation {i+2} Size: {len(population)}')
                 if plot_msf:
                     for k in range(self.SAMPLE_SIZE):
                         try:

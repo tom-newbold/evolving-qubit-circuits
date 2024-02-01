@@ -15,15 +15,16 @@ def ToffoliGeneration(set_of_gates):
             x[2] = int(not bool(x[2]))
         toffoli_outputs.append(x)
     
-    a = AppliedProblemParameters(set_of_gates, [list_to_state(x) for x in toffoli_inputs],
-                                    [list_to_state(y) for y in toffoli_outputs], 3)
-    return a
+    #a = AppliedProblemParameters(set_of_gates, [list_to_state(x) for x in toffoli_inputs],
+    #                                [list_to_state(y) for y in toffoli_outputs], 3)
+    #return a
     c = QuantumCircuit(3)
     c.ccx(0,1,2)
     #from qiskit.quantum_info import random_statevector
     #input_states_sample = [random_statevector(2**3) for _ in range(10)]
     input_states_sample = [list_to_state(x) for x in toffoli_inputs]
-    return ProblemParametersCombined(set_of_gates, input_states_sample, c)
+    return AppliedProblemParameters(set_of_gates, input_states_sample, c)
+    #return ProblemParametersCombined(set_of_gates, input_states_sample, c)
 
 import threading
 def run_with_params_for_thread(results, evolution, x, iterations, i, total, min_len, max_len, falloff):
