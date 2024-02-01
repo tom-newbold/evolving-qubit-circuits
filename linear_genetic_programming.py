@@ -305,6 +305,19 @@ class Genotype:
 def list_to_state(x):
     return Statevector.from_int(x[2]*4+x[1]*2+x[0], 2**3)
 
+def ansi(n=0):
+    '''returns the ANSI escape code for n (used for text colouring)'''
+    try:
+        n = int(n)
+        if n>=0 and n<10:
+            return f'\033[0{str(n)}m'
+        elif n>=10 and n<100:
+            return f'\033[{str(n)}m'
+        else:
+            return ''
+    except:
+        return ''
+
 from abc import ABC, abstractmethod
 
 class ProblemParameters(ABC):
@@ -354,6 +367,10 @@ class ProblemParameters(ABC):
         else:
             raise TypeError('set_of_gates is not a dictionary or list')
         #print(self.gate_set)
+        print('{')
+        for symbol in self.gate_set:
+            print(f'    {ansi(92)}{symbol}{ansi()} : {ansi(96)}{self.gate_set[symbol].base_class.__name__}{ansi()}')
+        print('}')
         self.all_gate_combinations = self.generate_gate_combinations()
 
     def generate_gate_combinations(self):
