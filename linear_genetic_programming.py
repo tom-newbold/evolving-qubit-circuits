@@ -353,7 +353,7 @@ class ProblemParameters(ABC):
             self.gate_set = set_of_gates_dict
         else:
             raise TypeError('set_of_gates is not a dictionary or list')
-        print(self.gate_set)
+        #print(self.gate_set)
         self.all_gate_combinations = self.generate_gate_combinations()
 
     def generate_gate_combinations(self):

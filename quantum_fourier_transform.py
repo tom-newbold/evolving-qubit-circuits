@@ -43,10 +43,10 @@ if __name__=="__main__":
 
     GATE_SET_SIMPLE = [HGate(), CHGate(), CXGate(), PhaseGate(0), CPhaseGate(0)]
     
-    GATE_SET = [HGate(), XGate(), YGate(), CXGate(), PhaseGate(0), RGate(0, 0), 
-                TGate(), TdgGate(), CHGate(), CPhaseGate(0)]
-    GATE_SET = {'α': XGate(), 'β': CXGate(), 'γa': YGate(), 'δ': HGate(), 'ε': PhaseGate(0), 'ζ': ZGate(),
-                'η': RGate(0, 0), 'θ': TGate(), 'λa': TdgGate(), 'μ': CHGate(), 'φ': CPhaseGate(0)}
+    GATE_SET = [HGate(), XGate(), YGate(), ZGate(), CXGate(), PhaseGate(0), 
+                RGate(0, 0), TGate(), TdgGate(), CHGate(), CPhaseGate(0)]
+    #GATE_SET = {'α': XGate(), 'β': CXGate(), 'γa': YGate(), 'δ': HGate(), 'ε': PhaseGate(0), 'ζ': ZGate(),
+    #            'η': RGate(0, 0), 'θ': TGate(), 'λa': TdgGate(), 'μ': CHGate(), 'φ': CPhaseGate(0)}
 
     QFT_GEN = QFTGeneration(GATE_SET, 3, t=0.5)#, 16)
     #E = Evolution(QFT_GEN, individuals_per_generation=300, alpha=3, beta=6, gamma=4)
