@@ -27,7 +27,7 @@ def run_with_params(evolution, x, iterations, i, total, start_time, min_fitness,
             print(f"expected remaining runtime = {remaining_time}")
     # update sample_percent
     evolution.sample_percentage = sample_percentage
-    evolution.SAMPLE_SIZE = evolution.individuals_per_generation*sample_percentage
+    evolution.SAMPLE_SIZE = int(evolution.GENERATION_SIZE*sample_percentage)
     best_genotype = evolution.evolutionary_search(MINIMUM_FITNESS=min_fitness, random_sample_size=random_sample_size, remove_duplicates=remove_duplicates, output=False)[0]
     print(f"actual runtime = {remaining_time_calc(time()-run_start)}")
     print(f"[{x*'0'}{(iterations-x)*'.'}] [{(i%total)*'#'}{(total-(i%total))*'_'}]")
@@ -55,8 +55,8 @@ def grid_search(evolution, iterations=1, minimum_fitnesses=[0], random_sample_si
     
     for j, r in enumerate(results):
         print(f'## {j+1}')
-        print(f"min:{r['min']} max:{r['max']} falloff:{r['falloff']}")
         print(' '.join([f'{key}:{r[key]}' for key in r][:-1]))
         print(f"genotype: {r['best'].genotype_str}")
         print(f"msf: {r['best'].msf}")
+        print(r['best'].to_circuit())
     return results

@@ -357,11 +357,10 @@ class ProblemParameters(ABC):
             self.gate_set = set_of_gates_dict
         else:
             raise TypeError('set_of_gates is not a dictionary or list')
-        #print(self.gate_set)
-        print('{')
-        for symbol in self.gate_set:
-            print(f'    {ansi(92)}{symbol}{ansi()} : {ansi(96)}{self.gate_set[symbol].base_class.__name__}{ansi()}')
-        print('}')
+        #print('{')
+        #for symbol in self.gate_set:
+        #    print(f'    {ansi(92)}{symbol}{ansi()} : {ansi(96)}{self.gate_set[symbol].base_class.__name__}{ansi()}')
+        #print('}')
         self.all_gate_combinations = self.generate_gate_combinations()
 
     def generate_gate_combinations(self):
@@ -504,7 +503,7 @@ def remove_duplicates(genotype_list):
 class Evolution:
     def __init__(self, problem_parameters, sample_percentage=0.05, number_of_generations=50, individuals_per_generation=100, alpha=2, beta=3, gamma=2):
         self.metadata = problem_parameters
-        self.SAMPLE_SIZE = individuals_per_generation*sample_percentage
+        self.SAMPLE_SIZE = int(individuals_per_generation*sample_percentage)
         print(f'sample size: {self.SAMPLE_SIZE}')
         self.GENERATION_COUNT = number_of_generations
         self.GENERATION_SIZE = individuals_per_generation
