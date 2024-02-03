@@ -1,5 +1,5 @@
 from linear_genetic_programming import AppliedProblemParameters, Evolution, Genotype, ProblemParametersMatrix, ProblemParametersCombined
-from grid_search import grid_search
+#from grid_search_old import grid_search
 
 from qiskit.quantum_info import Operator, Statevector, random_statevector
 from qiskit.circuit.library import QFT as QFT_blueprint

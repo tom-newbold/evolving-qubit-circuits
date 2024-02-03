@@ -1,7 +1,7 @@
 from qiskit import QuantumCircuit
 from qiskit.quantum_info import Operator, Statevector
 
-from grid_search import remaining_time_calc
+from grid_search_old import remaining_time_calc
 
 import matplotlib.pyplot as plt
 import random, math
@@ -271,19 +271,10 @@ class Genotype:
         """inserts a new random gate at a randomly chosen point in the genotype"""
         g_add = random.choice(genotype.metadata.all_gate_combinations)
         new_gate = g_add[0]
-        '''
-        inputs = []
-        while len(inputs) < genotype.metadata.gate_set[new_gate].num_qubits:
-            # generates the right number of inputs
-            x = str(random.randint(0,genotype.metadata.qubit_count-1))
-            if x not in inputs:
-                inputs.append(x)
-        '''
         params = []
         while len(params) < len(genotype.metadata.gate_set[new_gate].params):
             params.append(str(random.randint(1,9)))
         g_add += ''.join(params)
-
         # insert at random position
         genotype_list = genotype.to_list()
         genotype_add_index = random.randint(0,len(genotype_list)-1)
