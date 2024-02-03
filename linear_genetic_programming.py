@@ -34,7 +34,7 @@ class Genotype:
         self.genotype_str = genotype_string
         self.circuit = None
         self.metadata = problem_parameters
-        self.msf = None
+        self.fitness = None
         #self.source = ''
         if self.genotype_str==None:
             self.generate_random_genotype(min_length, max_length, falloff)#PARAMETERS
@@ -145,10 +145,9 @@ class Genotype:
         self.circuit = None
 
     def get_fitness(self):
-        """calculates msf for genotype and stores"""
-        m = self.metadata.circuit_fitness(self.to_circuit())
-        self.msf = m
-        return m
+        """calculates fitness for genotype and stores"""
+        self.fitness = self.metadata.circuit_fitness(self.to_circuit())
+        return self.fitness
     
     ### ---------- EVOLUTIONARY OPERATORS ----------
     
@@ -521,11 +520,11 @@ class Evolution:
                 by_fitness = sorted(by_fitness, key=lambda genotype: genotype.to_circuit().depth, reverse=prefer_long_circuits)
             else:
                 by_fitness = sorted(by_fitness, key=lambda genotype: len(genotype.genotype_str), reverse=prefer_long_circuits)
-        by_fitness = sorted(by_fitness, key=lambda genotype: genotype.msf, reverse=True)
+        by_fitness = sorted(by_fitness, key=lambda genotype: genotype.fitness, reverse=True)
         return by_fitness[:self.SAMPLE_SIZE]# + by_fitness[self.SAMPLE_SIZE:self.SAMPLE_SIZE**2:self.SAMPLE_SIZE]
         
-    def random_search(self, output=True, plot_msf=True):
-        msf_trace = [[] for i in range(self.SAMPLE_SIZE)]
+    def random_search(self, output=True, plot_fitness=True):
+        fitness_trace = [[] for i in range(self.SAMPLE_SIZE)]
         population = []
 
         for generation in range(self.GENERATION_COUNT):
@@ -539,39 +538,39 @@ class Evolution:
             # 5 carried forward from the previous generation
             if output:
                 print(f'Generation {generation+1} best: {population[0].genotype_str}')
-                if plot_msf:
+                if plot_fitness:
                     for x in range(self.SAMPLE_SIZE):
                         try:
-                            msf_trace[x].append(population[x].msf)
+                            fitness_trace[x].append(population[x].fitness)
                         except:
-                            msf_trace[x].append(0)
+                            fitness_trace[x].append(0)
 
         if output:
             s = min(self.SAMPLE_SIZE, len(population))
             print(f'top {s}:')
             for i in range(s):
                 print(population[i].genotype_str)
-                print(population[i].msf)
+                print(population[i].fitness)
 
             print('best random circuit:')
             #population[0]['circuit'].draw(output='mpl',style='iqp')
             print(population[0].to_circuit())
 
-            if plot_msf:
-                plot_list(msf_trace, 'Generations', 'MSF')
+            if plot_fitness:
+                plot_list(fitness_trace, 'Generations', 'Circuit Fitness')
         return population
     
-    def stochastic_hill_climb(self, output=True, plot_msf=True):
+    def stochastic_hill_climb(self, output=True, plot_fitness=True):
         best_genotype = Genotype(self.metadata, '')
-        best_genotype.msf = 0.0
-        msf_trace = []
+        best_genotype.fitness = 0.0
+        fitness_trace = []
 
         for generation in range(self.GENERATION_COUNT):
             population = []
             for _ in range(self.GENERATION_SIZE):
                 g = Genotype(self.metadata, min_length=30, max_length=45, falloff='linear')
                 m = g.get_fitness()
-                m_delta = m - best_genotype.msf
+                m_delta = m - best_genotype.fitness
                 if m_delta > 0:
                     # only take better circuits
                     population.append(g)
@@ -579,33 +578,33 @@ class Evolution:
 
             if len(population) > 0:
                 population = self.top_by_fitness(population)
-                # select a random genotype, using the msf improvements as weights
-                best_genotype = random.choices(population, weights=[(g.msf - best_genotype.msf) for g in population], k=1)[0]
+                # select a random genotype, using the fitness improvements as weights
+                best_genotype = random.choices(population, weights=[(g.fitness - best_genotype.fitness) for g in population], k=1)[0]
 
             if output:
                 print(f'Generation {generation+1} best: {best_genotype.genotype_str}')
-                if plot_msf:
+                if plot_fitness:
                     try:
-                        msf_trace.append(best_genotype.msf)
+                        fitness_trace.append(best_genotype.fitness)
                     except:
-                        msf_trace.append(0)
+                        fitness_trace.append(0)
 
         if output:
             print('best random circuit:')
             print(best_genotype.genotype_str)
             print(best_genotype.to_list())
             print(best_genotype.to_circuit())
-            print(best_genotype.msf)
+            print(best_genotype.fitness)
             #best_genotype['circuit'].draw(output='mpl',style='iqp')
-            if plot_msf:
-                plot_list(msf_trace, 'Generations', 'MSF')
+            if plot_fitness:
+                plot_list(fitness_trace, 'Generations', 'Circuit Fitness')
         return population
     
     ### ---------- EVOLUTIONARY SEARCH ----------
 
     def develop_circuits_uniform(self, inital_population, use_double_point_crossover=True):
         '''use a prespecified distribution of search operators
-        population should be sorted by msf'''
+        population should be sorted by fitness'''
         population = inital_population.copy()
         # crossover operation for every pair of genotypes in the sample
         for g_1_index in range(len(inital_population)):
@@ -641,11 +640,11 @@ class Evolution:
             # randomly select from the search operators
             operation = random.choices(population=['crossover', 'mutation', 'insersion', 'deletion'], weights=[0.4,0.5,0.05,0.05], k=1)[0]
             # randomly select a genotype
-            g_1 = random.choices(inital_population, weights=[g.msf for g in inital_population], k=1)[0]
+            g_1 = random.choices(inital_population, weights=[g.fitness for g in inital_population], k=1)[0]
             if operation == 'crossover':
                 g_2 = g_1
                 while g_2 == g_1:
-                    g_2 = random.choices(inital_population, weights=[g.msf for g in inital_population], k=1)[0]
+                    g_2 = random.choices(inital_population, weights=[g.fitness for g in inital_population], k=1)[0]
                 if use_double_point_crossover==True:
                     for c in range(self.gamma):
                         g_3, g_4 = Genotype.double_crossover(g_1, g_2)
@@ -667,26 +666,6 @@ class Evolution:
                         elif operation=='deletion':
                             g_2 = Genotype.deletion(g_2)
                         population.append(g_2)
-                '''
-                if operation=='mutation':
-                    for a in range(alpha):
-                        g_2 = g_1
-                        for b in range(beta):
-                            g_2 = self.mutation(g_2, gate_set)
-                            population.append(g_2)
-                elif operation=='insersion':
-                    for a in range(alpha):
-                        g_2 = g_1
-                        for b in range(beta):
-                            g_2 = self.insertion(g_2, gate_set)
-                            population.append(g_2)
-                elif operation=='deletion':
-                    for a in range(alpha):
-                        g_2 = g_1
-                        for b in range(beta):
-                            g_2 = self.deletion(g_2, gate_set)
-                            population.append(g_2)
-                '''
         return population
 
     def develop_circuits_combined(self, inital_population, operation_count=250, double_point_crossover=True):
@@ -696,8 +675,9 @@ class Evolution:
         return inital_population + population_uniform + population_random
     
     def evolutionary_search(self, min_length=30, max_length=60, falloff=None, remove_duplicates=False,
-                            MINIMUM_FITNESS=0, output=True, plot_msf=True, random_sample_size=0, use_double_point_crossover=True):
-        msf_trace = [[] for _ in range(self.SAMPLE_SIZE)]
+                            MINIMUM_FITNESS=0, output=True, plot_fitness=True, random_sample_size=0,
+                            use_double_point_crossover=True):
+        fitness_trace = [[] for _ in range(self.SAMPLE_SIZE)]
 
         population = []
         while len(population) < self.SAMPLE_SIZE:
@@ -706,11 +686,11 @@ class Evolution:
                 g.get_fitness()
                 population.append(g)
             population = self.top_by_fitness(population)
-            if population[-1].msf >= MINIMUM_FITNESS:
+            if population[-1].fitness >= MINIMUM_FITNESS:
                 break
             else:
                 for i in range(len(population)):
-                    if population[i].msf < MINIMUM_FITNESS:
+                    if population[i].fitness < MINIMUM_FITNESS:
                         population = population[:i]
                         break
         if output:
@@ -738,20 +718,20 @@ class Evolution:
                 population.append(g)
             
             population = self.top_by_fitness(population, remove_dupe=remove_duplicates)#, prefer_short_circuits=True)
-            while population[-1].msf < MINIMUM_FITNESS:
+            while population[-1].fitness < MINIMUM_FITNESS:
                 population.pop(-1)
             #print(f'pop size: {len(population)}')
             
             if output:
                 print(f'Generation {i+2} Best Genotype: {population[0].genotype_str}')
-                print(f'Generation {i+2} Best Fitness: {population[0].msf}')
+                print(f'Generation {i+2} Best Fitness: {population[0].fitness}')
                 print(f'Generation {i+2} Size: {len(population)}')
-                if plot_msf:
+                if plot_fitness:
                     for k in range(self.SAMPLE_SIZE):
                         try:
-                            msf_trace[k].append(population[k].msf)
+                            fitness_trace[k].append(population[k].fitness)
                         except:
-                            msf_trace[k].append(0)
+                            fitness_trace[k].append(0)
                         
 
         # output
@@ -759,11 +739,11 @@ class Evolution:
             print(f'Top {self.SAMPLE_SIZE} genotypes:')
             for i in range(self.SAMPLE_SIZE):
                 print(population[i].genotype_str)
-                print(population[i].msf)
+                print(population[i].fitness)
             print('best circuit:')
             print(population[0].to_circuit())
 
-            if plot_msf:
-                plot_list(msf_trace, 'Generations', 'MSF')
+            if plot_fitness:
+                plot_list(fitness_trace, 'Generations', 'Circuit Fitness')
 
         return population

@@ -39,24 +39,24 @@ def grid_search(evolution, iterations=1, minimum_fitnesses=[0], random_sample_si
 
     start_time = time()
     i = 1
-    total = iterations*2*len(minimum_fitnesses)*len(random_sample_sizes)*len(sample_percentages)
+    total = iterations*len(minimum_fitnesses)*len(random_sample_sizes)*len(sample_percentages)#*2
     for x in range(iterations):
-        for remove_duplicates in [True, False]:
-            for min_fitness in minimum_fitnesses:
-                for r_sample in random_sample_sizes:
-                    for sample_percent in sample_percentages:
-                        results.append(run_with_params(evolution, x, iterations, i, total,
-                                                    start_time, min_fitness, r_sample,
-                                                    sample_percent, remove_duplicates))
-                        i+=1
+        #for remove_duplicates in [True, False]:
+        for min_fitness in minimum_fitnesses:
+            for r_sample in random_sample_sizes:
+                for sample_percent in sample_percentages:
+                    results.append(run_with_params(evolution, x, iterations, i, total,
+                                                start_time, min_fitness, r_sample,
+                                                sample_percent, True))
+                    i+=1
     print(f"[{iterations*'.'}] [{total*'#'}]")
 
-    results = sorted(results, key=lambda result: result['best'].msf, reverse=True)
+    results = sorted(results, key=lambda result: result['best'].fitness, reverse=True)
     
     for j, r in enumerate(results):
         print(f'## {j+1}')
         print(' '.join([f'{key}:{r[key]}' for key in r][:-1]))
         print(f"genotype: {r['best'].genotype_str}")
-        print(f"msf: {r['best'].msf}")
+        print(f"fitness: {r['best'].fitness}")
         print(r['best'].to_circuit())
     return results
