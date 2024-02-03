@@ -1,5 +1,5 @@
 from time import time
-from linear_genetic_programming import Genotype
+from linear_genetic_programming import ProblemParametersCombined
 
 def remaining_time_calc(remaining_time):
     if remaining_time > 0.001:
@@ -13,8 +13,15 @@ def remaining_time_calc(remaining_time):
             remaining_time = f'{int(remaining_time)} hours {int((remaining_time-int(remaining_time))*60)} minuites'
         return remaining_time
 
-def run_with_params(evolution, x, iterations, i, total, start_time, min_fitness, random_sample_size, sample_percentage, remove_duplicates):
-    print(f"LOOP {x+1}/{iterations} TEST {(i-1)%total + 1}/{total} - checking min:{min_fitness} random:{random_sample_size} sample-percent:{sample_percentage} no-dupe:{remove_duplicates}")
+def run_with_params(evolution, x, iterations, i, total, start_time, min_fitness, random_sample_size, sample_percentage, remove_duplicates, tolerance):
+    # update sample_percent
+    evolution.sample_percentage = sample_percentage
+    evolution.SAMPLE_SIZE = int(evolution.GENERATION_SIZE*sample_percentage)
+    # update tolerance
+    if tolerance:
+        evolution.metadata.tolerance = tolerance
+    print(f"LOOP {x+1}/{iterations} TEST {(i-1)%total + 1}/{total} - checking min:{min_fitness} random:{random_sample_size} "+
+          f"sample-percent:{sample_percentage} no-dupe:{remove_duplicates} tolerance:{tolerance}")
     run_start = time()
     if i!=1:
         estimated_total_time = (run_start-start_time)*total*iterations/(i-1)
@@ -25,30 +32,33 @@ def run_with_params(evolution, x, iterations, i, total, start_time, min_fitness,
         remaining_time = remaining_time_calc(remaining_time)
         if remaining_time:
             print(f"expected remaining runtime = {remaining_time}")
-    # update sample_percent
-    evolution.sample_percentage = sample_percentage
-    evolution.SAMPLE_SIZE = int(evolution.GENERATION_SIZE*sample_percentage)
     best_genotype = evolution.evolutionary_search(MINIMUM_FITNESS=min_fitness, random_sample_size=random_sample_size, remove_duplicates=remove_duplicates, output=False)[0]
     print(f"actual runtime = {remaining_time_calc(time()-run_start)}")
     print(f"[{x*'0'}{(iterations-x)*'.'}] [{(i%total)*'#'}{(total-(i%total))*'_'}]")
     return {'min_fitness':min_fitness, 'random_sample_size':random_sample_size, 'sample_percentage':sample_percentage, 'remove_duplicates':remove_duplicates, 'best':best_genotype}
 
-def grid_search(evolution, iterations=1, minimum_fitnesses=[0], random_sample_sizes=[0], sample_percentages=[0.05]):
+def grid_search(evolution, iterations=1, minimum_fitnesses=[0], random_sample_sizes=[0], sample_percentages=[0.05], tolerances=[0.05]):
     """performs a grid search of the 'primary' parameters associated with genotype generation"""
     results = []
 
     start_time = time()
     i = 1
     total = iterations*len(minimum_fitnesses)*len(random_sample_sizes)*len(sample_percentages)#*2
+    if type(evolution.metadata)==ProblemParametersCombined:
+        total *= len(tolerances)
+    else:
+        tolerances = [None]
+
     for x in range(iterations):
         #for remove_duplicates in [True, False]:
         for min_fitness in minimum_fitnesses:
             for r_sample in random_sample_sizes:
                 for sample_percent in sample_percentages:
-                    results.append(run_with_params(evolution, x, iterations, i, total,
-                                                start_time, min_fitness, r_sample,
-                                                sample_percent, True))
-                    i+=1
+                    for t in tolerances:
+                        results.append(run_with_params(evolution, x, iterations, i, total,
+                                                    start_time, min_fitness, r_sample,
+                                                    sample_percent, True, t))
+                        i+=1
     print(f"[{iterations*'.'}] [{total*'#'}]")
 
     results = sorted(results, key=lambda result: result['best'].fitness, reverse=True)

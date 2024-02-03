@@ -57,4 +57,4 @@ if __name__=="__main__":
     #                                   random_sample_size=10, remove_duplicates=True, use_double_point_crossover=True)
 
     
-    grid_search(Evolution(QFT_GEN), 1, [0, null_f], [0,2,5], [0.025,0.05,0.1]) # try multiples of null fitness
+    grid_search(Evolution(QFT_GEN), 1, [0, null_f], [0,2,5], [0.025,0.05,0.1], [0.025,0.1,0.5]) # try multiples of null fitness
