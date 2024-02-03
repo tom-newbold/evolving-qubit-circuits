@@ -1,5 +1,5 @@
 from linear_genetic_programming import AppliedProblemParameters, Evolution, Genotype, ProblemParametersMatrix, ProblemParametersCombined
-#from grid_search_old import grid_search
+from grid_search import grid_search
 
 from qiskit.quantum_info import Operator, Statevector, random_statevector
 from qiskit.circuit.library import QFT as QFT_blueprint
@@ -52,12 +52,9 @@ if __name__=="__main__":
     #E = Evolution(QFT_GEN, individuals_per_generation=300, alpha=3, beta=6, gamma=4)
     E = Evolution(QFT_GEN)
         
-    null_circuit_fitness = Genotype(QFT_GEN, '').get_msf()
-    population = E.evolutionary_search(min_length=10, max_length=25, MINIMUM_FITNESS=null_circuit_fitness,
-                                       random_sample_size=10, remove_duplicates=True, use_double_point_crossover=True)
+    null_f = QFT_GEN.get_null_circuit_fitness()
+    #population = E.evolutionary_search(min_length=10, max_length=25, MINIMUM_FITNESS=null_circuit_fitness,
+    #                                   random_sample_size=10, remove_duplicates=True, use_double_point_crossover=True)
 
     
-    
-    #grid_search(Evolution(QFT_GEN),lengths=([0,10,20,30],[10,20,25,30,40]),
-    #            falloff=['linear','logarithmic','reciprocal'], iterations=1,
-    #            MINIMUM_FITNESS=null_circuit_fitness, remove_duplicates=True, random_sample_size=25)
+    grid_search(Evolution(QFT_GEN), 1, [0, null_f], [0,2,5,10], [0.025,0.05,0.1]) # try multiples of null fitness

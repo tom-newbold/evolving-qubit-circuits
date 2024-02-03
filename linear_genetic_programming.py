@@ -144,9 +144,9 @@ class Genotype:
         self.genotype_str = g
         self.circuit = None
 
-    def get_msf(self):
+    def get_fitness(self):
         """calculates msf for genotype and stores"""
-        m = self.metadata.specific_msf(self.to_circuit())
+        m = self.metadata.circuit_fitness(self.to_circuit())
         self.msf = m
         return m
     
@@ -401,8 +401,11 @@ class ProblemParameters(ABC):
         return fidelity_sum/case_count
     
     @abstractmethod
-    def specific_msf(self, candidate_circuit):
+    def circuit_fitness(self, candidate_circuit):
         pass
+
+    def get_null_circuit_fitness(self):
+        return Genotype(self, '').get_fitness()
 
     # function to check correctness? unsure how to intergrate with specific and non-specific msf
 
@@ -418,7 +421,7 @@ class AppliedProblemParameters(ProblemParameters):
             self.output_states = output_states
             super().__init__(N, set_of_gates)
 
-    def specific_msf(self, candidate_circuit):
+    def circuit_fitness(self, candidate_circuit):
         """overrides with the required truth table"""
         return self.msf(candidate_circuit, self.input_states, self.output_states)
     
@@ -439,7 +442,7 @@ class ProblemParametersMatrix(ProblemParameters):
         super().__init__(N, set_of_gates)
         self.M = Operator(target_behaviour_circuit)
 
-    def specific_msf(self, candidate_circuit):
+    def circuit_fitness(self, candidate_circuit):
         return matrix_difference_fitness(self.M, Operator(candidate_circuit))
 
 class ProblemParametersCombined(AppliedProblemParameters):
@@ -454,7 +457,7 @@ class ProblemParametersCombined(AppliedProblemParameters):
         '''matrix difference fitness for circuit'''
         return matrix_difference_fitness(self.M, Operator(circuit), self.tolerance)
 
-    def specific_msf(self, candidate_circuit):
+    def circuit_fitness(self, candidate_circuit):
         '''re-overrides with combination of msf and mdf'''
         msf = self.msf(candidate_circuit, self.input_states, self.output_states)
         mdf = self.mdf(candidate_circuit)
@@ -499,9 +502,9 @@ def remove_duplicates(genotype_list):
 
 
 class Evolution:
-    def __init__(self, problem_parameters, sample=5, number_of_generations=50, individuals_per_generation=100, alpha=2, beta=3, gamma=2):
+    def __init__(self, problem_parameters, sample_percentage=0.05, number_of_generations=50, individuals_per_generation=100, alpha=2, beta=3, gamma=2):
         self.metadata = problem_parameters
-        self.SAMPLE_SIZE = max(int(individuals_per_generation*0.05), sample)#sample
+        self.SAMPLE_SIZE = individuals_per_generation*sample_percentage
         print(f'sample size: {self.SAMPLE_SIZE}')
         self.GENERATION_COUNT = number_of_generations
         self.GENERATION_SIZE = individuals_per_generation
@@ -529,7 +532,7 @@ class Evolution:
         for generation in range(self.GENERATION_COUNT):
             for _ in range(self.GENERATION_SIZE):
                 g = Genotype(self.metadata, min_length=30, max_length=45, falloff='linear')
-                g.get_msf()
+                g.get_fitness()
                 population.append(g)
             # sort population by fitness, take top 5
             population = self.top_by_fitness(population)
@@ -568,7 +571,7 @@ class Evolution:
             population = []
             for _ in range(self.GENERATION_SIZE):
                 g = Genotype(self.metadata, min_length=30, max_length=45, falloff='linear')
-                m = g.get_msf()
+                m = g.get_fitness()
                 m_delta = m - best_genotype.msf
                 if m_delta > 0:
                     # only take better circuits
@@ -701,7 +704,7 @@ class Evolution:
         while len(population) < self.SAMPLE_SIZE:
             for _ in range(self.GENERATION_SIZE):
                 g = Genotype(self.metadata, min_length=min_length, max_length=max_length, falloff=falloff)
-                g.get_msf()
+                g.get_fitness()
                 population.append(g)
             population = self.top_by_fitness(population)
             if population[-1].msf >= MINIMUM_FITNESS:
@@ -726,13 +729,13 @@ class Evolution:
             # added random sample
             for _ in range(random_sample_size):
                 g = Genotype(self.metadata, min_length=min_length, max_length=max_length, falloff=falloff)
-                g.get_msf()
+                g.get_fitness()
                 population.append(g)
 
             new_population = self.develop_circuits_combined(population, double_point_crossover=use_double_point_crossover)
             population = []
             for g in new_population:
-                g.get_msf()
+                g.get_fitness()
                 population.append(g)
             
             population = self.top_by_fitness(population, remove_dupe=remove_duplicates)#, prefer_short_circuits=True)
