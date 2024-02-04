@@ -356,10 +356,10 @@ class ProblemParameters(ABC):
             self.gate_set = set_of_gates_dict
         else:
             raise TypeError('set_of_gates is not a dictionary or list')
-        #print('{')
-        #for symbol in self.gate_set:
-        #    print(f'    {ansi(92)}{symbol}{ansi()} : {ansi(96)}{self.gate_set[symbol].base_class.__name__}{ansi()}')
-        #print('}')
+        print('{')
+        for symbol in self.gate_set:
+            print(f'    {ansi(92)}{symbol}{ansi()} : {ansi(96)}{self.gate_set[symbol].base_class.__name__}{ansi()}')
+        print('}')
         self.all_gate_combinations = self.generate_gate_combinations()
 
     def generate_gate_combinations(self):
@@ -500,7 +500,8 @@ def remove_duplicates(genotype_list):
 
 
 class Evolution:
-    def __init__(self, problem_parameters, sample_percentage=0.05, number_of_generations=50, individuals_per_generation=100, alpha=2, beta=3, gamma=2):
+    def __init__(self, problem_parameters, sample_percentage=0.05, number_of_generations=50,
+                 individuals_per_generation=100, alpha=1, beta=2, gamma=2):
         self.metadata = problem_parameters
         self.SAMPLE_SIZE = int(individuals_per_generation*sample_percentage)
         print(f'sample size: {self.SAMPLE_SIZE}')
@@ -710,11 +711,12 @@ class Evolution:
 
         start_time = time()
         for i in range(self.GENERATION_COUNT-1):
-            if (i-1)%10==0:
-                remaining_time = (time()-start_time) * (self.GENERATION_COUNT-i)/(i+1)
-                remaining_time = remaining_time_calc(remaining_time)
-                if remaining_time:
-                    print(f"[ estimated time remaining for run ~ {remaining_time} ]")
+            if i%5==0:
+                if i!=0:
+                    remaining_time = (time()-start_time) * (self.GENERATION_COUNT-i)/(i+1)
+                    remaining_time = remaining_time_calc(remaining_time)
+                    if remaining_time:
+                        print(f"[ estimated time remaining for run ~ {remaining_time} ]")
 
             # added random sample
             for _ in range(random_sample_size):
