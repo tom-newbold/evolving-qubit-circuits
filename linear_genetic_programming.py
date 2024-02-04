@@ -510,8 +510,9 @@ class Evolution:
         self.beta = beta
         self.gamma = gamma
 
-    def top_by_fitness(self, population, prefer_short_circuits=False, prefer_long_circuits=False, remove_dupe=True, use_qiskit_depth=False):
-        """finds the best circuits in the population"""
+    @staticmethod
+    def sort_by_fitness(population, min_fitness=0, prefer_short_circuits=False, prefer_long_circuits=False, remove_dupe=True, use_qiskit_depth=False):
+        """sorts population by fitness, also removed duplicates / sorts by circuit depth if specified"""
         by_fitness = population.copy()
         if remove_dupe:
             by_fitness = remove_duplicates(by_fitness)
@@ -521,7 +522,17 @@ class Evolution:
             else:
                 by_fitness = sorted(by_fitness, key=lambda genotype: len(genotype.genotype_str), reverse=prefer_long_circuits)
         by_fitness = sorted(by_fitness, key=lambda genotype: genotype.fitness, reverse=True)
-        return by_fitness[:self.SAMPLE_SIZE]# + by_fitness[self.SAMPLE_SIZE:self.SAMPLE_SIZE**2:self.SAMPLE_SIZE]
+        while by_fitness[-1].fitness < min_fitness:
+            by_fitness.pop(-1)
+        return by_fitness
+    
+    def top_by_fitness(self, population, min_fitness=0, prefer_short_circuits=False, prefer_long_circuits=False, remove_dupe=True, use_qiskit_depth=False):
+        """finds the best circuits in the population; top sample taken as well as uniform [CHANGE THIS TO RAMPED] selection of remaining circuits"""
+        by_fitness = Evolution.sort_by_fitness(population, min_fitness, prefer_short_circuits, prefer_long_circuits, remove_dupe, use_qiskit_depth)
+        step = (len(by_fitness)-self.SAMPLE_SIZE)//(self.GENERATION_SIZE-self.SAMPLE_SIZE)
+        step = 1 if step==0 else step
+        end = (1-step)*self.SAMPLE_SIZE + step*self.GENERATION_SIZE
+        return by_fitness[:self.SAMPLE_SIZE] + by_fitness[self.SAMPLE_SIZE:end:step]
         
     def random_search(self, output=True, plot_fitness=True):
         fitness_trace = [[] for i in range(self.SAMPLE_SIZE)]
@@ -717,10 +728,7 @@ class Evolution:
                 g.get_fitness()
                 population.append(g)
             
-            population = self.top_by_fitness(population, remove_dupe=remove_duplicates)#, prefer_short_circuits=True)
-            while population[-1].fitness < MINIMUM_FITNESS:
-                population.pop(-1)
-            #print(f'pop size: {len(population)}')
+            population = self.top_by_fitness(population, min_fitness=MINIMUM_FITNESS, remove_dupe=remove_duplicates)#, prefer_short_circuits=True)
             
             if output:
                 print(f'Generation {i+2} Best Genotype: {population[0].genotype_str}')

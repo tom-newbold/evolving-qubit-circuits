@@ -36,7 +36,7 @@ if __name__=="__main__":
                 TGate(), TdgGate(), CHGate(), CPhaseGate(0)]
     
     TOFFOLI = ToffoliGeneration(GATE_SET)
-    E = Evolution(TOFFOLI, individuals_per_generation=100, alpha=3, beta=5, gamma=3)
+    E = Evolution(TOFFOLI, individuals_per_generation=50, alpha=1, beta=2, gamma=1)
 
     #g = Genotype(TOFFOLI, '022125220242212522024142201024051201')
     #print(g.genotype_str)
