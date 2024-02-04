@@ -146,7 +146,8 @@ class Genotype:
 
     def get_fitness(self):
         """calculates fitness for genotype and stores"""
-        self.fitness = self.metadata.circuit_fitness(self.to_circuit())
+        if self.fitness == None:
+            self.fitness = self.metadata.circuit_fitness(self.to_circuit())
         return self.fitness
     
     ### ---------- EVOLUTIONARY OPERATORS ----------
