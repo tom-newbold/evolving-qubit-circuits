@@ -29,8 +29,6 @@ def ToffoliGeneration(set_of_gates):
 
 if __name__=="__main__":
     from qiskit.circuit.library import *
-
-    GATE_SET_SIMPLE = [HGate(), XGate(), TGate(), TdgGate()]
     
     GATE_SET = [HGate(), XGate(), CXGate(), PhaseGate(0),
                 TGate(), TdgGate(), CHGate(), CPhaseGate(0)]

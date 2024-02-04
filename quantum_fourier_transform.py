@@ -40,8 +40,6 @@ def QFTGeneration(set_of_gates, N=3, number_of_states_to_check=10, t=0.05):
     
 if __name__=="__main__":
     from qiskit.circuit.library import *
-
-    GATE_SET_SIMPLE = [HGate(), CHGate(), CXGate(), PhaseGate(0), CPhaseGate(0)]
     
     GATE_SET = [HGate(), XGate(), YGate(), ZGate(), CXGate(), PhaseGate(0), 
                 RGate(0, 0), TGate(), TdgGate(), CHGate(), CPhaseGate(0)]
