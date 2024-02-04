@@ -709,6 +709,12 @@ class Evolution:
         if output:
             print(f'Generation 1 Best Genotype: {population[0].genotype_str}')
             print(f'Generation 1 Size: {len(population)}')
+            if plot_fitness:
+                for k in range(self.SAMPLE_SIZE):
+                    try:
+                        fitness_trace[k].append(population[k].fitness)
+                    except:
+                        fitness_trace[k].append(0)
 
         start_time = time()
         for i in range(self.GENERATION_COUNT-1):
