@@ -530,7 +530,9 @@ class Evolution:
     
     def top_by_fitness(self, population, min_fitness=0, prefer_short_circuits=False, prefer_long_circuits=False, remove_dupe=True, use_qiskit_depth=False):
         """finds the best circuits in the population; top sample taken as well as uniform [CHANGE THIS TO RAMPED] selection of remaining circuits"""
+        t = time()
         by_fitness = Evolution.sort_by_fitness(population, min_fitness, prefer_short_circuits, prefer_long_circuits, remove_dupe, use_qiskit_depth)
+        print(f'sorting {time()-t}')
         step = (len(by_fitness)-self.SAMPLE_SIZE)//(self.GENERATION_SIZE-self.SAMPLE_SIZE)
         step = 1 if step==0 else step
         end = (1-step)*self.SAMPLE_SIZE + step*self.GENERATION_SIZE
@@ -682,9 +684,13 @@ class Evolution:
         return population
 
     def develop_circuits_combined(self, inital_population, operation_count=250, double_point_crossover=True):
+        t = time()
         population_uniform = self.develop_circuits_uniform(inital_population, double_point_crossover)[len(inital_population):]
+        print(f'uniform {time()-t}')
+        t = time()
         #population_random = self.develop_circuits_random(inital_population, operation_count)[len(inital_population):]
         population_random = self.develop_circuits_random(inital_population, len(population_uniform)//10, double_point_crossover)[len(inital_population):]
+        print(f'random {time()-t}')
         return inital_population + population_uniform + population_random
     
     def evolutionary_search(self, min_length=30, max_length=60, falloff=None, remove_duplicates=False,
@@ -731,11 +737,12 @@ class Evolution:
                 g.get_fitness()
                 population.append(g)
 
-            new_population = self.develop_circuits_combined(population, double_point_crossover=use_double_point_crossover)
-            population = []
-            for g in new_population:
+            population = self.develop_circuits_combined(population, double_point_crossover=use_double_point_crossover)
+            t = time()
+            for g in population:
                 g.get_fitness()
-                population.append(g)
+                #population.append(g)
+            print(f'fitness eval {time()-t}')
             
             population = self.top_by_fitness(population, min_fitness=MINIMUM_FITNESS, remove_dupe=remove_duplicates)#, prefer_short_circuits=True)
             
