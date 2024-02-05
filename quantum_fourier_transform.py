@@ -34,6 +34,7 @@ def QFTGeneration(set_of_gates, N=3, number_of_states_to_check=10, t=0.05):
     #[qft(s) for s in input_states_sample]
 
     #return AppliedProblemParameters(set_of_gates, input_states_sample, output_states_sample, N)
+    return AppliedProblemParameters(set_of_gates, input_states_sample, QFT_blueprint(N))
     #return ProblemParametersMatrix(set_of_gates, QFT_blueprint(N), N)
     return ProblemParametersCombined(set_of_gates, input_states_sample, QFT_blueprint(N), t)
 
@@ -48,7 +49,7 @@ if __name__=="__main__":
 
     QFT_GEN = QFTGeneration(GATE_SET, 3, t=0.5)#, 16)
     #E = Evolution(QFT_GEN, individuals_per_generation=300, alpha=3, beta=6, gamma=4)
-    E = Evolution(QFT_GEN)
+    E = Evolution(QFT_GEN, sample_percentage=0.1, number_of_generations=20, individuals_per_generation=50)
     
     null_f = QFT_GEN.get_null_circuit_fitness()
     population = E.evolutionary_search(min_length=10, max_length=25, MINIMUM_FITNESS=null_f,
