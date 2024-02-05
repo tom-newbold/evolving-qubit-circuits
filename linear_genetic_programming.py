@@ -388,16 +388,18 @@ class ProblemParameters(ABC):
         """mean square fidelity function over a set of input and output states"""
         M = Operator(candidate_circuit)
         fidelity_sum = 0
-        case_count = min(len(input_states),len(output_states))
-        for i in range(case_count):
-            state = input_states[i]
+        # ADD BACK IN FOR ROBUSTNESS
+        #if len(input_states)!=len(output_states):
+        #    raise ValueError('Inconsistent size of input_states and output_states')
+        penalty = 1/len(input_states)
+        for i, state in enumerate(input_states):
             calc_state = state.evolve(M)
             if calc_state==output_states[i]:
                 fidelity_sum += 1.0
             else:
                 fidelity_sum += abs(np.inner(output_states[i].data, calc_state.data).item())**2
-                fidelity_sum -= 1/case_count
-        return fidelity_sum/case_count
+                fidelity_sum -= penalty
+        return fidelity_sum/len(input_states)
     
     @abstractmethod
     def circuit_fitness(self, candidate_circuit):
@@ -414,7 +416,8 @@ class AppliedProblemParameters(ProblemParameters):
            otherwise, assumed to be a precalulated list of states"""
         self.input_states = input_states
         try:
-            self.output_states = [s.evolve(Operator(output_states)) for s in input_states]
+            M = Operator(output_states)
+            self.output_states = [s.evolve(M) for s in input_states]
             super().__init__(output_states.num_qubits, set_of_gates)
         except:
             self.output_states = output_states
@@ -473,7 +476,7 @@ def plot_list(float_list, x_label=None, y_label=None):
         plt.plot(x_axis, float_list)
     
     while len(x_axis) > 20:
-        x_axis = [(i+1)*5 for i in range(len(x_axis)//5 + 1)]
+        x_axis = [(i+1)*5 for i in range(len(x_axis)//5)]
     plt.xticks([0]+x_axis)
     if x_label:
         plt.xlabel(x_label)
@@ -484,6 +487,7 @@ def plot_list(float_list, x_label=None, y_label=None):
         max_value = max(1, max(float_list))
     except:
         max_value = max([max(float_list[i]) for i in range(len(float_list))]+[1])
+    plt.xlim([x_axis[0],x_axis[-1]])
     plt.ylim([0,max_value])
     plt.yticks([x/10 for x in range(1+math.ceil(10*max_value))])
     plt.grid()
@@ -502,12 +506,13 @@ def remove_duplicates(genotype_list):
 
 class Evolution:
     def __init__(self, problem_parameters, sample_percentage=0.05, number_of_generations=50,
-                 individuals_per_generation=100, alpha=1, beta=2, gamma=2):
+                 individuals_per_generation=100, gen_mulpilier=5, alpha=1, beta=2, gamma=2):
         self.metadata = problem_parameters
         self.SAMPLE_SIZE = int(individuals_per_generation*sample_percentage)
         print(f'sample size: {self.SAMPLE_SIZE}')
         self.GENERATION_COUNT = number_of_generations
         self.GENERATION_SIZE = individuals_per_generation
+        self.GENERATION_MULTIPLIER = gen_mulpilier
         self.alpha = alpha
         self.beta = beta
         self.gamma = gamma
@@ -530,9 +535,7 @@ class Evolution:
     
     def top_by_fitness(self, population, min_fitness=0, prefer_short_circuits=False, prefer_long_circuits=False, remove_dupe=True, use_qiskit_depth=False):
         """finds the best circuits in the population; top sample taken as well as uniform [CHANGE THIS TO RAMPED] selection of remaining circuits"""
-        t = time()
         by_fitness = Evolution.sort_by_fitness(population, min_fitness, prefer_short_circuits, prefer_long_circuits, remove_dupe, use_qiskit_depth)
-        print(f'sorting {time()-t}')
         step = (len(by_fitness)-self.SAMPLE_SIZE)//(self.GENERATION_SIZE-self.SAMPLE_SIZE)
         step = 1 if step==0 else step
         end = (1-step)*self.SAMPLE_SIZE + step*self.GENERATION_SIZE
@@ -684,14 +687,11 @@ class Evolution:
         return population
 
     def develop_circuits_combined(self, inital_population, operation_count=250, double_point_crossover=True):
-        t = time()
-        population_uniform = self.develop_circuits_uniform(inital_population, double_point_crossover)[len(inital_population):]
-        print(f'uniform {time()-t}')
-        t = time()
-        #population_random = self.develop_circuits_random(inital_population, operation_count)[len(inital_population):]
-        population_random = self.develop_circuits_random(inital_population, len(population_uniform)//10, double_point_crossover)[len(inital_population):]
-        print(f'random {time()-t}')
-        return inital_population + population_uniform + population_random
+        #population_uniform = self.develop_circuits_uniform(inital_population, double_point_crossover)#[len(inital_population):]
+        #len(population_uniform)//10
+        population_random = self.develop_circuits_random(inital_population, operation_count, double_point_crossover)
+        #return population_uniform + population_random
+        return population_random
     
     def evolutionary_search(self, min_length=30, max_length=60, falloff=None, remove_duplicates=False,
                             MINIMUM_FITNESS=0, output=True, plot_fitness=True, random_sample_size=0,
@@ -737,19 +737,20 @@ class Evolution:
                 g.get_fitness()
                 population.append(g)
 
-            population = self.develop_circuits_combined(population, double_point_crossover=use_double_point_crossover)
-            t = time()
+            population = self.develop_circuits_combined(population, operation_count=int(self.GENERATION_SIZE*self.GENERATION_MULTIPLIER),
+                                                        double_point_crossover=use_double_point_crossover)
             for g in population:
                 g.get_fitness()
                 #population.append(g)
-            print(f'fitness eval {time()-t}')
+
+            if output:
+                print(f'Generation {i+2} Size (pre-selection): {len(population)}')
             
             population = self.top_by_fitness(population, min_fitness=MINIMUM_FITNESS, remove_dupe=remove_duplicates)#, prefer_short_circuits=True)
             
             if output:
                 print(f'Generation {i+2} Best Genotype: {population[0].genotype_str}')
                 print(f'Generation {i+2} Best Fitness: {population[0].fitness}')
-                print(f'Generation {i+2} Size: {len(population)}')
                 if plot_fitness:
                     for k in range(self.SAMPLE_SIZE):
                         try:
