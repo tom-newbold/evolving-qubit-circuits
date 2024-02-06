@@ -468,7 +468,7 @@ class ProblemParametersCombined(AppliedProblemParameters):
 def plot_list(float_list, x_label=None, y_label=None):
     """plots a list of floats (between 0 and 1)"""
     if type(float_list[0])==list:
-        x_axis = [i+1 for i in range(len(float_list[0]))]
+        x_axis = [i for i in range(len(float_list[0]))]
         for j in range(len(float_list)):
             plt.plot(x_axis, float_list[-(j+1)], linewidth=20/(20+len(float_list)))
     else:
@@ -476,7 +476,7 @@ def plot_list(float_list, x_label=None, y_label=None):
         plt.plot(x_axis, float_list)
     
     while len(x_axis) > 20:
-        x_axis = [(i+1)*5 for i in range(len(x_axis)//5)]
+        x_axis = [i*5 for i in range(len(x_axis)//5+1)]
     plt.xticks([0]+x_axis)
     if x_label:
         plt.xlabel(x_label)
@@ -713,8 +713,8 @@ class Evolution:
                         population = population[:i]
                         break
         if output:
-            print(f'Generation 1 Best Genotype: {population[0].genotype_str}')
-            print(f'Generation 1 Size: {len(population)}')
+            print(f'Generation 0 (initial) Best Genotype: {population[0].genotype_str}')
+            print(f'Generation 0 (initial) Size: {len(population)}')
             if plot_fitness:
                 for k in range(self.SAMPLE_SIZE):
                     try:
@@ -723,7 +723,7 @@ class Evolution:
                         fitness_trace[k].append(0)
 
         start_time = time()
-        for i in range(self.GENERATION_COUNT-1):
+        for i in range(self.GENERATION_COUNT):
             if (i-1)%5==0:
                 if i!=1:
                     remaining_time = (time()-start_time) * (self.GENERATION_COUNT-i)/(i+1)
@@ -744,13 +744,13 @@ class Evolution:
                 #population.append(g)
 
             if output:
-                print(f'Generation {i+2} Size (pre-selection): {len(population)}')
+                print(f'Generation {i+1} Size (pre-selection): {len(population)}')
             
             population = self.top_by_fitness(population, min_fitness=MINIMUM_FITNESS, remove_dupe=remove_duplicates)#, prefer_short_circuits=True)
             
             if output:
-                print(f'Generation {i+2} Best Genotype: {population[0].genotype_str}')
-                print(f'Generation {i+2} Best Fitness: {population[0].fitness}')
+                print(f'Generation {i+1} Best Genotype: {population[0].genotype_str}')
+                print(f'Generation {i+1} Best Fitness: {population[0].fitness}')
                 if plot_fitness:
                     for k in range(self.SAMPLE_SIZE):
                         try:
