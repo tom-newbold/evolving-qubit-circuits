@@ -34,7 +34,7 @@ def QFTGeneration(set_of_gates, N=3, number_of_states_to_check=10, t=0.05):
     #[qft(s) for s in input_states_sample]
 
     #return AppliedProblemParameters(set_of_gates, input_states_sample, output_states_sample, N)
-    return AppliedProblemParameters(set_of_gates, input_states_sample, QFT_blueprint(N))
+    return AppliedProblemParameters(set_of_gates, input_states_sample, QFT_blueprint(N)) #TODO comment line test new fitness...
     #return ProblemParametersMatrix(set_of_gates, QFT_blueprint(N), N)
     return ProblemParametersCombined(set_of_gates, input_states_sample, QFT_blueprint(N), t)
 
