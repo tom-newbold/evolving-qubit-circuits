@@ -51,14 +51,15 @@ def grid_search(evolution, iterations=1, minimum_fitnesses=[0], random_sample_si
 
     for x in range(iterations):
         #for remove_duplicates in [True, False]:
-        for min_fitness in minimum_fitnesses:
-            for r_sample in random_sample_sizes:
+        for r_sample in random_sample_sizes:
+            for min_fitness in minimum_fitnesses:
                 for sample_percent in sample_percentages:
                     for t in tolerances:
                         results.append(run_with_params(evolution, x, iterations, i, total,
                                                     start_time, min_fitness, r_sample,
                                                     sample_percent, True, t))
                         i+=1
+                        print(f"peak fitness for run: {results[-1]['best'].fitness}")
     print(f"[{iterations*'.'}] [{total*'#'}]")
 
     results = sorted(results, key=lambda result: result['best'].fitness, reverse=True)
