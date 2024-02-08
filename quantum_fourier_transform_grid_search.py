@@ -11,5 +11,5 @@ if __name__=="__main__":
     
     null_f = QFT_GEN.get_null_circuit_fitness()
     #grid_search(E, 10, [0], [0], [0.1])
-    grid_search(E, 1, [0], [0], [0.05,0.1,0.15,0.2,0.25], [0.025,0.1,0.5]) # currently not iterating random sample size
+    grid_search(E, 3, [0], [0], [0.05,0.1,0.15,0.2,0.25], [0.025,0.1,0.5,1]) # currently not iterating random sample size
     # try multiples of null fitness
