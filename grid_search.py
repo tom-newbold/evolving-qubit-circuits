@@ -43,7 +43,7 @@ def grid_search(evolution, iterations=1, minimum_fitnesses=[0], random_sample_si
 
     start_time = time()
     i = 1
-    total = iterations*len(minimum_fitnesses)*len(random_sample_sizes)*len(sample_percentages)#*2
+    total = len(minimum_fitnesses)*len(random_sample_sizes)*len(sample_percentages)#*2
     if type(evolution.metadata)==ProblemParametersCombined:
         total *= len(tolerances)
     else:
