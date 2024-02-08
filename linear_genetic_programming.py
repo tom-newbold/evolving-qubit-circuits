@@ -8,7 +8,7 @@ import random, math
 from time import time
 import numpy as np
 
-def encodeToLetter(n):
+def encode_to_letter(n):
     '''26 (english) capitals , 26 (english) lower case,
        10 valid (greek) upper case, 18 valid (greek) lower case
        80 allowable symbols'''
@@ -28,6 +28,9 @@ def encodeToLetter(n):
     else:
         return None
     return key
+
+def basis_states(N=3):
+    return [Statevector.from_int(i, 2**N) for i in range(2**N)]
 
 class Genotype:
     def __init__(self, problem_parameters, genotype_string=None, min_length=15, max_length=45, falloff='linear'):            
@@ -341,9 +344,9 @@ class ProblemParameters(ABC):
                     i=0
                     if k not in set_of_gates_dict:
                         while i<79:
-                            if encodeToLetter(i) not in set_of_gates:
-                                if encodeToLetter(i) not in set_of_gates_dict:
-                                    set_of_gates_dict[encodeToLetter(i)] = set_of_gates[old_key]
+                            if encode_to_letter(i) not in set_of_gates:
+                                if encode_to_letter(i) not in set_of_gates_dict:
+                                    set_of_gates_dict[encode_to_letter(i)] = set_of_gates[old_key]
                                     break
                             i+=1
                         if i==79:
@@ -361,7 +364,7 @@ class ProblemParameters(ABC):
                     set_of_gates_dict[str(i)] = set_of_gates[i]
             else:
                 for i in range(len(set_of_gates)):
-                    set_of_gates_dict[encodeToLetter(i)] = set_of_gates[i]
+                    set_of_gates_dict[encode_to_letter(i)] = set_of_gates[i]
             self.gate_set = set_of_gates_dict
         else:
             raise TypeError('set_of_gates is not a dictionary or list')

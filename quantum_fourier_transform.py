@@ -1,4 +1,4 @@
-from linear_genetic_programming import AppliedProblemParameters, Evolution, ProblemParametersCombined
+from linear_genetic_programming import AppliedProblemParameters, Evolution, ProblemParametersCombined, basis_states
 
 from qiskit.quantum_info import Statevector
 from qiskit.circuit.library import QFT as QFT_blueprint
@@ -6,10 +6,8 @@ from qiskit.circuit.library import QFT as QFT_blueprint
 def QFTGeneration(set_of_gates, N=3, t=0.05):
     '''creates a ProblemParameters object with the desired input and output states,
        a sample of the specified size generated based on the number of qubits'''
-    input_states_sample = [Statevector.from_int(i, 2**N) for i in range(2**N)]
-
-    return AppliedProblemParameters(set_of_gates, input_states_sample, QFT_blueprint(N)) #TODO comment line test new fitness...
-    return ProblemParametersCombined(set_of_gates, input_states_sample, QFT_blueprint(N), t)
+    return AppliedProblemParameters(set_of_gates, basis_states(N), QFT_blueprint(N)) #TODO comment line test new fitness...
+    return ProblemParametersCombined(set_of_gates, basis_states(N), QFT_blueprint(N), t)
 
 from qiskit.circuit.library import *
     

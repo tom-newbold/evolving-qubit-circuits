@@ -1,4 +1,4 @@
-from linear_genetic_programming import AppliedProblemParameters, Evolution, list_to_state, ProblemParametersCombined
+from linear_genetic_programming import AppliedProblemParameters, Evolution, ProblemParametersCombined, basis_states
 from time import time
 #from grid_search_old import grid_search, remaining_time_calc
 
@@ -22,9 +22,8 @@ def ToffoliGeneration(set_of_gates):
     c.ccx(0,1,2)
     #from qiskit.quantum_info import random_statevector
     #input_states_sample = [random_statevector(2**3) for _ in range(10)]
-    input_states_sample = [list_to_state(x) for x in toffoli_inputs]
-    return AppliedProblemParameters(set_of_gates, input_states_sample, c)
-    #return ProblemParametersCombined(set_of_gates, input_states_sample, c)
+    return AppliedProblemParameters(set_of_gates, basis_states(), c)
+    #return ProblemParametersCombined(set_of_gates, basis_states(), c)
 
 
 if __name__=="__main__":
