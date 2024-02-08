@@ -724,14 +724,14 @@ class Evolution:
 
         start_time = time()
         for i in range(self.GENERATION_COUNT):
-            if (i-1)%10==0 and not output:
+            #if (i-1)%10==0 and not output:
+            if not output:
                 if i!=1:
                     remaining_time = (time()-start_time) * (self.GENERATION_COUNT-i)/(i+1)
                     remaining_time = remaining_time_calc(remaining_time)
                     if remaining_time:
-                        print(f"[ estimated time remaining for run ~ {remaining_time} ]", end='\r')
-                else:
-                    print("")
+                        print(f"run progress: [{i*'#'}{(self.GENERATION_COUNT-i)*'_'}] "+
+                              f"// estimated time remaining for run ~ {remaining_time}"+20*" ", end='\r')
 
             # added random sample
             for _ in range(random_sample_size):
@@ -759,7 +759,8 @@ class Evolution:
                             fitness_trace[k].append(population[k].fitness)
                         except:
                             fitness_trace[k].append(0)
-                        
+        #print(f"[{self.GENERATION_COUNT*'#'}]"+20*" ", end='\r')     
+        if not output: print((80+self.GENERATION_COUNT)*" ", end='\r') 
 
         # output
         if output:
