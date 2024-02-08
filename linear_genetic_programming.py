@@ -724,12 +724,14 @@ class Evolution:
 
         start_time = time()
         for i in range(self.GENERATION_COUNT):
-            if (i-1)%5==0:
+            if (i-1)%10==0 and not output:
                 if i!=1:
                     remaining_time = (time()-start_time) * (self.GENERATION_COUNT-i)/(i+1)
                     remaining_time = remaining_time_calc(remaining_time)
                     if remaining_time:
-                        print(f"[ estimated time remaining for run ~ {remaining_time} ]")
+                        print(f"[ estimated time remaining for run ~ {remaining_time} ]", end='\r')
+                else:
+                    print("")
 
             # added random sample
             for _ in range(random_sample_size):
