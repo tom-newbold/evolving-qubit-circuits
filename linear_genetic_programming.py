@@ -51,8 +51,6 @@ class Genotype:
         while i<len(self.genotype_str):
             gate = self.genotype_str[i]
             j = i + self.metadata.gate_set[gate].num_qubits + 1
-            #if 'parameters' in self.metadata.gate_set[int(gate)]:
-            #    j += self.metadata.gate_set[int(gate)]['parameters']
             j += len(self.metadata.gate_set[gate].params)
             k = self.genotype_str[i:j]
             i = j
@@ -64,12 +62,8 @@ class Genotype:
         if self.circuit:
             return self.circuit
         else:
-            #print(self.to_list())
             circuit_instance = QuantumCircuit(self.metadata.qubit_count)
             for k in self.to_list():
-                #gate = int(k[0])
-                #if len(k)-1 != self.gate_set[gate]['inputs']:
-                #    print('ERROR')
                 try:
                     circuit_instance = self.construct_gate(k, circuit_instance)
                 except ValueError:
@@ -97,7 +91,6 @@ class Genotype:
             raise ValueError()
         return c_instance
     
-    #def generate_random_genotype(self, min_length=15, max_length=45, falloff='linear'):#, input_count_weighted=True):
     def generate_random_genotype(self, min_length, max_length, falloff):#, input_count_weighted=True):
         """generates a random genotype according to the given parameters"""
         gradient = -1/(max_length-min_length)
@@ -395,11 +388,10 @@ class ProblemParameters(ABC):
                     all_gates.append(str(index)+q)
         return all_gates
     
-    def msf(self, candidate_circuit, input_states, output_states):
+    def __msf(self, candidate_circuit, input_states, output_states):
         """mean square fidelity function over a set of input and output states"""
         M = Operator(candidate_circuit)
         fidelity_sum = 0
-        # ADD BACK IN FOR ROBUSTNESS
         #if len(input_states)!=len(output_states):
         #    raise ValueError('Inconsistent size of input_states and output_states')
         penalty = 1/len(input_states)
@@ -433,10 +425,12 @@ class AppliedProblemParameters(ProblemParameters):
         except:
             self.output_states = output_states
             super().__init__(N, set_of_gates)
+        if len(self.input_states)!=len(self.output_states):
+            raise ValueError('Inconsistent size of input_states and output_states')
 
     def circuit_fitness(self, candidate_circuit):
         """overrides with the required truth table"""
-        return self.msf(candidate_circuit, self.input_states, self.output_states)
+        return self._ProblemParameters__msf(candidate_circuit, self.input_states, self.output_states)
     
 def matrix_difference_fitness(m_1, m_2, tolerance=0.05):
     '''takes the difference betweens two matricies and counts the
@@ -466,14 +460,14 @@ class ProblemParametersCombined(AppliedProblemParameters):
         super().__init__(set_of_gates, input_states, output_states, target_behaviour_circuit.num_qubits)
         self.tolerance = mdf_tolerance
 
-    def mdf(self, circuit):
+    def __mdf(self, circuit):
         '''matrix difference fitness for circuit'''
         return matrix_difference_fitness(self.M, Operator(circuit), self.tolerance)
 
     def circuit_fitness(self, candidate_circuit):
         '''re-overrides with combination of msf and mdf'''
-        msf = self.msf(candidate_circuit, self.input_states, self.output_states)
-        mdf = self.mdf(candidate_circuit)
+        msf = self._ProblemParameters__msf(candidate_circuit, self.input_states, self.output_states)
+        mdf = self._ProblemParametersCombined__mdf(candidate_circuit)
         return msf*mdf
 
 def plot_list(float_list, x_label=None, y_label=None):
