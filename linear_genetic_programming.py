@@ -538,7 +538,8 @@ def plot_many_averages(float_lists, x_label=None, y_label=None):
     x_axis = [i for i in range(len(float_lists[0][0]))]
     max_values = [1]
     for run, float_list in enumerate(float_lists):
-        plt.plot(x_axis, get_averages_list(float_list), linestyle='dashed', label=f'run {run+1}')
+        plt.plot(x_axis, get_averages_list(float_list), linewidth=20/(20+len(float_list)),
+                 linestyle='dashed', label=f'run {run+1}')
         max_values.append(max(get_max_list(float_list)))
     plt.legend(loc='upper left', prop={'size': 'small'})
 

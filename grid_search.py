@@ -80,7 +80,7 @@ def multiple_runs(evolution, iterations=10, min_length=10, max_length=25,
         fitness_trace = evolution.evolutionary_search(min_length, max_length, MINIMUM_FITNESS=MINIMUM_FITNESS,
                                            remove_duplicates=True, use_double_point_crossover=True, output=False)[1]
         to_plot.append(fitness_trace)
-        print(f'[{i+1}/{iterations}] runtime = {remaining_time_calc(time()-start_time)}')
+        print(f'[{(i+1)*"█"}{(iterations-i-1)*"░"}] runtime = {remaining_time_calc(time()-start_time)}')
         start_time = time()
 
     plot_many_averages(to_plot, 'Generations', 'Circuit Fitness')
