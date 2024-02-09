@@ -1,5 +1,5 @@
 from time import time
-from linear_genetic_programming import ProblemParametersCombined
+from linear_genetic_programming import ProblemParametersCombined, plot_many_averages
 
 def remaining_time_calc(remaining_time):
     if remaining_time > 0.001:
@@ -71,3 +71,16 @@ def grid_search(evolution, iterations=1, minimum_fitnesses=[0], random_sample_si
         print(f"fitness: {r['best'].fitness}")
         print(r['best'].to_circuit())
     return results
+
+def multiple_runs(evolution, iterations=10, min_length=10, max_length=25,
+                  MINIMUM_FITNESS=0, remove_duplicates=True, use_double_point_crossover=True):
+    start_time = time()
+    to_plot = []
+    for i in range(iterations):
+        fitness_trace = evolution.evolutionary_search(min_length, max_length, MINIMUM_FITNESS=MINIMUM_FITNESS,
+                                           remove_duplicates=True, use_double_point_crossover=True, output=False)[1]
+        to_plot.append(fitness_trace)
+        print(f'[{i+1}/{iterations}] runtime = {remaining_time_calc(time()-start_time)}')
+        start_time = time()
+
+    plot_many_averages(to_plot, 'Generations', 'Circuit Fitness')

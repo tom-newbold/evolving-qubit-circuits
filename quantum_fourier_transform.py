@@ -19,20 +19,7 @@ if __name__=="__main__":
     E = Evolution(QFT_GEN, sample_percentage=0.1, gen_mulpilier=2.5)
     
     null_f = QFT_GEN.get_null_circuit_fitness()
-    #population = E.evolutionary_search(min_length=10, max_length=25, MINIMUM_FITNESS=min(null_f, 0),
-    #                                   remove_duplicates=True, use_double_point_crossover=True)[0]
+    population = E.evolutionary_search(min_length=10, max_length=25, MINIMUM_FITNESS=min(null_f, 0),
+                                       remove_duplicates=True, use_double_point_crossover=True)[0]
     #random_sample_size=10
-
-    from grid_search import remaining_time_calc
-    from time import time
-    start_time = time()
-    to_plot = []
-    for i in range(10):
-        fitness_trace = E.evolutionary_search(min_length=10, max_length=25, MINIMUM_FITNESS=min(null_f, 0),
-                                           remove_duplicates=True, use_double_point_crossover=True, output=False)[1]
-        to_plot.append(fitness_trace)
-        print(f'[{i+1}] runtime = {remaining_time_calc(time()-start_time)}')
-        start_time = time()
-
-    plot_many_averages(to_plot, 'Generations', 'Circuit Fitness')
         

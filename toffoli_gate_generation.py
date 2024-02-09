@@ -27,7 +27,7 @@ if __name__=="__main__":
     
     #population = E.random_search()
     #population = E.stochastic_hill_climb()
-    population = E.evolutionary_search(MINIMUM_FITNESS=0, remove_duplicates=True)#, random_sample_size=5)
+    population = E.evolutionary_search(MINIMUM_FITNESS=0, remove_duplicates=True)[0]#, random_sample_size=5)
     print(population[0].to_list())
 
     #grid_search(Evolution(TOFFOLI, sample=10, number_of_generations=20,
