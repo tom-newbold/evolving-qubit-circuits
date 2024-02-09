@@ -414,17 +414,26 @@ class ProblemParameters(ABC):
     # function to check correctness? unsure how to intergrate with specific and non-specific msf
 
 class AppliedProblemParameters(ProblemParameters):
-    def __init__(self, set_of_gates, input_states, output_states, N=3):
+    def __init__(self, set_of_gates, target_circuit=None, input_states=[], output_states=[], N=3):
         """if output_states is a circuit object, uses to evaluate truth table;
            otherwise, assumed to be a precalulated list of states"""
-        self.input_states = input_states
         try:
-            M = Operator(output_states)
-            self.output_states = [s.evolve(M) for s in input_states]
-            super().__init__(output_states.num_qubits, set_of_gates)
+            N = target_circuit.num_qubits
         except:
+            pass
+        if len(input_states) > 0:
+            self.input_states = input_states
+        else:
+            self.input_states = basis_states(N)
+
+        try:
+            self.M = Operator(target_circuit)            
+            self.output_states = [s.evolve(self.M) for s in self.input_states]
+            super().__init__(N, set_of_gates)
+        except:            
             self.output_states = output_states
             super().__init__(N, set_of_gates)
+
         if len(self.input_states)!=len(self.output_states):
             raise ValueError('Inconsistent size of input_states and output_states')
 
@@ -453,11 +462,9 @@ class ProblemParametersMatrix(ProblemParameters):
         return matrix_difference_fitness(self.M, Operator(candidate_circuit))
 
 class ProblemParametersCombined(AppliedProblemParameters):
-    def __init__(self, set_of_gates, input_states, target_behaviour_circuit, mdf_tolerance=0.05):
+    def __init__(self, set_of_gates, target_behaviour_circuit=None, input_states=[], mdf_tolerance=0.05):
         """evaluates the truth table on the provided input_states using target_behaviour_circuit"""
-        self.M = Operator(target_behaviour_circuit)
-        output_states = [s.evolve(self.M) for s in input_states]
-        super().__init__(set_of_gates, input_states, output_states, target_behaviour_circuit.num_qubits)
+        super().__init__(set_of_gates, target_behaviour_circuit, input_states)
         self.tolerance = mdf_tolerance
 
     def __mdf(self, circuit):
