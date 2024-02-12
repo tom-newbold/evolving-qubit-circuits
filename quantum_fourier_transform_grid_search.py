@@ -7,7 +7,7 @@ from grid_search import grid_search, multiple_runs
 if __name__=="__main__":
     QFT_GEN = QFTGeneration(GATE_SET, 3, t=0.5)#, 16)
     #E = Evolution(QFT_GEN, individuals_per_generation=300, alpha=3, beta=6, gamma=4)
-    E = Evolution(QFT_GEN, sample_percentage=0.1, gen_mulpilier=1)
+    E = Evolution(QFT_GEN, sample_percentage=0.1, gen_mulpilier=2.5)
 
     multiple_runs(E)
     

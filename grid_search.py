@@ -1,5 +1,5 @@
 from time import time
-from linear_genetic_programming import ProblemParametersCombined, plot_many_averages
+from linear_genetic_programming import ProblemParametersCombined, plot_many_averages, plot_list
 
 def remaining_time_calc(remaining_time):
     if remaining_time > 0.001:
@@ -72,15 +72,32 @@ def grid_search(evolution, iterations=1, minimum_fitnesses=[0], random_sample_si
         print(r['best'].to_circuit())
     return results
 
-def multiple_runs(evolution, iterations=10, min_length=10, max_length=25,
-                  MINIMUM_FITNESS=0, remove_duplicates=True, use_double_point_crossover=True):
+def multiple_runs(evolution, iterations=10, min_length=10, max_length=25, MINIMUM_FITNESS=0,
+                  remove_duplicates=True, use_double_point_crossover=True, output=True):
+    peak_fitness_non_global = (len(evolution.metadata.input_states) - 1) / len(evolution.metadata.input_states)
     start_time = time()
     to_plot = []
+    out = []
     for i in range(iterations):
-        fitness_trace = evolution.evolutionary_search(min_length, max_length, MINIMUM_FITNESS=MINIMUM_FITNESS,
-                                           remove_duplicates=True, use_double_point_crossover=True, output=False)[1]
+        population, fitness_trace = evolution.evolutionary_search(min_length, max_length, MINIMUM_FITNESS=MINIMUM_FITNESS,
+                                                                  remove_duplicates=remove_duplicates,
+                                                                  use_double_point_crossover=use_double_point_crossover,
+                                                                  output=False)
         to_plot.append(fitness_trace)
-        print(f'[{(i+1)*"█"}{(iterations-i-1)*"░"}] runtime = {remaining_time_calc(time()-start_time)}')
+        if population[0].get_fitness() > peak_fitness_non_global:
+            out.append((i, population))
+        print(f'{(i+1)*"█"}{(iterations-i-1)*"░"} runtime = {remaining_time_calc(time()-start_time)}')
         start_time = time()
 
     plot_many_averages(to_plot, 'Generations', 'Circuit Fitness')
+
+    if output:
+        print(f'{len(out)} runs found \"optimal\" circuits')
+        for run, pop in out:
+            plot_list(to_plot[run], 'Generations', 'Circuit Fitness', False)
+            print(f'Run {run+1}: Top {evolution.SAMPLE_SIZE} genotypes:')
+            for i in range(evolution.SAMPLE_SIZE):
+                print(pop[i].genotype_str)
+                print(pop[i].get_fitness())
+            print('best circuit:')
+            print(population[0].to_circuit())
