@@ -9,8 +9,8 @@ from grid_search import grid_search, multiple_runs
 
 if __name__=="__main__":
     QFT_GEN = QFTGeneration(GATE_SET, 3, t=0.5)#, 16)
-    QFT_GEN = AppliedProblemParameters(GATE_SET, QFT_blueprint(3),
-                                       [random_statevector(2**3) for _ in range(10)]) # TODO TEST THIS and compare to above
+    #QFT_GEN = AppliedProblemParameters(GATE_SET, QFT_blueprint(3),
+    #                                   [random_statevector(2**3) for _ in range(10)])
     #E = Evolution(QFT_GEN, individuals_per_generation=300, alpha=3, beta=6, gamma=4)
     E = Evolution(QFT_GEN, sample_percentage=0.1, gen_mulpilier=7.5)
 
