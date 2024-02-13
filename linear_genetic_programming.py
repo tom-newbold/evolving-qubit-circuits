@@ -493,7 +493,7 @@ def get_max_list(float_list):
 def get_min_list(float_list):
     if type(float_list[0])!=list:
         return None
-    return [max([y[i] for y in float_list]) for i in range(len(float_list[0]))]
+    return [min([y[i] for y in float_list]) for i in range(len(float_list[0]))]
 
 def plot_list(float_list, x_label=None, y_label=None, plot_average=True):
     """plots a list of floats"""
@@ -501,7 +501,7 @@ def plot_list(float_list, x_label=None, y_label=None, plot_average=True):
         x_axis = [i for i in range(len(float_list[0]))]
         if plot_average:
             plt.plot(x_axis, get_max_list(float_list), linewidth=20/(20+len(float_list)), label='best (overall)')
-            plt.plot(x_axis, get_max_list(float_list), linewidth=20/(20+len(float_list)), label='worst (in sample)')
+            plt.plot(x_axis, get_min_list(float_list), linewidth=20/(20+len(float_list)), label='worst (in sample)')
             plt.plot(x_axis, get_averages_list(float_list), linestyle='dashed', label='average (of sample)')
             plt.legend(loc='upper left', prop={'size': 'small'})
         else:
@@ -541,7 +541,7 @@ def plot_many_averages(float_lists, x_label=None, y_label=None):
         plt.plot(x_axis, get_averages_list(float_list), linewidth=20/(20+len(float_list)),
                  linestyle='dashed', label=f'run {run+1}')
         max_values.append(max(get_max_list(float_list)))
-    plt.legend(loc='upper left', prop={'size': 'small'})
+    plt.legend(loc='upper left', ncols=math.ceil(len(float_lists)/5), prop={'size': 'small'})
 
     max_value = max(max_values)
     if max_value > 1:
@@ -737,12 +737,17 @@ class Evolution:
                         population.append(g)
         return population
 
-    def develop_circuits_random(self, inital_population, operation_count, use_double_point_crossover=True):
+    def develop_circuits_random(self, inital_population, operation_count, use_double_point_crossover=True, crossover_proportion=0.5, insert_delete_proportion=0.1):
         '''use a random assortment of search operators'''
         population = inital_population.copy()
-        for o in range(operation_count):
+        operations = ['crossover', 'mutation', 'insersion', 'deletion']
+        w = [(1-insert_delete_proportion)*crossover_proportion,
+             (1-insert_delete_proportion)*(1-crossover_proportion),
+             insert_delete_proportion/2, insert_delete_proportion/2]
+        #for o in range(operation_count):
+        while operation_count > 0:
             # randomly select from the search operators
-            operation = random.choices(population=['crossover', 'mutation', 'insersion', 'deletion'], weights=[0.4,0.5,0.05,0.05], k=1)[0]
+            operation = random.choices(population=operations, weights=w, k=1)[0]
             # randomly select a genotype
             g_1 = random.choices(inital_population, weights=[g.fitness for g in inital_population], k=1)[0]
             if operation == 'crossover':
@@ -759,6 +764,7 @@ class Evolution:
                         g_3, g_4 = Genotype.single_crossover(g_1, g_2)
                         population.append(g_3)
                         population.append(g_4)
+                operation_count -= self.gamma*2
             else:
                 for a in range(self.alpha):
                     g_2 = g_1
@@ -770,6 +776,7 @@ class Evolution:
                         elif operation=='deletion':
                             g_2 = Genotype.deletion(g_2)
                         population.append(g_2)
+                operation_count -= self.alpha*self.beta
         return population
 
     def develop_circuits_combined(self, inital_population, operation_count=250, double_point_crossover=True):
@@ -832,7 +839,7 @@ class Evolution:
                 g.get_fitness()
                 population.append(g)
 
-            population = self.develop_circuits_combined(population, operation_count=int(self.GENERATION_SIZE*self.GENERATION_MULTIPLIER),
+            population = self.develop_circuits_combined(population, operation_count=int(self.GENERATION_SIZE*(self.GENERATION_MULTIPLIER-1)),
                                                         double_point_crossover=use_double_point_crossover)
             for g in population:
                 g.get_fitness()
