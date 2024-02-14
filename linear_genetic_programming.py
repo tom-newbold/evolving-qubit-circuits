@@ -607,18 +607,18 @@ class Evolution:
         end = (1-step)*self.SAMPLE_SIZE + step*self.GENERATION_SIZE
         return by_fitness[:self.SAMPLE_SIZE] + by_fitness[self.SAMPLE_SIZE:end:step]
         
-    def random_search(self, output=True, plot_fitness=True, plot_depth=False):
+    def random_search(self, min_length=30, max_length=45, falloff='linear', remove_duplicates=False, output=True, plot_fitness=True, plot_depth=False):
         fitness_trace = [[] for i in range(self.SAMPLE_SIZE)]
         depth_trace = [[] for i in range(self.SAMPLE_SIZE)]
         population = []
 
         for generation in range(self.GENERATION_COUNT):
             for _ in range(self.GENERATION_SIZE):
-                g = Genotype(self.metadata, min_length=30, max_length=45, falloff='linear')
+                g = Genotype(self.metadata, min_length=min_length, max_length=max_length, falloff=falloff)
                 g.get_fitness()
                 population.append(g)
             # sort population by fitness, take top 5
-            population = self.top_by_fitness(population)
+            population = self.top_by_fitness(population, remove_dupe=remove_duplicates)
             # each run compares the 100 new programs with the
             # 5 carried forward from the previous generation
             if output:
@@ -655,31 +655,37 @@ class Evolution:
 
         return population, fitness_trace
     
-    def stochastic_hill_climb(self, output=True, plot_fitness=True, plot_depth=False):
+    def stochastic_hill_climb(self, min_length=30, max_length=45, falloff='linear', MINIMUM_FITNESS=0.0, remove_duplicates=False, output=True, plot_fitness=True, plot_depth=False):
         best_genotype = Genotype(self.metadata, '')
-        best_genotype.fitness = 0.0
+        best_genotype.fitness = MINIMUM_FITNESS
         fitness_trace = []
         depth_trace = []
+        fitness_trace = [[] for i in range(self.SAMPLE_SIZE)]
+        depth_trace = [[] for i in range(self.SAMPLE_SIZE)]
 
+        population = []
         for generation in range(self.GENERATION_COUNT):
-            population = []
             for _ in range(self.GENERATION_SIZE):
-                g = Genotype(self.metadata, min_length=30, max_length=45, falloff='linear')
+                g = Genotype(self.metadata, min_length=min_length, max_length=max_length, falloff=falloff)
                 m = g.get_fitness()
-                m_delta = m - best_genotype.fitness
-                if m_delta > 0:
-                    # only take better circuits
-                    population.append(g)
-
+                #m_delta = m - best_genotype.fitness
+                #if m_delta > 0:
+                #    # only take better circuits
+                #    population.append(g)
+                population.append(g)
 
             if len(population) > 0:
-                population = self.top_by_fitness(population)
+                population = self.top_by_fitness(population, remove_dupe=remove_duplicates)
                 # select a random genotype, using the fitness improvements as weights
-                best_genotype = random.choices(population, weights=[(g.fitness - best_genotype.fitness) for g in population], k=1)[0]
+                try:
+                    best_subset = list(filter(lambda g: g.fitness - best_genotype.fitness > 0, population))
+                    best_genotype = random.choices(best_subset, weights=[(g.fitness - best_genotype.fitness) for g in best_subset], k=1)[0]
+                except:
+                    pass
 
             if output:
                 print(f'Generation {generation+1} best: {best_genotype.genotype_str}')
-            if plot_fitness:
+            '''if plot_fitness:
                 try:
                     fitness_trace.append(best_genotype.fitness)
                 except:
@@ -688,7 +694,19 @@ class Evolution:
                 try:
                     depth_trace.append(best_genotype.get_depth())
                 except:
-                    depth_trace.append(0)
+                    depth_trace.append(0)'''
+            if plot_fitness:
+                for x in range(self.SAMPLE_SIZE):
+                    try:
+                        fitness_trace[x].append(population[x].fitness)
+                    except:
+                        fitness_trace[x].append(0)
+            if plot_depth:
+                for x in range(self.SAMPLE_SIZE):
+                    try:
+                        depth_trace[x].append(population[x].get_depth())
+                    except:
+                        depth_trace[x].append(0)
 
         if output:
             print('best random circuit:')

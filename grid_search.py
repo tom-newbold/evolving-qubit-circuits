@@ -72,17 +72,26 @@ def grid_search(evolution, iterations=1, minimum_fitnesses=[0], random_sample_si
         print(r['best'].to_circuit())
     return results
 
-def multiple_runs(evolution, iterations=10, min_length=10, max_length=25, MINIMUM_FITNESS=0,
+def multiple_runs(evolution, iterations=10, method='evolution', min_length=10, max_length=25, MINIMUM_FITNESS=0,
                   remove_duplicates=True, use_double_point_crossover=True, output=True):
     peak_fitness_non_global = (len(evolution.metadata.input_states) - 1) / len(evolution.metadata.input_states)
     start_time = time()
     to_plot = []
     out = []
     for i in range(iterations):
-        population, fitness_trace = evolution.evolutionary_search(min_length, max_length, MINIMUM_FITNESS=MINIMUM_FITNESS,
-                                                                  remove_duplicates=remove_duplicates,
-                                                                  use_double_point_crossover=use_double_point_crossover,
-                                                                  output=False)
+        if method=='evolution':
+            population, fitness_trace = evolution.evolutionary_search(min_length, max_length, MINIMUM_FITNESS=MINIMUM_FITNESS,
+                                                                    remove_duplicates=remove_duplicates,
+                                                                    use_double_point_crossover=use_double_point_crossover,
+                                                                    output=False)
+        elif method=='random':
+            population, fitness_trace = evolution.random_search(min_length, max_length, remove_duplicates=remove_duplicates, output=False)
+        elif method=='stochastic':
+            population, fitness_trace = evolution.stochastic_hill_climb(min_length, max_length, MINIMUM_FITNESS=MINIMUM_FITNESS,
+                                                                        remove_duplicates=remove_duplicates, output=False)
+        else:
+            print('invalid method parameter')
+            return
         to_plot.append(fitness_trace)
         if population[0].get_fitness() > peak_fitness_non_global:
             out.append((i, population))
