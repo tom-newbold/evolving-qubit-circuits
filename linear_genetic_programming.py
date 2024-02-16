@@ -495,6 +495,22 @@ def get_min_list(float_list):
         return None
     return [min([y[i] for y in float_list]) for i in range(len(float_list[0]))]
 
+def smooth_line(float_list, half_width=2):
+    if type(float_list)!=list:
+        return None
+    if len(float_list)<=2*half_width:
+        return float_list
+    out = []
+    i_list = list(range(len(float_list)))
+    for i in range(len(float_list)):
+        a = i-half_width
+        if a < 0: a=0
+        b = i+1+half_width
+        if b > len(float_list): b = len(float_list)
+        #print(i_list[a:b])
+        out.append(list_avr(float_list[a:b]))
+    return out
+
 def plot_list(float_list, x_label=None, y_label=None, plot_average=True):
     """plots a list of floats"""
     if type(float_list[0])==list:
@@ -534,13 +550,19 @@ def plot_list(float_list, x_label=None, y_label=None, plot_average=True):
     plt.grid()
     plt.show()
 
-def plot_many_averages(float_lists, x_label=None, y_label=None):
+def plot_many_averages(float_lists, x_label=None, y_label=None, plot_trendline=True, trendline_halfwidth=4):
+    lw = 20/(20+len(float_lists[0]))
+
     x_axis = [i for i in range(len(float_lists[0][0]))]
-    max_values = [1]
-    for run, float_list in enumerate(float_lists):
-        plt.plot(x_axis, get_averages_list(float_list), linewidth=20/(20+len(float_list)),
-                 linestyle='dashed', label=f'run {run+1}')
-        max_values.append(max(get_max_list(float_list)))
+    max_values = [1] + [max(get_max_list(float_list)) for float_list in float_lists]
+    to_plot = [get_averages_list(float_list) for float_list in float_lists]
+
+    if plot_trendline:
+        trend = smooth_line(get_averages_list(to_plot), half_width=trendline_halfwidth)
+        plt.plot(x_axis[trendline_halfwidth:], trend[trendline_halfwidth:], linewidth=1.25*lw, label='trendline')
+    
+    for run, line in enumerate(to_plot):
+        plt.plot(x_axis, line, linewidth=lw, linestyle='dashed', label=f'run {run+1}')
     plt.legend(loc='upper left', ncols=math.ceil(len(float_lists)/5), prop={'size': 'small'})
 
     max_value = max(max_values)
