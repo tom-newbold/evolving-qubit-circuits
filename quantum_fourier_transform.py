@@ -6,6 +6,7 @@ from qiskit.circuit.library import *
     
 GATE_SET = [HGate(), XGate(), YGate(), ZGate(), CXGate(), PhaseGate(0), 
             RGate(0, 0), TGate(), TdgGate(), CHGate(), CPhaseGate(0)]
+GATE_SET_SIMPLE = [HGate(), CXGate(), TGate(), TdgGate()]
 
 def QFTGeneration(set_of_gates, N=3, t=0.05):
     '''creates a ProblemParameters object with the desired input and output states,
