@@ -550,7 +550,7 @@ def plot_list(float_list, x_label=None, y_label=None, plot_average=True):
     plt.grid()
     plt.show()
 
-def plot_many_averages(float_lists, x_label=None, y_label=None, plot_trendline=True, trendline_halfwidth=4):
+def plot_many_averages(float_lists, x_label=None, y_label=None, plot_trendline=True, trendline_halfwidth=4, legend=True):
     lw = 20/(20+len(float_lists[0]))
 
     x_axis = [i for i in range(len(float_lists[0][0]))]
@@ -563,7 +563,8 @@ def plot_many_averages(float_lists, x_label=None, y_label=None, plot_trendline=T
     
     for run, line in enumerate(to_plot):
         plt.plot(x_axis, line, linewidth=lw, linestyle='dashed', label=f'run {run+1}')
-    plt.legend(loc='upper left', ncols=math.ceil(len(float_lists)/5), prop={'size': 'small'})
+    if legend:
+        plt.legend(loc='upper left', ncols=math.ceil(len(float_lists)/5), prop={'size': 'small'})
 
     max_value = max(max_values)
     if max_value > 1:
@@ -889,7 +890,7 @@ class Evolution:
                 print(f'Generation {i+1} Size (pre-selection): {len(population)}')
             
             population = self.top_by_fitness(population, min_fitness=MINIMUM_FITNESS, remove_dupe=remove_duplicates)#, prefer_short_circuits=True)
-            
+
             if output:
                 print(f'Generation {i+1} Best Genotype: {population[0].genotype_str}')
                 print(f'Generation {i+1} Best Fitness: {population[0].fitness}')

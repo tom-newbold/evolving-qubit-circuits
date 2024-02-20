@@ -73,11 +73,12 @@ def grid_search(evolution, iterations=1, minimum_fitnesses=[0], random_sample_si
     return results
 
 def multiple_runs(evolution, iterations=10, method='evolution', min_length=10, max_length=25, MINIMUM_FITNESS=0,
-                  remove_duplicates=True, use_double_point_crossover=True, output=True):
+                  remove_duplicates=True, use_double_point_crossover=True, output=True, plot=True, legend=True):
     peak_fitness_non_global = (len(evolution.metadata.input_states) - 1) / len(evolution.metadata.input_states)
     start_time = time()
     to_plot = []
     out = []
+    stats = {'peak_fitness':[], 'generations_taken_to_converge':[], 'best_genotype_length_and_depth':[]}
     for i in range(iterations):
         if method=='evolution':
             population, fitness_trace = evolution.evolutionary_search(min_length, max_length, MINIMUM_FITNESS=MINIMUM_FITNESS,
@@ -98,7 +99,16 @@ def multiple_runs(evolution, iterations=10, method='evolution', min_length=10, m
         print(f'{(i+1)*"█"}{(iterations-i-1)*"░"} runtime = {remaining_time_calc(time()-start_time)}')
         start_time = time()
 
-    plot_many_averages(to_plot, 'Generations', 'Circuit Fitness')
+        # stats to return
+        stats['peak_fitness'].append(fitness_trace[0][-1])
+        for i in range(len(fitness_trace[0])):
+            if fitness_trace[0][i]==fitness_trace[0][-1]:
+                stats['generations_taken_to_converge'].append(i)
+                break
+        stats['best_genotype_length_and_depth'].append((len(population[0].genotype_str), population[0].to_circuit().depth()))
+
+    if plot:
+        plot_many_averages(to_plot, 'Generations', 'Circuit Fitness', legend=legend)
 
     if output:
         print(f'{len(out)} runs found \"optimal\" circuits')
@@ -110,3 +120,5 @@ def multiple_runs(evolution, iterations=10, method='evolution', min_length=10, m
                 print(pop[i].get_fitness())
             print('best circuit:')
             print(population[0].to_circuit())
+
+    return to_plot, stats
