@@ -78,7 +78,7 @@ def multiple_runs(evolution, iterations=10, method='evolution', min_length=10, m
     start_time = time()
     to_plot = []
     out = []
-    stats = {'peak_fitness':[], 'generations_taken_to_converge':[], 'best_genotype_length_and_depth':[]}
+    stats = {'peak_fitness':[],'runtime':[], 'generations_taken_to_converge':[], 'best_genotype_length_and_depth':[]}
     for i in range(iterations):
         if method=='evolution':
             population, fitness_trace = evolution.evolutionary_search(min_length, max_length, MINIMUM_FITNESS=MINIMUM_FITNESS,
@@ -96,11 +96,13 @@ def multiple_runs(evolution, iterations=10, method='evolution', min_length=10, m
         to_plot.append(fitness_trace)
         if population[0].get_fitness() > peak_fitness_non_global:
             out.append((i, population))
-        print(f'{(i+1)*"█"}{(iterations-i-1)*"░"} runtime = {remaining_time_calc(time()-start_time)}')
+        delta_time = time()-start_time
+        print(f'{(i+1)*"█"}{(iterations-i-1)*"░"} runtime = {remaining_time_calc(delta_time)}')
         start_time = time()
 
         # stats to return
         stats['peak_fitness'].append(fitness_trace[0][-1])
+        stats['runtime'].append(delta_time)
         for i in range(len(fitness_trace[0])):
             if fitness_trace[0][i]==fitness_trace[0][-1]:
                 stats['generations_taken_to_converge'].append(i)
