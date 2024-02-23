@@ -361,12 +361,14 @@ class ProblemParameters(ABC):
             self.gate_set = set_of_gates_dict
         else:
             raise TypeError('set_of_gates is not a dictionary or list')
+        self.all_gate_combinations = self.generate_gate_combinations()
+
+    def print_gate_set(self):
         print('{')
         for symbol in self.gate_set:
             print(f'    {ansi(92)}{symbol}{ansi()} : {ansi(96)}{self.gate_set[symbol].base_class.__name__}{ansi()}')
         print('}')
-        self.all_gate_combinations = self.generate_gate_combinations()
-
+        
     def generate_gate_combinations(self):
         """iterates through gate set to find all possible gate combinations;
            used for more efficient random circuit creation"""
@@ -778,7 +780,8 @@ class Evolution:
                         population.append(g)
         return population
 
-    def develop_circuits_random(self, inital_population, operation_count, use_double_point_crossover=True, crossover_proportion=0.5, insert_delete_proportion=0.1):
+    def develop_circuits_random(self, inital_population, operation_count, use_double_point_crossover=True,
+                                crossover_proportion=0.5, insert_delete_proportion=0.1):
         '''use a random assortment of search operators'''
         population = inital_population.copy()
         operations = ['crossover', 'mutation', 'insersion', 'deletion']
@@ -820,15 +823,18 @@ class Evolution:
                 operation_count -= self.alpha*self.beta
         return population
 
-    def develop_circuits_combined(self, inital_population, operation_count=250, double_point_crossover=True):
+    def develop_circuits_combined(self, inital_population, operation_count=250, double_point_crossover=True,
+                                  crossover_proportion=0.5, insert_delete_proportion=0.1):
         #population_uniform = self.develop_circuits_uniform(inital_population, double_point_crossover)#[len(inital_population):]
         #len(population_uniform)//10
-        population_random = self.develop_circuits_random(inital_population, operation_count, double_point_crossover)
+        population_random = self.develop_circuits_random(inital_population, operation_count, double_point_crossover,
+                                                         crossover_proportion, insert_delete_proportion)
         #return population_uniform + population_random
         return population_random
     
     def evolutionary_search(self, min_length=30, max_length=60, falloff=None, remove_duplicates=False,
-                            MINIMUM_FITNESS=0, output=True, plot_fitness=True, plot_depth=False,
+                            MINIMUM_FITNESS=0, crossover_proportion=0.5, insert_delete_proportion=0.1, 
+                            output=True, plot_fitness=True, plot_depth=False,
                             random_sample_size=0, use_double_point_crossover=True):
         fitness_trace = [[] for _ in range(self.SAMPLE_SIZE)]
         depth_trace = [[] for _ in range(self.SAMPLE_SIZE)]
@@ -880,8 +886,8 @@ class Evolution:
                 g.get_fitness()
                 population.append(g)
 
-            population = self.develop_circuits_combined(population, operation_count=int(self.GENERATION_SIZE*(self.GENERATION_MULTIPLIER-1)),
-                                                        double_point_crossover=use_double_point_crossover)
+            population = self.develop_circuits_combined(population, int(self.GENERATION_SIZE*(self.GENERATION_MULTIPLIER-1)),
+                                                        use_double_point_crossover, crossover_proportion, insert_delete_proportion)
             for g in population:
                 g.get_fitness()
                 #population.append(g)

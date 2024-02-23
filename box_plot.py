@@ -1,13 +1,16 @@
 from pandas import DataFrame, read_csv
 import matplotlib.pyplot as plt
-TEST_PARAMETERS = [['random','stochastic','evolution'],['3qubits','4qubits','5qubits'],['reduced','overcomplete']]
+TEST_PARAMETERS = [['random','stochastic','evolution'],
+                   ['reduced','overcomplete'],
+                   [f'{q}qubits' for q in [3,4,5]],
+                   [f'crossover{c}insertdelete{i}' for i in [1] for c in [3,4,5,6,7]]]#for x in ['single','double']
 
 if __name__=="__main__":
-    ITERATIONS = 5
-    multipliers = [2]#[2,4,8]
+    ITERATIONS = 10
+    multipliers = [5]#[2,4,8]
 
     csv_to_plot = []
-    for test_param in TEST_PARAMETERS[1]:
+    for test_param in TEST_PARAMETERS[3]:
         for m in multipliers:
             csv_to_plot.append(f"iter{ITERATIONS}_{test_param}_mult{m}.csv")
     #csv_to_plot = ["5iterations_reduced_mult2.csv","5iterations_reduced_mult4.csv",

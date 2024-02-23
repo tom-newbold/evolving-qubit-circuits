@@ -16,6 +16,7 @@ def QFTGeneration(set_of_gates, N=3, t=0.05):
     
 if __name__=="__main__":
     QFT_GEN = QFTGeneration(GATE_SET, 3, t=0.5)#, 16)
+    QFT_GEN.print_gate_set()
     #E = Evolution(QFT_GEN, individuals_per_generation=300, alpha=3, beta=6, gamma=4)
     E = Evolution(QFT_GEN, sample_percentage=0.1, gen_mulpilier=10)
     
