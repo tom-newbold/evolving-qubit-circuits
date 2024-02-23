@@ -1,5 +1,7 @@
 from time import time
-from linear_genetic_programming import ProblemParametersCombined, plot_many_averages, plot_list
+from linear_genetic_programming import ProblemParametersCombined
+from linear_genetic_programming_utils import plot_many_averages, plot_list
+import matplotlib.pyplot as plt
 
 def remaining_time_calc(remaining_time):
     if remaining_time > 0.001:
@@ -114,11 +116,13 @@ def multiple_runs(evolution, iterations=10, method='evolution', min_length=10, m
 
     if plot:
         plot_many_averages(to_plot, 'Generations', 'Circuit Fitness', legend=legend)
+        plt.show()
 
     if output:
         print(f'{len(out)} runs found \"optimal\" circuits')
         for run, pop in out:
             plot_list(to_plot[run], 'Generations', 'Circuit Fitness', False)
+            plt.show()
             print(f'Run {run+1}: Top {evolution.SAMPLE_SIZE} genotypes:')
             for i in range(evolution.SAMPLE_SIZE):
                 print(pop[i].genotype_str)

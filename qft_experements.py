@@ -1,6 +1,8 @@
 from quantum_fourier_transform import QFTGeneration, GATE_SET, GATE_SET_SIMPLE
-from linear_genetic_programming import Evolution, plot_many_averages
+from linear_genetic_programming import Evolution
+from linear_genetic_programming_utils import plot_many_averages
 from grid_search import multiple_runs
+import matplotlib.pyplot as plt
 
 from pandas import DataFrame
 
@@ -69,6 +71,8 @@ def output(p, s, test_param, multiplier):
         file.close()
     print(f'plotting...')
     plot_many_averages(p[test_param], 'Generations', 'Circuit Fitness', legend=False)
+    # SAVE FIGURE
+    plt.show()
 
 if __name__=="__main__":
     import os

@@ -1,4 +1,5 @@
-from linear_genetic_programming import AppliedProblemParameters, Evolution, ProblemParametersCombined, plot_many_averages
+from linear_genetic_programming import AppliedProblemParameters, Evolution, ProblemParametersCombined
+from linear_genetic_programming_utils import plot_many_averages
 
 #from qiskit.quantum_info import Statevector
 from qiskit.circuit.library import QFT as QFT_blueprint
