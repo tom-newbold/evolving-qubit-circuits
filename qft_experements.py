@@ -9,6 +9,7 @@ def run_algorithm_test(set, gen_multiplier=8, iterations=20):
     stats = {}
     to_plot = {}
     for algorithm in ['random','stochastic','evolution']:
+        print(f'<{algorithm}>')
         QFT_GEN = QFTGeneration(set, 3)
         E = Evolution(QFT_GEN, sample_percentage=0.1, gen_mulpilier=gen_multiplier)
 
@@ -20,10 +21,23 @@ def run_gateset_test(sets, gen_multiplier=8, iterations=20):
     stats = {}
     to_plot = {}
     for set_name in sets:
+        print(f'<{set_name}>')
         QFT_GEN = QFTGeneration(sets[set_name], 3)
         E = Evolution(QFT_GEN, sample_percentage=0.1, gen_mulpilier=gen_multiplier)
 
         to_plot[set_name], stats[set_name] = multiple_runs(E, iterations=iterations, plot=False)
+    return stats, to_plot
+
+def run_qubitcount_test(set, gen_multiplier=8, iterations=20):
+    """performs multiple runs on each circuit size"""
+    stats = {}
+    to_plot = {}
+    for qubit_count in ['3qubits','4qubits','5qubits']:
+        print(f'<{qubit_count}>')
+        QFT_GEN = QFTGeneration(set, int(qubit_count[0]))
+        E = Evolution(QFT_GEN, sample_percentage=0.1, gen_mulpilier=gen_multiplier)
+
+        to_plot[qubit_count], stats[qubit_count] = multiple_runs(E, iterations=iterations, plot=False)
     return stats, to_plot
 
 def output(p, s, test_param, multiplier):
@@ -40,6 +54,7 @@ if __name__=="__main__":
     import os
     os.makedirs('out', exist_ok=True)
 
+    TEST_FUNC = [run_gateset_test,run_algorithm_test,run_qubitcount_test][2]
     ITERATIONS = 5
     test_multipliers = [2]#[2,4,8]
     to_plot = []
@@ -50,7 +65,9 @@ if __name__=="__main__":
     for multiplier in test_multipliers:
         print(f'\n\nmultiplier:{multiplier}')
         #s, p = run_gateset_test(sets, multiplier, ITERATIONS)
-        s, p = run_algorithm_test(GATE_SET, multiplier, ITERATIONS)
+        #s, p = run_algorithm_test(GATE_SET, multiplier, ITERATIONS)
+        #s, p = run_qubitcount_test(GATE_SET, multiplier, ITERATIONS)
+        s, p = TEST_FUNC(GATE_SET, multiplier, ITERATIONS)
         to_plot.append(p)
         all_stats.append(s)
 
@@ -61,5 +78,9 @@ if __name__=="__main__":
 
         #for set_name in list(s.keys()):
         #    output(p, s, set_name, multiplier)
-        for algorithm in list(s.keys()):
-            output(p, s, algorithm, multiplier)
+        #for algorithm in list(s.keys()):
+        #    output(p, s, algorithm, multiplier)
+        #for qubit_count in list(s.keys()):
+        #    output(p, s, qubit_count, multiplier)
+        for test_param in list(s.keys()):
+            output(p, s, test_param, multiplier)
