@@ -87,6 +87,7 @@ def smooth_line(float_list, half_width=2):
 
 def plot_list(float_list, x_label=None, y_label=None, plot_average=True):
     """plots a list of floats"""
+    plt.clf()
     if type(float_list[0])==list:
         x_axis = [i for i in range(len(float_list[0]))]
         if plot_average:
@@ -124,6 +125,7 @@ def plot_list(float_list, x_label=None, y_label=None, plot_average=True):
     plt.grid()
 
 def plot_many_averages(float_lists, x_label=None, y_label=None, plot_trendline=True, trendline_halfwidth=4, legend=True):
+    plt.clf()
     lw = 20/(20+len(float_lists[0]))
 
     x_axis = [i for i in range(len(float_lists[0][0]))]
