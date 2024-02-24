@@ -1,58 +1,59 @@
+import os
+import matplotlib.pyplot as plt
+from pandas import DataFrame
+
 from quantum_fourier_transform import QFTGeneration, GATE_SET, GATE_SET_SIMPLE
 from linear_genetic_programming import Evolution
 from linear_genetic_programming_utils import plot_many_averages
 from grid_search import multiple_runs
-import matplotlib.pyplot as plt
-
-from pandas import DataFrame
-import os
 
 class Experiements:
-    def __init__(self, iterations=10, multipliers=[2,4,8], save_filepath='out'):
+    def __init__(self, iterations=20, multipliers=[2,4,8], save_filepath='out'):
         os.makedirs(save_filepath, exist_ok=True)
         self.ITERATIONS = iterations
         self.test_multipliers = multipliers
         self.base_filepath = save_filepath
 
-    def run_algorithm_test(self, set, gen_multiplier=8, iterations=20):
+    def run_algorithm_test(self, set, gen_multiplier=8):
         """performs multiple runs on each algorithm"""
         stats = {}
         to_plot = {}
         for algorithm in ['random','stochastic','evolution']:
-            print(f'<{algorithm}>')
+            print(f'<{algorithm}>') # unique identifier used to name output files
             QFT_GEN = QFTGeneration(set, 3)
             E = Evolution(QFT_GEN, sample_percentage=0.1, gen_mulpilier=gen_multiplier)
 
-            to_plot[algorithm], stats[algorithm] = multiple_runs(E, method=algorithm, iterations=iterations, plot=False)
+            to_plot[algorithm], stats[algorithm] = multiple_runs(E, method=algorithm, iterations=self.ITERATIONS, plot=False)
         return stats, to_plot
 
-    def run_gateset_test(self, sets, gen_multiplier=8, iterations=20):
+    def run_gateset_test(self, sets, gen_multiplier=8):
         """performs multiple runs on each input gate set"""
         stats = {}
         to_plot = {}
-        for set_name in sets:
-            print(f'<{set_name}>')
+        for set_name in sets: # iterate over provided dictionary of sets
+            print(f'<{set_name}>') # unique identifier used to name output files
             QFT_GEN = QFTGeneration(sets[set_name], 3)
             QFT_GEN.print_gate_set()
             E = Evolution(QFT_GEN, sample_percentage=0.1, gen_mulpilier=gen_multiplier)
 
-            to_plot[set_name], stats[set_name] = multiple_runs(E, iterations=iterations, plot=False)
+            to_plot[set_name], stats[set_name] = multiple_runs(E, iterations=self.ITERATIONS, plot=False)
         return stats, to_plot
 
-    def run_qubitcount_test(self, set, gen_multiplier=8, iterations=20):
+    def run_qubitcount_test(self, set, gen_multiplier=8):
         """performs multiple runs on each circuit size"""
         stats = {}
         to_plot = {}
         for qubit_count in [3, 4, 5]:
             qubit_count_str = f'{qubit_count}qubits'
+            # unique identifier used to name output files
             print(f'<{qubit_count_str}>')
-            QFT_GEN = QFTGeneration(set, qubit_count)
+            QFT_GEN = QFTGeneration(set, qubit_count) # qubit count varied
             E = Evolution(QFT_GEN, sample_percentage=0.1, gen_mulpilier=gen_multiplier)
 
-            to_plot[qubit_count_str], stats[qubit_count_str] = multiple_runs(E, iterations=iterations, plot=False)
+            to_plot[qubit_count_str], stats[qubit_count_str] = multiple_runs(E, iterations=self.ITERATIONS, plot=False)
         return stats, to_plot
 
-    def run_distribution_test(self, set, gen_multiplier=8, iterations=20):
+    def run_distribution_test(self, set, gen_multiplier=8):
         """performs multiple runs on each random distribution"""
         stats = {}
         to_plot = {}
@@ -60,6 +61,7 @@ class Experiements:
             for ins_del in [1]:
                 for x in ['single','double']:
                     dist_str = f'crossover{crossover}insertdelete{ins_del}{x}'
+                    # unique identifier used to name output files
                     print(f'<{dist_str}>')
                     QFT_GEN = QFTGeneration(set, 3)
                     E = Evolution(QFT_GEN, sample_percentage=0.1, gen_mulpilier=gen_multiplier)
@@ -67,20 +69,21 @@ class Experiements:
                     to_plot[dist_str], stats[dist_str] = multiple_runs(E, crossover_proportion=crossover, 
                                                                     insert_delete_proportion=ins_del,
                                                                     use_double_point_crossover= x=='double',
-                                                                    iterations=iterations, plot=False)
+                                                                    iterations=self.ITERATIONS, plot=False)
         return stats, to_plot
 
     def output(self, p, s, test_param, multiplier, save=True):
+        """writes stats to dataframe, plots graph of averages, and saves when required"""
         print(f'--{test_param}-- multiplier:{multiplier}')
         df = DataFrame.from_dict(s[test_param])
         print(df)
         with open(self.base_filepath+f'/{test_param}_mult{multiplier}_boxplot.csv','w') as file:
+            # writes dataframe to unique file, statistical analysis and further plots can be carried out externally
             file.write(DataFrame.to_csv(df))
             file.close()
         print(f'plotting...')
         plot_many_averages(p[test_param], 'Generations', 'Circuit Fitness', legend=False)
-        # SAVE FIGURE
-        if save:
+        if save: # saves figure if specified
             plt.savefig(self.base_filepath+f'/{test_param}_mult{multiplier}_graph.png')
         else:
             plt.show()
@@ -98,9 +101,9 @@ class Experiements:
         for multiplier in self.test_multipliers:
             print(f'\n\nmultiplier:{multiplier}')
             if test_name=='gateset':
-                s, p = t_func({'reduced':GATE_SET_SIMPLE,'overcomplete':GATE_SET}, multiplier, self.ITERATIONS)
+                s, p = t_func({'reduced':GATE_SET_SIMPLE,'overcomplete':GATE_SET}, multiplier)
             else:
-                s, p = t_func(GATE_SET, multiplier, self.ITERATIONS)
+                s, p = t_func(GATE_SET, multiplier)
             to_plot.append(p)
             all_stats.append(s)
 
