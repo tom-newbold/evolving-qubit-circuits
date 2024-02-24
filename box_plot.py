@@ -1,5 +1,5 @@
-from pandas import read_csv
 import matplotlib.pyplot as plt
+from pandas import read_csv
 
 if __name__=="__main__":
     filepath = 'out/autosave_test_2'

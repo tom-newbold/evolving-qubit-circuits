@@ -1,9 +1,8 @@
-from linear_genetic_programming import AppliedProblemParameters, Evolution, ProblemParametersCombined
-from linear_genetic_programming_utils import plot_many_averages
-
-#from qiskit.quantum_info import Statevector
 from qiskit.circuit.library import QFT as QFT_blueprint
 from qiskit.circuit.library import *
+
+from linear_genetic_programming import AppliedProblemParameters, Evolution, ProblemParametersCombined
+from linear_genetic_programming_utils import plot_many_averages
     
 GATE_SET = [HGate(), XGate(), YGate(), ZGate(), CXGate(), PhaseGate(0), 
             RGate(0, 0), TGate(), TdgGate(), CHGate(), CPhaseGate(0)]

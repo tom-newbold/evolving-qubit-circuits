@@ -1,6 +1,7 @@
-from qiskit.quantum_info import Statevector
-import matplotlib.pyplot as plt
 import math
+import matplotlib.pyplot as plt
+
+from qiskit.quantum_info import Statevector
 
 def encode_to_letter(n):
     '''26 (english) capitals , 26 (english) lower case,

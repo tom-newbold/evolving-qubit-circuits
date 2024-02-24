@@ -1,14 +1,13 @@
-from linear_genetic_programming_utils import *
+import random, math
+import numpy as np
+import matplotlib.pyplot as plt
+from time import time
 
 from qiskit import QuantumCircuit
 from qiskit.quantum_info import Operator, Statevector
 
+from linear_genetic_programming_utils import *
 from grid_search_old import remaining_time_calc
-
-import matplotlib.pyplot as plt
-import random, math
-from time import time
-import numpy as np
 
 class Genotype:
     def __init__(self, problem_parameters, genotype_string=None, min_length=15, max_length=45, falloff='linear'):            

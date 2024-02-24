@@ -1,6 +1,9 @@
-from linear_genetic_programming import AppliedProblemParameters, Evolution
+"""TO REMOVE"""
+
 from qiskit.circuit.library import *
 from qiskit.quantum_info import Statevector
+
+from linear_genetic_programming import AppliedProblemParameters, Evolution
 from grid_search import multiple_runs
     
 GATE_SET = [HGate(), XGate(), YGate(), ZGate(), CXGate(), PhaseGate(0), 

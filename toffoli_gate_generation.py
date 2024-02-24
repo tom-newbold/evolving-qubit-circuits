@@ -1,8 +1,8 @@
+from qiskit import QuantumCircuit
+from qiskit.circuit.library import *
+
 from linear_genetic_programming import AppliedProblemParameters, Evolution, ProblemParametersCombined
 from linear_genetic_programming_utils import basis_states
-from qiskit import QuantumCircuit
-
-from qiskit.circuit.library import *
     
 GATE_SET = [HGate(), XGate(), CXGate(), PhaseGate(0),
             TGate(), TdgGate(), CHGate(), CPhaseGate(0)]

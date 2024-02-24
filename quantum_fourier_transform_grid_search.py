@@ -1,9 +1,8 @@
-from quantum_fourier_transform import QFTGeneration, GATE_SET
-from linear_genetic_programming import Evolution, AppliedProblemParameters
-
 from qiskit.circuit.library import QFT as QFT_blueprint
 from qiskit.quantum_info import random_statevector
 
+from quantum_fourier_transform import QFTGeneration, GATE_SET
+from linear_genetic_programming import Evolution, AppliedProblemParameters
 from grid_search import grid_search, multiple_runs
 
 

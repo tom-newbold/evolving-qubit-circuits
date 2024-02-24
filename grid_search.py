@@ -1,7 +1,8 @@
+import matplotlib.pyplot as plt
 from time import time
+
 from linear_genetic_programming import ProblemParametersCombined
 from linear_genetic_programming_utils import plot_many_averages, plot_list
-import matplotlib.pyplot as plt
 
 def remaining_time_calc(remaining_time):
     if remaining_time > 0.001:
