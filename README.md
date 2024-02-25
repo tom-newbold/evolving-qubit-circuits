@@ -11,7 +11,7 @@ The goal of this project is to explore quantum logic gate circuits for a range o
 Make sure to first specify the set of gates you want to be usable by the generated circuits. Any of the base classes from `qiskit.circuit.library` can be used - create a list of instances of these classes (i.e. any gates with parameters must have these values specified, but any value can be used as it will be changed based on the value specified by the genotype). Symbols can be automatically generated, but equally they can be prespecified by using a dictionary rather than a list. *N.B. only a single symbol is permitted per gate; if a gate is indexed with multiple symbols, this will be overwritten by the first available auto-generated symbol.*
 
 ### Inputs
-The fitness function require a truth table to work on, which means a list of input states must be provided. These could either be the basis states for the system, or randomly generated intermediary states, though from testing it is recommended to use the former for better performance.
+The fitness function requires a truth table to work on, which means a list of input states can be provided. These could either be the basis states for the system, or randomly generated intermediary states, though from testing it is recommended to use the former for better performance. If none are provided, the basis states for are taken for the number of qubits specified.
 
 ### Problem Parameters
 Next, pass these into the constructor for one of the following classes:
@@ -22,3 +22,7 @@ Next, pass these into the constructor for one of the following classes:
 
 ### Evolution
 This object is used to create an instance of `Evolution`. Default values are specified for all search parameters, but these can also be overwritten to customise the environment. Calling `random_search`, `stochastic_hill_climb` or `evolutionary_search` runs the chosen algorithm. Again, each of these functions has a range of parameters, all with default values, which influence the random generation and evolution. Returned is a sorted list of `Genotype`s - the final generation.
+
+### Bulk Runs
+
+`grid_search.py` contains functions which allow bulk runs - graphs showing average sample fitness across generations per run can be plotted. `qft_experiments.py` and `box_plot.py` show the algorithm run with different parameters for statistical analysis.
