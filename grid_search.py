@@ -82,7 +82,7 @@ def multiple_runs(evolution, iterations=10, method='evolution', min_length=10, m
     start_time = time()
     to_plot = []
     out = []
-    stats = {'peak_fitness':[],'runtime':[], 'generations_taken_to_converge':[], 'best_genotype_length_and_depth':[]}
+    stats = {'peak_fitness':[],'runtime':[], 'generations_taken_to_converge':[], 'best_genotype_length':[], 'best_genotype_depth':[]}
     for i in range(iterations):
         if method=='evolution':
             population, fitness_trace = evolution.evolutionary_search(min_length, max_length, MINIMUM_FITNESS=MINIMUM_FITNESS,
@@ -113,7 +113,8 @@ def multiple_runs(evolution, iterations=10, method='evolution', min_length=10, m
             if fitness_trace[0][i]==fitness_trace[0][-1]:
                 stats['generations_taken_to_converge'].append(i)
                 break
-        stats['best_genotype_length_and_depth'].append((len(population[0].genotype_str), population[0].to_circuit().depth()))
+        stats['best_genotype_length'].append(len(population[0].genotype_str))
+        stats['best_genotype_depth'].append(population[0].to_circuit().depth())
 
     if plot:
         plot_many_averages(to_plot, 'Generations', 'Circuit Fitness', legend=legend)

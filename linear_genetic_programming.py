@@ -461,7 +461,7 @@ class Evolution:
         return by_fitness[:self.SAMPLE_SIZE] + by_fitness[self.SAMPLE_SIZE:end:step]
         
     def random_search(self, min_length=30, max_length=45, falloff='linear', remove_duplicates=False, output=True, plot_fitness=True, plot_depth=False):
-        fitness_trace = [[] for i in range(self.SAMPLE_SIZE)]
+        fitness_trace = [[0] for i in range(self.SAMPLE_SIZE)]
         depth_trace = [[] for i in range(self.SAMPLE_SIZE)]
         population = []
 
@@ -516,7 +516,7 @@ class Evolution:
         best_genotype.fitness = MINIMUM_FITNESS
         fitness_trace = []
         depth_trace = []
-        fitness_trace = [[] for i in range(self.SAMPLE_SIZE)]
+        fitness_trace = [[0] for i in range(self.SAMPLE_SIZE)]
         depth_trace = [[] for i in range(self.SAMPLE_SIZE)]
 
         population = []

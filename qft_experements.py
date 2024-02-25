@@ -90,7 +90,7 @@ class Experiements:
         print(f'--{test_param}-- multiplier:{multiplier}')
         df = DataFrame.from_dict(s[test_param])
         print(df)
-        with open(self.base_filepath+f'/{test_param}_mult{multiplier}_boxplot.csv','w') as file:
+        with open(self.base_filepath+f'/{test_param}_mult{multiplier}.csv','w') as file:
             # writes dataframe to unique file, statistical analysis and further plots can be carried out externally
             file.write(DataFrame.to_csv(df))
             file.close()
@@ -135,8 +135,12 @@ class Experiements:
             for test_param in list(s.keys()):
                 self.output(p, s, test_param, multiplier)
 
+ALL_TESTS = ['algorithm','gateset','qubit','distribution','multiobjective']
+
 if __name__=="__main__":
-    for test in  ['algorithm','gateset','qubit','distribution','multiobjective']:
+    #experiment_instance = Experiements(save_filepath=f'out/autosave_test',iterations=10, multipliers=[2])
+    #experiment_instance.run_test('algorithm')
+    for test in ALL_TESTS:
         print(f'__{test.upper()}__')
         experiment_instance = Experiements(save_filepath=f'out/{test}_test',iterations=25, multipliers=[2,4,8])
         experiment_instance.run_test(test)
