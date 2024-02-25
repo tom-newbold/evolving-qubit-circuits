@@ -58,18 +58,31 @@ class Experiements:
         stats = {}
         to_plot = {}
         for crossover in [3, 4, 5, 6, 7]:
-            for ins_del in [1]:
-                for x in ['single','double']:
-                    dist_str = f'crossover{crossover}insertdelete{ins_del}{x}'
-                    # unique identifier used to name output files
-                    print(f'<{dist_str}>')
-                    QFT_GEN = QFTGeneration(set, 3)
-                    E = Evolution(QFT_GEN, sample_percentage=0.1, gen_mulpilier=gen_multiplier)
+            for x in ['single','double']:
+                dist_str = f'crossover{crossover}{x}'
+                # unique identifier used to name output files
+                print(f'<{dist_str}>')
+                QFT_GEN = QFTGeneration(set, 3)
+                E = Evolution(QFT_GEN, sample_percentage=0.1, gen_mulpilier=gen_multiplier)
 
-                    to_plot[dist_str], stats[dist_str] = multiple_runs(E, crossover_proportion=crossover, 
-                                                                    insert_delete_proportion=ins_del,
-                                                                    use_double_point_crossover= x=='double',
-                                                                    iterations=self.ITERATIONS, plot=False)
+                to_plot[dist_str], stats[dist_str] = multiple_runs(E, crossover_proportion=crossover,
+                                                                use_double_point_crossover= x=='double',
+                                                                iterations=self.ITERATIONS, plot=False)
+        return stats, to_plot
+    
+    def run_multiobjective_test(self, set, gen_multiplier=8):
+        """performs multiple runs on each circuit preference"""
+        stats = {}
+        to_plot = {}
+        for circuit_preference in [None, True, False]: # no sorting, shortest first, longest first
+            multobj_str = "none" if circuit_preference==None else ("short" if circuit_preference else "long")
+            multobj_str = 'preferlength'+multobj_str
+            # unique identifier used to name output files
+            print(f'<{multobj_str}>')
+            QFT_GEN = QFTGeneration(set, 3)
+            E = Evolution(QFT_GEN, sample_percentage=0.1, gen_mulpilier=gen_multiplier)
+
+            to_plot[multobj_str], stats[multobj_str] = multiple_runs(E, iterations=self.ITERATIONS, short_circuit_preference=circuit_preference, plot=False)
         return stats, to_plot
 
     def output(self, p, s, test_param, multiplier, save=True):
@@ -91,7 +104,8 @@ class Experiements:
     def run_test(self, test_name):
         # initialise dictionary of test functions
         test_functions = {'gateset':self.run_gateset_test,'algorithm':self.run_algorithm_test,
-                          'qubit':self.run_qubitcount_test,'distribution':self.run_distribution_test}
+                          'qubit':self.run_qubitcount_test,'distribution':self.run_distribution_test,
+                          'multiobjective':self.run_multiobjective_test}
         if test_name not in test_functions:
             raise ValueError('Invalid test_name')
         t_func = test_functions[test_name]
@@ -122,6 +136,7 @@ class Experiements:
                 self.output(p, s, test_param, multiplier)
 
 if __name__=="__main__":
-    experiment_instance = Experiements(save_filepath='out/autosave_test_2',iterations=25, multipliers=[5])
-
-    experiment_instance.run_test('gateset')
+    for test in  ['algorithm','gateset','qubit','distribution','multiobjective']:
+        print(f'__{test.upper()}__')
+        experiment_instance = Experiements(save_filepath=f'out/{test}_test',iterations=25, multipliers=[2,4,8])
+        experiment_instance.run_test(test)

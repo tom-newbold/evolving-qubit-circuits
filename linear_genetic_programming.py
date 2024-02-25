@@ -668,7 +668,7 @@ class Evolution:
     def evolutionary_search(self, min_length=30, max_length=60, falloff=None, remove_duplicates=False,
                             MINIMUM_FITNESS=0, crossover_proportion=0.5, insert_delete_proportion=0.1, 
                             output=True, plot_fitness=True, plot_depth=False,
-                            random_sample_size=0, use_double_point_crossover=True):
+                            random_sample_size=0, use_double_point_crossover=True, prefer_short_circuits=None):
         fitness_trace = [[] for _ in range(self.SAMPLE_SIZE)]
         depth_trace = [[] for _ in range(self.SAMPLE_SIZE)]
 
@@ -728,7 +728,10 @@ class Evolution:
             if output:
                 print(f'Generation {i+1} Size (pre-selection): {len(population)}')
             
-            population = self.top_by_fitness(population, min_fitness=MINIMUM_FITNESS, remove_dupe=remove_duplicates)#, prefer_short_circuits=True)
+            if prefer_short_circuits!=None:
+                population = self.top_by_fitness(population, min_fitness=MINIMUM_FITNESS, remove_dupe=remove_duplicates, prefer_short_circuits=prefer_short_circuits)
+            else:
+                population = self.top_by_fitness(population, min_fitness=MINIMUM_FITNESS, remove_dupe=remove_duplicates)
 
             if output:
                 print(f'Generation {i+1} Best Genotype: {population[0].genotype_str}')

@@ -76,8 +76,8 @@ def grid_search(evolution, iterations=1, minimum_fitnesses=[0], random_sample_si
     return results
 
 def multiple_runs(evolution, iterations=10, method='evolution', min_length=10, max_length=25, MINIMUM_FITNESS=0,
-                  crossover_proportion=0.5, insert_delete_proportion=0.1,
-                  remove_duplicates=True, use_double_point_crossover=True, output=True, plot=True, legend=True):
+                  crossover_proportion=0.5, insert_delete_proportion=0.1, remove_duplicates=True,
+                  use_double_point_crossover=True, short_circuit_preference=None, output=True, plot=True, legend=True):
     peak_fitness_non_global = (len(evolution.metadata.input_states) - 1) / len(evolution.metadata.input_states)
     start_time = time()
     to_plot = []
@@ -90,7 +90,7 @@ def multiple_runs(evolution, iterations=10, method='evolution', min_length=10, m
                                                                     use_double_point_crossover=use_double_point_crossover,
                                                                     crossover_proportion=crossover_proportion,
                                                                     insert_delete_proportion=insert_delete_proportion,
-                                                                    output=False)
+                                                                    output=False, prefer_short_circuits=short_circuit_preference)
         elif method=='random':
             population, fitness_trace = evolution.random_search(min_length, max_length, remove_duplicates=remove_duplicates, output=False)
         elif method=='stochastic':
