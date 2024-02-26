@@ -6,13 +6,16 @@ from quantum_fourier_transform import QFTGeneration, GATE_SET, GATE_SET_SIMPLE
 from linear_genetic_programming import Evolution
 from linear_genetic_programming_utils import plot_many_averages
 from grid_search import multiple_runs
+from box_plot import boxplot_from_folder
 
 class Experiements:
-    def __init__(self, iterations=20, multipliers=[2,4,8], save_filepath='out'):
+    def __init__(self, iterations=20, multipliers=[2,4,8], save_filepath='out', generation_size=50, default_sample_percent=0.1):
         os.makedirs(save_filepath, exist_ok=True)
         self.ITERATIONS = iterations
         self.test_multipliers = multipliers
         self.base_filepath = save_filepath
+        self.default_sample_percent = default_sample_percent
+        self.gen_size = generation_size
 
     def run_algorithm_test(self, set, gen_multiplier=8):
         """performs multiple runs on each algorithm"""
@@ -21,7 +24,8 @@ class Experiements:
         for algorithm in ['random','stochastic','evolution']:
             print(f'<{algorithm}>') # unique identifier used to name output files
             QFT_GEN = QFTGeneration(set, 3)
-            E = Evolution(QFT_GEN, sample_percentage=0.1, gen_mulpilier=gen_multiplier)
+            E = Evolution(QFT_GEN, individuals_per_generation=self.gen_size,
+                          sample_percentage=self.default_sample_percent, gen_mulpilier=gen_multiplier)
 
             to_plot[algorithm], stats[algorithm] = multiple_runs(E, method=algorithm, iterations=self.ITERATIONS, plot=False)
         return stats, to_plot
@@ -34,7 +38,8 @@ class Experiements:
             print(f'<{set_name}>') # unique identifier used to name output files
             QFT_GEN = QFTGeneration(sets[set_name], 3)
             QFT_GEN.print_gate_set()
-            E = Evolution(QFT_GEN, sample_percentage=0.1, gen_mulpilier=gen_multiplier)
+            E = Evolution(QFT_GEN, individuals_per_generation=self.gen_size,
+                          sample_percentage=self.default_sample_percent, gen_mulpilier=gen_multiplier)
 
             to_plot[set_name], stats[set_name] = multiple_runs(E, iterations=self.ITERATIONS, plot=False)
         return stats, to_plot
@@ -48,7 +53,8 @@ class Experiements:
             # unique identifier used to name output files
             print(f'<{qubit_count_str}>')
             QFT_GEN = QFTGeneration(set, qubit_count) # qubit count varied
-            E = Evolution(QFT_GEN, sample_percentage=0.1, gen_mulpilier=gen_multiplier)
+            E = Evolution(QFT_GEN, individuals_per_generation=self.gen_size,
+                          sample_percentage=self.default_sample_percent, gen_mulpilier=gen_multiplier)
 
             to_plot[qubit_count_str], stats[qubit_count_str] = multiple_runs(E, iterations=self.ITERATIONS, plot=False)
         return stats, to_plot
@@ -63,9 +69,10 @@ class Experiements:
                 # unique identifier used to name output files
                 print(f'<{dist_str}>')
                 QFT_GEN = QFTGeneration(set, 3)
-                E = Evolution(QFT_GEN, sample_percentage=0.1, gen_mulpilier=gen_multiplier)
+                E = Evolution(QFT_GEN, individuals_per_generation=self.gen_size,
+                              sample_percentage=self.default_sample_percent, gen_mulpilier=gen_multiplier)
 
-                to_plot[dist_str], stats[dist_str] = multiple_runs(E, crossover_proportion=crossover,
+                to_plot[dist_str], stats[dist_str] = multiple_runs(E, crossover_proportion=crossover/10,
                                                                 use_double_point_crossover= x=='double',
                                                                 iterations=self.ITERATIONS, plot=False)
         return stats, to_plot
@@ -80,9 +87,25 @@ class Experiements:
             # unique identifier used to name output files
             print(f'<{multobj_str}>')
             QFT_GEN = QFTGeneration(set, 3)
-            E = Evolution(QFT_GEN, sample_percentage=0.1, gen_mulpilier=gen_multiplier)
+            E = Evolution(QFT_GEN, individuals_per_generation=self.gen_size,
+                          sample_percentage=self.default_sample_percent, gen_mulpilier=gen_multiplier)
 
             to_plot[multobj_str], stats[multobj_str] = multiple_runs(E, iterations=self.ITERATIONS, short_circuit_preference=circuit_preference, plot=False)
+        return stats, to_plot
+    
+    def run_elitism_test(self, set, gen_multiplier=8):
+        """performs multiple runs using different sample (elitism) percentages"""
+        stats = {}
+        to_plot = {}
+        for elitism_percent in [0.05,0.1,0.15,0.2,0.25]:
+            elite_str = f'elitepercent{int(elitism_percent*100)}'
+            # unique identifier used to name output files
+            print(f'<{elite_str}>')
+            QFT_GEN = QFTGeneration(set, 3)
+            E = Evolution(QFT_GEN, individuals_per_generation=self.gen_size,
+                          sample_percentage=elitism_percent, gen_mulpilier=gen_multiplier)
+
+            to_plot[elite_str], stats[elite_str] = multiple_runs(E, iterations=self.ITERATIONS, plot=False)
         return stats, to_plot
 
     def output(self, p, s, test_param, multiplier, save=True):
@@ -105,7 +128,7 @@ class Experiements:
         # initialise dictionary of test functions
         test_functions = {'gateset':self.run_gateset_test,'algorithm':self.run_algorithm_test,
                           'qubit':self.run_qubitcount_test,'distribution':self.run_distribution_test,
-                          'multiobjective':self.run_multiobjective_test}
+                          'multiobjective':self.run_multiobjective_test, 'elitism':self.run_elitism_test}
         if test_name not in test_functions:
             raise ValueError('Invalid test_name')
         t_func = test_functions[test_name]
@@ -135,12 +158,13 @@ class Experiements:
             for test_param in list(s.keys()):
                 self.output(p, s, test_param, multiplier)
 
-ALL_TESTS = ['algorithm','gateset','qubit','distribution','multiobjective']
+ALL_TESTS = ['algorithm','gateset','qubit','distribution','multiobjective','elitism']
 
 if __name__=="__main__":
-    #experiment_instance = Experiements(save_filepath=f'out/autosave_test',iterations=10, multipliers=[2])
-    #experiment_instance.run_test('algorithm')
+    #experiment_instance = Experiements(save_filepath=f'out/autosave_test_2',iterations=10, multipliers=[2])
+    #experiment_instance.run_test('elitism')
     for test in ALL_TESTS:
         print(f'__{test.upper()}__')
         experiment_instance = Experiements(save_filepath=f'out/{test}_test',iterations=25, multipliers=[2,4,8])
         experiment_instance.run_test(test)
+        boxplot_from_folder(f'out/{test}_test')

@@ -1,8 +1,6 @@
 import matplotlib.pyplot as plt
 from pandas import read_csv
 
-from qft_experements import ALL_TESTS
-
 def boxplot_from_folder(filepath=""):
     with open(filepath+'/params.txt','r') as file:
         # fetches run parameters in order to consruct csv filenames
@@ -11,7 +9,7 @@ def boxplot_from_folder(filepath=""):
         multipliers = [int(m) for m in lines[1].split(',')]
         test_params = lines[2].split(',')
 
-    csv_to_plot = [f'{tp}_mult{m}_boxplot.csv' for m in multipliers for tp in test_params]#remove _boxplot
+    csv_to_plot = [f'{tp}_mult{m}.csv' for tp in test_params for m in multipliers]
     columns_to_plot = [("peak_fitness",[0,1]),("generations_taken_to_converge",[0,50]),("runtime",[]),("peak_fitness/runtime",[]),("best_genotype_length",[0,40]),("best_genotype_depth",[0,10])]
     # extracts dataframes
     dataframes = [read_csv(filepath+'/'+csv_filename) for csv_filename in csv_to_plot]
@@ -35,7 +33,7 @@ def boxplot_from_folder(filepath=""):
         plt.clf()
         plt.title(' '.join(c.split('_')))
         plt.boxplot(data, labels=labels)
-        if len(r)!=0:
+        if len(r)!=0 and r[1] >= max([max(boxplot) for boxplot in data]):
             # set vertical limit/ticks if range is provided
             plt.ylim(r)
             plt.yticks([r[0] + i*(r[1]-r[0])/10 for i in range(11)])
@@ -48,8 +46,9 @@ def boxplot_from_folder(filepath=""):
         #plt.show()
 
 if __name__=="__main__":
-    #filepath = 'out/autosave_test'
+    #filepath = 'out/autosave_test_2'
     #boxplot_from_folder(filepath)
+    from qft_experements import ALL_TESTS
     for test in ALL_TESTS:
         boxplot_from_folder(f'out/{test}_test')
     
