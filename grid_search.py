@@ -126,11 +126,13 @@ def multiple_runs(evolution, iterations=10, method='evolution', min_length=10, m
             if plot:
                 plot_list(to_plot[run], 'Generations', 'Circuit Fitness', False)
                 plt.show()
-            print(f'Run {run+1}: Top {evolution.SAMPLE_SIZE} genotypes:')
-            for i in range(evolution.SAMPLE_SIZE):
-                print(pop[i].genotype_str)
-                print(pop[i].get_fitness())
-            print('best circuit:')
-            print(population[0].to_circuit())
+            with open('out/optimal_circuits.txt','a+') as file:
+                file.write(f'Run {run+1}: Top {evolution.SAMPLE_SIZE} genotypes:\n')
+                for i in range(evolution.SAMPLE_SIZE):
+                    file.write(f'{pop[i].genotype_str}\n{pop[i].get_fitness()}\n')
+                file.write('best circuit:\n')
+                file.write(population[0].to_circuit())
+                file.write('\n\n')
+                file.close()
 
     return to_plot, stats

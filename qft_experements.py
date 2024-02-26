@@ -9,13 +9,13 @@ from grid_search import multiple_runs
 from box_plot import boxplot_from_folder
 
 class Experiements:
-    def __init__(self, iterations=20, multipliers=[2,4,8], save_filepath='out', generation_size=50, default_sample_percent=0.1):
+    def __init__(self, iterations=20, multipliers=[2,4,8], save_filepath='out', generation_count=50, default_sample_percent=0.1):
         os.makedirs(save_filepath, exist_ok=True)
         self.ITERATIONS = iterations
         self.test_multipliers = multipliers
         self.base_filepath = save_filepath
         self.default_sample_percent = default_sample_percent
-        self.gen_size = generation_size
+        self.gen_count = generation_count
 
     def run_algorithm_test(self, set, gen_multiplier=8):
         """performs multiple runs on each algorithm"""
@@ -24,7 +24,7 @@ class Experiements:
         for algorithm in ['random','stochastic','evolution']:
             print(f'<{algorithm}>') # unique identifier used to name output files
             QFT_GEN = QFTGeneration(set, 3)
-            E = Evolution(QFT_GEN, individuals_per_generation=self.gen_size,
+            E = Evolution(QFT_GEN, number_of_generations=self.gen_count,
                           sample_percentage=self.default_sample_percent, gen_mulpilier=gen_multiplier)
 
             to_plot[algorithm], stats[algorithm] = multiple_runs(E, method=algorithm, iterations=self.ITERATIONS, plot=False)
@@ -38,7 +38,7 @@ class Experiements:
             print(f'<{set_name}>') # unique identifier used to name output files
             QFT_GEN = QFTGeneration(sets[set_name], 3)
             QFT_GEN.print_gate_set()
-            E = Evolution(QFT_GEN, individuals_per_generation=self.gen_size,
+            E = Evolution(QFT_GEN, number_of_generations=self.gen_count,
                           sample_percentage=self.default_sample_percent, gen_mulpilier=gen_multiplier)
 
             to_plot[set_name], stats[set_name] = multiple_runs(E, iterations=self.ITERATIONS, plot=False)
@@ -53,7 +53,7 @@ class Experiements:
             # unique identifier used to name output files
             print(f'<{qubit_count_str}>')
             QFT_GEN = QFTGeneration(set, qubit_count) # qubit count varied
-            E = Evolution(QFT_GEN, individuals_per_generation=self.gen_size,
+            E = Evolution(QFT_GEN, number_of_generations=self.gen_count,
                           sample_percentage=self.default_sample_percent, gen_mulpilier=gen_multiplier)
 
             to_plot[qubit_count_str], stats[qubit_count_str] = multiple_runs(E, iterations=self.ITERATIONS, plot=False)
@@ -69,7 +69,7 @@ class Experiements:
                 # unique identifier used to name output files
                 print(f'<{dist_str}>')
                 QFT_GEN = QFTGeneration(set, 3)
-                E = Evolution(QFT_GEN, individuals_per_generation=self.gen_size,
+                E = Evolution(QFT_GEN, number_of_generations=self.gen_count,
                               sample_percentage=self.default_sample_percent, gen_mulpilier=gen_multiplier)
 
                 to_plot[dist_str], stats[dist_str] = multiple_runs(E, crossover_proportion=crossover/10,
@@ -87,7 +87,7 @@ class Experiements:
             # unique identifier used to name output files
             print(f'<{multobj_str}>')
             QFT_GEN = QFTGeneration(set, 3)
-            E = Evolution(QFT_GEN, individuals_per_generation=self.gen_size,
+            E = Evolution(QFT_GEN, number_of_generations=self.gen_count,
                           sample_percentage=self.default_sample_percent, gen_mulpilier=gen_multiplier)
 
             to_plot[multobj_str], stats[multobj_str] = multiple_runs(E, iterations=self.ITERATIONS, short_circuit_preference=circuit_preference, plot=False)
@@ -102,7 +102,7 @@ class Experiements:
             # unique identifier used to name output files
             print(f'<{elite_str}>')
             QFT_GEN = QFTGeneration(set, 3)
-            E = Evolution(QFT_GEN, individuals_per_generation=self.gen_size,
+            E = Evolution(QFT_GEN, number_of_generations=self.gen_count,
                           sample_percentage=elitism_percent, gen_mulpilier=gen_multiplier)
 
             to_plot[elite_str], stats[elite_str] = multiple_runs(E, iterations=self.ITERATIONS, plot=False)
