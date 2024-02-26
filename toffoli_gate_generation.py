@@ -20,14 +20,13 @@ def ToffoliGeneration(set_of_gates):
 if __name__=="__main__":
     
     TOFFOLI = ToffoliGeneration(GATE_SET)
-    E = Evolution(TOFFOLI, sample_percentage=0.1, number_of_generations=25, gen_mulpilier=2, alpha=2, beta=3, gamma=3)
+    E = Evolution(TOFFOLI, sample_percentage=0.1, gen_mulpilier=5, alpha=2, beta=3, gamma=3)
 
     #g = Genotype(TOFFOLI, '022125220242212522024142201024051201')
     #print(g.genotype_str)
     #print(g.to_circuit())
     
-    #population = E.random_search()
-    #population = E.stochastic_hill_climb()
+    population = E.random_search(remove_duplicates=True)[0]
     population = E.evolutionary_search(MINIMUM_FITNESS=0, remove_duplicates=True)[0]#, random_sample_size=5)
     print(population[0].to_list())
 
