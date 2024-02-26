@@ -123,8 +123,9 @@ def multiple_runs(evolution, iterations=10, method='evolution', min_length=10, m
     if output:
         print(f'{len(out)} runs found \"optimal\" circuits')
         for run, pop in out:
-            plot_list(to_plot[run], 'Generations', 'Circuit Fitness', False)
-            plt.show()
+            if plot:
+                plot_list(to_plot[run], 'Generations', 'Circuit Fitness', False)
+                plt.show()
             print(f'Run {run+1}: Top {evolution.SAMPLE_SIZE} genotypes:')
             for i in range(evolution.SAMPLE_SIZE):
                 print(pop[i].genotype_str)
