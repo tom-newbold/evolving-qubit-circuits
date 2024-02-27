@@ -59,7 +59,7 @@ class Experiements:
                           sample_percentage=self.default_sample_percent, gen_mulpilier=gen_multiplier)
 
             to_plot[qubit_count_str], stats[qubit_count_str] = multiple_runs(E, iterations=self.ITERATIONS, plot=False)
-        self.prob_params.set_new_circuit(0)
+        self.prob_params.set_new_circuit(circuit_constructor(3))
         return stats, to_plot
 
     def run_distribution_test(self, gen_multiplier=8):
