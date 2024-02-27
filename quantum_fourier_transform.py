@@ -8,11 +8,10 @@ GATE_SET = [HGate(), XGate(), YGate(), ZGate(), CXGate(), PhaseGate(0),
             RGate(0, 0), TGate(), TdgGate(), CHGate(), CPhaseGate(0)]
 GATE_SET_SIMPLE = [HGate(), CXGate(), TGate(), TdgGate()]
 
-def QFTGeneration(set_of_gates, N=3, t=0.05):
+def QFTGeneration(set_of_gates, N=3):
     '''creates a ProblemParameters object with the desired input and output states,
        a sample of the specified size generated based on the number of qubits'''
-    return AppliedProblemParameters(set_of_gates, QFT_blueprint(N)) # just msf
-    #return ProblemParametersCombined(set_of_gates, QFT_blueprint(N), mdf_tolerance=t) # msf and mdf
+    return AppliedProblemParameters(set_of_gates, QFT_blueprint(N))
     
 if __name__=="__main__":
     QFT_GEN = QFTGeneration(GATE_SET, 3, t=0.5)#, 16)

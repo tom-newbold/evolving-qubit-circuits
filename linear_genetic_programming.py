@@ -51,7 +51,7 @@ class Genotype:
             return circuit_instance
     
     def construct_gate(self, genotype_string, c_instance):
-        """constructs a single gate from a string and appends to the given ciruit"""
+        """constructs a single gate from a string and appends to the given circuit"""
         g_list = [int(x) for x in genotype_string[1:]]
 
         g = self.metadata.gate_set[genotype_string[0]].copy()
@@ -282,6 +282,10 @@ class ProblemParameters(ABC):
            if there are less than 10 gate, otherwise a range of english and
            greek letters are used - the set can contain at most 79 gates)"""
         self.qubit_count = qubits
+        self.set_gate_set(set_of_gates)
+
+    def set_gate_set(self, set_of_gates):
+        """parses the input set_of_gates to a valid dictionary"""
         if type(set_of_gates) == dict:
             # checks chosen symbols
             set_of_gates_dict = {}
@@ -307,6 +311,7 @@ class ProblemParameters(ABC):
                 else:
                     set_of_gates_dict[key] = set_of_gates[old_key]
             self.gate_set = set_of_gates_dict
+            self.all_gate_combinations = self.generate_gate_combinations()
         elif type(set_of_gates) == list:
             # assigns symbols
             if len(set_of_gates) > 80:
@@ -319,11 +324,12 @@ class ProblemParameters(ABC):
                 for i in range(len(set_of_gates)):
                     set_of_gates_dict[encode_to_letter(i)] = set_of_gates[i]
             self.gate_set = set_of_gates_dict
+            self.all_gate_combinations = self.generate_gate_combinations()
         else:
             raise TypeError('set_of_gates is not a dictionary or list')
-        self.all_gate_combinations = self.generate_gate_combinations()
 
     def print_gate_set(self):
+        """outputs gate set to console with colouring for readability"""
         print('{')
         for symbol in self.gate_set:
             print(f'    {ansi(92)}{symbol}{ansi()} : {ansi(96)}{self.gate_set[symbol].base_class.__name__}{ansi()}')
@@ -389,14 +395,26 @@ class AppliedProblemParameters(ProblemParameters):
         try:
             self.M = Operator(target_circuit)            
             self.output_states = [s.evolve(self.M) for s in self.input_states]
-            super().__init__(N, set_of_gates)
         except:            
             self.output_states = output_states
-            super().__init__(N, set_of_gates)
+        super().__init__(N, set_of_gates)
 
         if len(self.input_states)!=len(self.output_states):
             raise ValueError('Inconsistent size of input_states and output_states')
+        
+    def set_new_circuit(self, new_circuit):
+        """sets the target_circuit (matrix) to a match the new circuit"""
+        self.qubit_count = new_circuit.num_qubits
+        self.M = Operator(new_circuit)
+        self.recalc_states()
 
+    def recalc_states(self, input_states=[]):
+        if len(input_states) > 0:
+            self.input_states = input_states
+        else:
+            self.input_states = basis_states(self.qubit_count)
+        self.output_states = [s.evolve(self.M) for s in self.input_states]
+        
     def circuit_fitness(self, candidate_circuit):
         """overrides with the required truth table"""
         return self._ProblemParameters__msf(candidate_circuit, self.input_states, self.output_states)
