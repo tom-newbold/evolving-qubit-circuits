@@ -7,6 +7,8 @@ def encode_to_letter(n):
     '''26 (english) capitals , 26 (english) lower case,
        10 valid (greek) upper case, 18 valid (greek) lower case
        80 allowable symbols'''
+    if n < 0:
+        return None
     if n < 26:
         key = chr(ord('A')+n)
     elif n < 52:
@@ -53,6 +55,8 @@ def list_avr(l):
 def get_averages_list(float_list):
     """calculate the average value across each list at every index
        float_list is a expected to be a list of lists"""
+    if type(float_list)!=list:
+        return None
     if type(float_list[0])!=list:
         return None
     return [list_avr([y[i] for y in float_list]) for i in range(len(float_list[0]))]
@@ -60,6 +64,8 @@ def get_averages_list(float_list):
 def get_max_list(float_list):
     """calculate the maximum value across each list at every index
        float_list is a expected to be a list of lists"""
+    if type(float_list)!=list:
+        return None
     if type(float_list[0])!=list:
         return None
     return [max([y[i] for y in float_list]) for i in range(len(float_list[0]))]
@@ -67,12 +73,15 @@ def get_max_list(float_list):
 def get_min_list(float_list):
     """calculate the minimum value across each list at every index
        float_list is a expected to be a list of lists"""
+    if type(float_list)!=list:
+        return None
     if type(float_list[0])!=list:
         return None
     return [min([y[i] for y in float_list]) for i in range(len(float_list[0]))]
 
 def smooth_line(float_list, half_width=2):
     """calculate a (2*half_width+1) point moving average to smooth float_list"""
+    half_width = max(half_width,1) # prevents zero/negative
     if type(float_list)!=list:
         return None
     if len(float_list)<=2*half_width:
@@ -161,7 +170,9 @@ def plot_many_averages(float_lists, x_label=None, y_label=None, plot_trendline=T
 
 
 def remove_duplicates(genotype_list):
-    '''efficient way to do this for non-hashable objects??'''
+    '''removes any genotypes with duplicate string representations.
+       removing duplicates by circuit representation would produce a much larger overhead
+       N.B. this function in likely not the most efficient way'''
     seen_genotypes = []
     out = []
     for i in range(len(genotype_list)):
