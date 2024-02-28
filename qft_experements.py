@@ -10,13 +10,16 @@ from box_plot import boxplot_from_folder
 
 class Experiements:
     def __init__(self, problem_parameters, iterations=20, multipliers=[2,4,8], save_filepath='out', generation_count=50, default_sample_percent=0.1):
-        os.makedirs(save_filepath, exist_ok=True)
+        self.set_save_dir(save_filepath)
         self.prob_params = problem_parameters
         self.ITERATIONS = iterations
         self.test_multipliers = multipliers
-        self.base_filepath = save_filepath
         self.default_sample_percent = default_sample_percent
         self.gen_count = generation_count
+
+    def set_save_dir(self, save_filepath):
+        os.makedirs(save_filepath, exist_ok=True)
+        self.base_filepath = save_filepath
 
     def run_algorithm_test(self, gen_multiplier=8):
         """performs multiple runs on each algorithm"""
@@ -27,7 +30,8 @@ class Experiements:
             E = Evolution(self.prob_params, number_of_generations=self.gen_count,
                           sample_percentage=self.default_sample_percent, gen_mulpilier=gen_multiplier)
 
-            to_plot[algorithm], stats[algorithm] = multiple_runs(E, method=algorithm, iterations=self.ITERATIONS, plot=False)
+            to_plot[algorithm], stats[algorithm] = multiple_runs(E, method=algorithm, iterations=self.ITERATIONS,
+                                                                 plot=False, save_dir=self.base_filepath+'/')
         return stats, to_plot
 
     def run_gateset_test(self, sets, gen_multiplier=8):
@@ -42,7 +46,7 @@ class Experiements:
             E = Evolution(self.prob_params, number_of_generations=self.gen_count,
                           sample_percentage=self.default_sample_percent, gen_mulpilier=gen_multiplier)
 
-            to_plot[set_name], stats[set_name] = multiple_runs(E, iterations=self.ITERATIONS, plot=False)
+            to_plot[set_name], stats[set_name] = multiple_runs(E, iterations=self.ITERATIONS, plot=False, save_dir=self.base_filepath+'/')
         self.prob_params.set_gate_set(current_gate_set)
         return stats, to_plot
 
@@ -55,10 +59,11 @@ class Experiements:
             # unique identifier used to name output files
             print(f'<{qubit_count_str}>')
             self.prob_params.set_new_circuit(circuit_constructor(qubit_count)) # qubit count varied
-            E = Evolution(self.prob_params, number_of_generations=self.gen_count,
+            E = Evolution(self.prob_params, number_of_generations=self.gen_count, individuals_per_generation=100*2**(qubit_count-3),
                           sample_percentage=self.default_sample_percent, gen_mulpilier=gen_multiplier)
+            # gen_size is modified to account for larger search space
 
-            to_plot[qubit_count_str], stats[qubit_count_str] = multiple_runs(E, iterations=self.ITERATIONS, plot=False)
+            to_plot[qubit_count_str], stats[qubit_count_str] = multiple_runs(E, iterations=self.ITERATIONS, plot=False, save_dir=self.base_filepath+'/')
         self.prob_params.set_new_circuit(circuit_constructor(3))
         return stats, to_plot
 
@@ -66,9 +71,9 @@ class Experiements:
         """performs multiple runs on each random distribution"""
         stats = {}
         to_plot = {}
-        for crossover in [3, 4, 5, 6, 7]:
+        for crossover in [3, 5, 7]:#[3, 4, 5, 6, 7]:
             for x in ['single','double']:
-                dist_str = f'crossover{crossover}{x}'
+                dist_str = f'{x}crossover{crossover}'
                 # unique identifier used to name output files
                 print(f'<{dist_str}>')
                 E = Evolution(self.prob_params, number_of_generations=self.gen_count,
@@ -76,7 +81,8 @@ class Experiements:
 
                 to_plot[dist_str], stats[dist_str] = multiple_runs(E, crossover_proportion=crossover/10,
                                                                 use_double_point_crossover= x=='double',
-                                                                iterations=self.ITERATIONS, plot=False)
+                                                                iterations=self.ITERATIONS, plot=False,
+                                                                save_dir=self.base_filepath+'/')
         return stats, to_plot
     
     def run_multiobjective_test(self, gen_multiplier=8):
@@ -91,7 +97,8 @@ class Experiements:
             E = Evolution(self.prob_params, number_of_generations=self.gen_count,
                           sample_percentage=self.default_sample_percent, gen_mulpilier=gen_multiplier)
 
-            to_plot[multobj_str], stats[multobj_str] = multiple_runs(E, iterations=self.ITERATIONS, short_circuit_preference=circuit_preference, plot=False)
+            to_plot[multobj_str], stats[multobj_str] = multiple_runs(E, iterations=self.ITERATIONS, short_circuit_preference=circuit_preference,
+                                                                     plot=False, save_dir=self.base_filepath+'/')
         return stats, to_plot
     
     def run_elitism_test(self, gen_multiplier=8):
@@ -105,7 +112,7 @@ class Experiements:
             E = Evolution(self.prob_params, number_of_generations=self.gen_count,
                           sample_percentage=elitism_percent, gen_mulpilier=gen_multiplier)
 
-            to_plot[elite_str], stats[elite_str] = multiple_runs(E, iterations=self.ITERATIONS, plot=False)
+            to_plot[elite_str], stats[elite_str] = multiple_runs(E, iterations=self.ITERATIONS, plot=False, save_dir=self.base_filepath+'/')
         return stats, to_plot
 
     def output(self, p, s, test_param, multiplier, save=True):
@@ -166,13 +173,23 @@ class Experiements:
 ALL_TESTS = ['algorithm','gateset','qubit','distribution','multiobjective','elitism']
 
 if __name__=="__main__":
-    #experiment_instance = Experiements(save_filepath=f'out/autosave_test_2',iterations=10, multipliers=[2])
-    #experiment_instance.run_test('elitism')
+    folder = ''#'final/' # should end in slash, or be empty
+    
     from qiskit.circuit.library import QFT as QFT_blueprint
 
     QFT_GEN = QFTGeneration(GATE_SET, 3)
-    for test in ALL_TESTS:
+    experiment_instance = Experiements(QFT_GEN,iterations=25,multipliers=[3,6])
+    for test in ALL_TESTS[1:]:
         print(f'__{test.upper()}__')
-        experiment_instance = Experiements(QFT_GEN, save_filepath=f'out/final/{test}_test',iterations=25, multipliers=[2,5])
+        experiment_instance.set_save_dir(f'out/{folder}{test}_test')
         experiment_instance.run_test(test, QFT_blueprint)
-        boxplot_from_folder(f'out/final/{test}_test')
+        boxplot_from_folder(f'out/{folder}{test}_test')
+    
+    test = 'algorithm' # ALL_TESTS[0]
+    for qubit_count in [3,4,5]:
+        print(f'__{qubit_count}qubit_ALGORITHM__')
+        experiment_instance.set_save_dir(f'out/{folder}{qubit_count}qubit{test}_test')
+        experiment_instance.prob_params = QFTGeneration(GATE_SET, qubit_count)
+        experiment_instance.run_test(test)
+        boxplot_from_folder(f'out/{folder}{qubit_count}qubit{test}_test')
+    

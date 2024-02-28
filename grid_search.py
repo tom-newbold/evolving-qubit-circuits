@@ -77,7 +77,7 @@ def grid_search(evolution, iterations=1, minimum_fitnesses=[0], random_sample_si
 
 def multiple_runs(evolution, iterations=10, method='evolution', min_length=10, max_length=25, MINIMUM_FITNESS=0,
                   crossover_proportion=0.5, insert_delete_proportion=0.1, remove_duplicates=True,
-                  use_double_point_crossover=True, short_circuit_preference=None, output=True, plot=True, legend=True):
+                  use_double_point_crossover=True, short_circuit_preference=None, output=True, plot=True, legend=True, save_dir='out/'):
     peak_fitness_non_global = (len(evolution.metadata.input_states) - 1) / len(evolution.metadata.input_states)
     start_time = time()
     to_plot = []
@@ -126,7 +126,7 @@ def multiple_runs(evolution, iterations=10, method='evolution', min_length=10, m
             if plot:
                 plot_list(to_plot[run], 'Generations', 'Circuit Fitness', False)
                 plt.show()
-            with open('out/optimal_circuits.txt','a+',encoding='utf-8') as file:
+            with open(f'{save_dir}optimal_circuits.txt','a+',encoding='utf-8') as file:
                 file.write(f'Run {run+1}: Top {evolution.SAMPLE_SIZE} genotypes:\n')
                 for i in range(evolution.SAMPLE_SIZE):
                     file.write(f'{pop[i].genotype_str}\n{pop[i].get_fitness()}\n')

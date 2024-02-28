@@ -14,6 +14,8 @@ def boxplot_from_folder(filepath=""):
         os.makedirs(f'{filepath}/{g}_grouping', exist_ok=True)
 
     csv_to_plot = [[f'{tp}_mult{m}.csv' for tp in test_params for m in multipliers],[f'{tp}_mult{m}.csv' for m in multipliers for tp in test_params]]
+    if len(multipliers)==1:
+        csv_to_plot = csv_to_plot[0]
     columns_to_plot = [("peak_fitness",[0,1]),("generations_taken_to_converge",[0,50]),("runtime",[]),("peak_fitness/runtime",[]),("best_genotype_length",[0,40]),("best_genotype_depth",[0,10])]
     # extracts dataframes
     dataframe_orders = [[read_csv(filepath+'/'+csv_filename) for csv_filename in c] for c in csv_to_plot]
@@ -51,9 +53,11 @@ def boxplot_from_folder(filepath=""):
             #plt.show()
 
 if __name__=="__main__":
+    folder = 'final/' # see qft_experiments.py
     #filepath = 'out/autosave_test_2'
     #boxplot_from_folder(filepath)
-    from qft_experements import ALL_TESTS
-    for test in ALL_TESTS:
-        boxplot_from_folder(f'out/final/{test}_test')
+    
+    subfolders = [name for name in os.listdir(".") if os.path.isdir(name)]
+    for subdir in subfolders:
+        boxplot_from_folder(f'out/{folder}{subdir}')
     
