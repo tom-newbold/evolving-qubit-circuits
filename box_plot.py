@@ -15,7 +15,7 @@ def boxplot_from_folder(filepath=""):
 
     csv_to_plot = [[f'{tp}_mult{m}.csv' for tp in test_params for m in multipliers],[f'{tp}_mult{m}.csv' for m in multipliers for tp in test_params]]
     if len(multipliers)==1:
-        csv_to_plot = csv_to_plot[0]
+        csv_to_plot = [csv_to_plot[0]]
     columns_to_plot = [("peak_fitness",[0,1]),("generations_taken_to_converge",[0,50]),("runtime",[]),("peak_fitness/runtime",[]),("best_genotype_length",[0,40]),("best_genotype_depth",[0,10])]
     # extracts dataframes
     dataframe_orders = [[read_csv(filepath+'/'+csv_filename) for csv_filename in c] for c in csv_to_plot]
