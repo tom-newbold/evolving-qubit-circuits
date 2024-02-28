@@ -117,14 +117,13 @@ class Experiements:
 
     def output(self, p, s, test_param, multiplier, save=True):
         """writes stats to dataframe, plots graph of averages, and saves when required"""
-        print(f'--{test_param}-- multiplier:{multiplier}')
+        #print(f'--{test_param}-- multiplier:{multiplier}')
         df = DataFrame.from_dict(s[test_param])
         #print(df)
         with open(self.base_filepath+f'/{test_param}_mult{multiplier}.csv','w') as file:
             # writes dataframe to unique file, statistical analysis and further plots can be carried out externally
             file.write(DataFrame.to_csv(df))
             file.close()
-        print(f'plotting...')
         plot_many_averages(p[test_param], 'Generations', 'Circuit Fitness', legend=False)
         if save: # saves figure if specified
             plt.savefig(self.base_filepath+f'/{test_param}_mult{multiplier}_graph.png')
@@ -187,7 +186,7 @@ if __name__=="__main__":
     
     test = 'algorithm' # ALL_TESTS[0]
     for qubit_count in [3,4,5]:
-        print(f'__{qubit_count}qubit_ALGORITHM__')
+        print(f'\n\n__{qubit_count}qubit_ALGORITHM__')
         experiment_instance.set_save_dir(f'out/{folder}{qubit_count}qubit{test}_test')
         experiment_instance.prob_params = QFTGeneration(GATE_SET, qubit_count)
         experiment_instance.run_test(test)
