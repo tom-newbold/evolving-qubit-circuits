@@ -5,8 +5,6 @@ from box_plot import boxplot_from_folder
 
 if __name__=="__main__":
     folder = 'toffoli/' # should end in slash, or be empty
-    
-    from qiskit.circuit.library import QFT as QFT_blueprint
 
     QFT_GEN = ToffoliGeneration(GATE_SET, 3)
     experiment_instance = Experiments(QFT_GEN,iterations=5,multipliers=[2],
