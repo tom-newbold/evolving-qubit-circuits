@@ -8,14 +8,17 @@ from linear_genetic_programming_utils import plot_many_averages
 from grid_search import multiple_runs
 from box_plot import boxplot_from_folder
 
-class Experiements:
-    def __init__(self, problem_parameters, iterations=20, multipliers=[2,4,8], save_filepath='out', generation_count=50, default_sample_percent=0.1):
+class Experiments:
+    def __init__(self, problem_parameters, iterations=20, multipliers=[2,4,8], save_filepath='out',
+                 generation_count=50, default_sample_percent=0.1,
+                 test_gate_sets={'reduced':GATE_SET_SIMPLE,'overcomplete':GATE_SET}):
         self.set_save_dir(save_filepath)
         self.prob_params = problem_parameters
         self.ITERATIONS = iterations
         self.test_multipliers = multipliers
         self.default_sample_percent = default_sample_percent
         self.gen_count = generation_count
+        self.test_gate_sets = test_gate_sets
 
     def set_save_dir(self, save_filepath):
         os.makedirs(save_filepath, exist_ok=True)
@@ -144,7 +147,7 @@ class Experiements:
         for multiplier in self.test_multipliers:
             print(f'\n\nmultiplier:{multiplier}')
             if test_name=='gateset':
-                s, p = t_func({'reduced':GATE_SET_SIMPLE,'overcomplete':GATE_SET}, multiplier)
+                s, p = t_func(self.test_gate_sets, multiplier)
             elif test_name=='qubit':
                 if circuit_constructor==None:
                     raise ValueError('No circuit constructor provided')
