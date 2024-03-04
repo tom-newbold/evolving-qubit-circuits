@@ -180,7 +180,7 @@ if __name__=="__main__":
     from qiskit.circuit.library import QFT as QFT_blueprint
 
     QFT_GEN = QFTGeneration(GATE_SET, 3)
-    experiment_instance = Experiements(QFT_GEN,iterations=25,multipliers=[3,6])
+    experiment_instance = Experiments(QFT_GEN,iterations=25,multipliers=[3,6])
     for test in ALL_TESTS[1:]:
         print(f'__{test.upper()}__')
         experiment_instance.set_save_dir(f'out/{folder}{test}_test')
