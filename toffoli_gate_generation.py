@@ -29,7 +29,7 @@ def genericToffoliConstructor(n=3):
 
 def ToffoliGeneration(set_of_gates, n=3):
     """creates a ProblemParameters object using the toffoli gate truth table"""
-    return AppliedProblemParameters(set_of_gates, genericToffoliConstructor(n), basis_states())
+    return AppliedProblemParameters(set_of_gates, genericToffoliConstructor(n), basis_states(n))
     #return ProblemParametersCombined(set_of_gates, c, basis_states())
 
 if __name__=="__main__":
