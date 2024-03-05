@@ -175,10 +175,18 @@ class Experiments:
 ALL_TESTS = ['algorithm','gateset','qubit','distribution','multiobjective','elitism']
 
 if __name__=="__main__":
-    folder = ''#'final/' # should end in slash, or be empty
+    folder = 'functional_test/'#'final/' # should end in slash, or be empty
     
     from qiskit.circuit.library import QFT as QFT_blueprint
 
+    # QUBIT TEST WITH DEFAULT PARAMETERS
+    QFT_GEN = QFTGeneration(GATE_SET, 3)
+    experiment_instance = Experiments(QFT_GEN,multipliers=[2,4,6,8,10])
+    experiment_instance.set_save_dir(f'out/{folder}qubit_test')
+    experiment_instance.run_test('qubit', QFT_blueprint)
+    boxplot_from_folder(f'out/{folder}qubit_test')
+
+    """
     QFT_GEN = QFTGeneration(GATE_SET, 3)
     experiment_instance = Experiments(QFT_GEN,iterations=25,multipliers=[3,6])
     for test in ALL_TESTS[1:]:
@@ -194,4 +202,5 @@ if __name__=="__main__":
         experiment_instance.prob_params = QFTGeneration(GATE_SET, qubit_count)
         experiment_instance.run_test(test)
         boxplot_from_folder(f'out/{folder}{qubit_count}qubit{test}_test')
+    """
     
