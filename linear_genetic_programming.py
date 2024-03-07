@@ -280,7 +280,7 @@ class ProblemParameters(ABC):
         """if set_of_gates is a dictionary, any invalid keys are remapped;
            if set_of_gates is a list, keys are assigned (single digit ints
            if there are less than 10 gate, otherwise a range of english and
-           greek letters are used - the set can contain at most 79 gates)"""
+           greek letters are used - the set can contain at most 80 gates)"""
         self.qubit_count = qubits
         self.set_gate_set(set_of_gates)
 
@@ -300,13 +300,13 @@ class ProblemParameters(ABC):
                             break
                     i=0
                     if k not in set_of_gates_dict:
-                        while i<79:
+                        while i<80:
                             if encode_to_letter(i) not in set_of_gates:
                                 if encode_to_letter(i) not in set_of_gates_dict:
                                     set_of_gates_dict[encode_to_letter(i)] = set_of_gates[old_key]
                                     break
                             i+=1
-                        if i==79:
+                        if i==80:
                             raise RuntimeError('Could not remap gate')
                 else:
                     set_of_gates_dict[key] = set_of_gates[old_key]
@@ -464,8 +464,12 @@ class Evolution:
         if remove_dupe:
             by_fitness = remove_duplicates(by_fitness)
         if prefer_short_circuits != prefer_long_circuits:
-            by_fitness = sorted(by_fitness, key=lambda genotype: genotype.get_depth(), reverse=prefer_long_circuits)
-        by_fitness = sorted(by_fitness, key=lambda genotype: genotype.fitness, reverse=True)
+            if prefer_short_circuits:
+                by_fitness = sorted(by_fitness, key=lambda genotype: genotype.fitness/genotype.get_depth(), reverse=True)
+            else:
+                by_fitness = sorted(by_fitness, key=lambda genotype: genotype.fitness*genotype.get_depth(), reverse=True)# reverse=prefer_long_circuits)
+        else:
+            by_fitness = sorted(by_fitness, key=lambda genotype: genotype.fitness, reverse=True)
         while by_fitness[-1].fitness < min_fitness:
             by_fitness.pop(-1)
         return by_fitness
