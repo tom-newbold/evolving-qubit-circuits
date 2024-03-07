@@ -53,11 +53,12 @@ def boxplot_from_folder(filepath=""):
             #plt.show()
 
 if __name__=="__main__":
-    folder = 'final/' # see qft_experiments.py
+    folder = 'functional_test/' # see qft_experiments.py
     #filepath = 'out/autosave_test_2'
     #boxplot_from_folder(filepath)
     
-    subfolders = [name for name in os.listdir(".") if os.path.isdir(name)]
+    subfolders = [name for name in os.listdir('out/'+folder) if os.path.isdir('out/'+folder+name)]
+    print(subfolders)
     for subdir in subfolders:
         boxplot_from_folder(f'out/{folder}{subdir}')
     
