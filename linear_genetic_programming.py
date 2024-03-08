@@ -393,7 +393,7 @@ class AppliedProblemParameters(ProblemParameters):
             self.input_states = basis_states(N)
 
         try:
-            self.M = Operator(target_circuit)            
+            self.M = Operator(target_circuit)
             self.output_states = [s.evolve(self.M) for s in self.input_states]
         except:            
             self.output_states = output_states
@@ -417,6 +417,8 @@ class AppliedProblemParameters(ProblemParameters):
         
     def circuit_fitness(self, candidate_circuit):
         """overrides with the required truth table"""
+        if candidate_circuit.num_qubits!=self.qubit_count:
+            raise ValueError('Qubit count mismatch')
         return self._ProblemParameters__msf(candidate_circuit, self.input_states, self.output_states)
 
 class ProblemParametersMatrix(ProblemParameters):
@@ -465,24 +467,26 @@ class Evolution:
             by_fitness = remove_duplicates(by_fitness)
         if prefer_short_circuits != prefer_long_circuits:
             if prefer_short_circuits:
-                by_fitness = sorted(by_fitness, key=lambda genotype: genotype.fitness/genotype.get_depth(), reverse=True)
+                by_fitness = sorted(by_fitness, key=lambda genotype: genotype.get_fitness()/genotype.get_depth(), reverse=True)
             else:
-                by_fitness = sorted(by_fitness, key=lambda genotype: genotype.fitness*genotype.get_depth(), reverse=True)# reverse=prefer_long_circuits)
+                by_fitness = sorted(by_fitness, key=lambda genotype: genotype.get_fitness()*genotype.get_depth(), reverse=True)
         else:
-            by_fitness = sorted(by_fitness, key=lambda genotype: genotype.fitness, reverse=True)
-        while by_fitness[-1].fitness < min_fitness:
+            by_fitness = sorted(by_fitness, key=lambda genotype: genotype.get_fitness(), reverse=True)
+        while by_fitness[-1].get_fitness() < min_fitness:
             by_fitness.pop(-1)
         return by_fitness
     
     def top_by_fitness(self, population, min_fitness=0, prefer_short_circuits=False, prefer_long_circuits=False, remove_dupe=True):
-        """finds the best circuits in the population; top sample taken as well as uniform [CHANGE THIS TO RAMPED] selection of remaining circuits"""
+        """finds the best circuits in the population; top sample taken as well as uniform selection of remaining circuits"""
         by_fitness = Evolution.sort_by_fitness(population, min_fitness, prefer_short_circuits, prefer_long_circuits, remove_dupe)
         step = (len(by_fitness)-self.SAMPLE_SIZE)//(self.GENERATION_SIZE-self.SAMPLE_SIZE)
         step = 1 if step==0 else step
         end = (1-step)*self.SAMPLE_SIZE + step*self.GENERATION_SIZE
         return by_fitness[:self.SAMPLE_SIZE] + by_fitness[self.SAMPLE_SIZE:end:step]
         
-    def random_search(self, min_length=30, max_length=45, falloff='linear', remove_duplicates=False, output=True, plot_fitness=True, plot_depth=False):
+    def random_search(self, min_length=30, max_length=45, falloff='linear', remove_duplicates=False,
+                      output=True, plot_fitness=True, plot_depth=False):
+        """returns final population and fitness trace"""
         fitness_trace = [[0] for i in range(self.SAMPLE_SIZE)]
         depth_trace = [[] for i in range(self.SAMPLE_SIZE)]
         population = []
@@ -533,7 +537,9 @@ class Evolution:
 
         return population, fitness_trace
     
-    def stochastic_hill_climb(self, min_length=30, max_length=45, falloff='linear', MINIMUM_FITNESS=0.0, remove_duplicates=False, output=True, plot_fitness=True, plot_depth=False):
+    def stochastic_hill_climb(self, min_length=30, max_length=45, falloff='linear', MINIMUM_FITNESS=0.0,
+                              remove_duplicates=False, output=True, plot_fitness=True, plot_depth=False):
+        """returns final population and fitness trace"""
         best_genotype = Genotype(self.metadata, '')
         best_genotype.fitness = MINIMUM_FITNESS
         fitness_trace = []
@@ -556,8 +562,8 @@ class Evolution:
                 population = self.top_by_fitness(population, remove_dupe=remove_duplicates)
                 # select a random genotype, using the fitness improvements as weights
                 try:
-                    best_subset = list(filter(lambda g: g.fitness - best_genotype.fitness > 0, population))
-                    best_genotype = random.choices(best_subset, weights=[(g.fitness - best_genotype.fitness) for g in best_subset], k=1)[0]
+                    best_subset = list(filter(lambda g: g.get_fitness() - best_genotype.get_fitness() > 0, population))
+                    best_genotype = random.choices(best_subset, weights=[(g.get_fitness() - best_genotype.get_fitness()) for g in best_subset], k=1)[0]
                 except:
                     pass
 
@@ -648,11 +654,11 @@ class Evolution:
             # randomly select from the search operators
             operation = random.choices(population=operations, weights=w, k=1)[0]
             # randomly select a genotype
-            g_1 = random.choices(inital_population, weights=[g.fitness for g in inital_population], k=1)[0]
+            g_1 = random.choices(inital_population, weights=[g.get_fitness() for g in inital_population], k=1)[0]
             if operation == 'crossover':
                 g_2 = g_1
                 while g_2 == g_1:
-                    g_2 = random.choices(inital_population, weights=[g.fitness for g in inital_population], k=1)[0]
+                    g_2 = random.choices(inital_population, weights=[g.get_fitness() for g in inital_population], k=1)[0]
                 if use_double_point_crossover==True:
                     for c in range(self.gamma):
                         g_3, g_4 = Genotype.double_crossover(g_1, g_2)
@@ -691,6 +697,8 @@ class Evolution:
                             MINIMUM_FITNESS=0, crossover_proportion=0.5, insert_delete_proportion=0.1, 
                             output=True, plot_fitness=True, plot_depth=False,
                             random_sample_size=0, use_double_point_crossover=True, prefer_short_circuits=None):
+        """generates random population, evolves over generation using input parameters
+           returns final population and fitness trace"""
         fitness_trace = [[] for _ in range(self.SAMPLE_SIZE)]
         depth_trace = [[] for _ in range(self.SAMPLE_SIZE)]
 
@@ -701,11 +709,11 @@ class Evolution:
                 g.get_fitness()
                 population.append(g)
             population = self.top_by_fitness(population)
-            if population[-1].fitness >= MINIMUM_FITNESS:
+            if population[-1].get_fitness() >= MINIMUM_FITNESS:
                 break
             else:
                 for i in range(len(population)):
-                    if population[i].fitness < MINIMUM_FITNESS:
+                    if population[i].get_fitness() < MINIMUM_FITNESS:
                         population = population[:i]
                         break
         if output:
