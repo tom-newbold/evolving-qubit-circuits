@@ -175,10 +175,10 @@ class Experiments:
 ALL_TESTS = ['algorithm','gateset','qubit','distribution','multiobjective','elitism']
 
 if __name__=="__main__":
-    folder = ''#'final/' # should end in slash, or be empty
+    folder = 'temp/'#'final/' # should end in slash, or be empty
     
     from qiskit.circuit.library import QFT as QFT_blueprint
-
+    """
     QFT_GEN = QFTGeneration(GATE_SET, 3)
     experiment_instance = Experiments(QFT_GEN,iterations=25,multipliers=[6])
     experiment_instance.set_save_dir('out/multiobjective_test')
@@ -187,7 +187,7 @@ if __name__=="__main__":
 
     """
     QFT_GEN = QFTGeneration(GATE_SET, 3)
-    experiment_instance = Experiments(QFT_GEN,iterations=25,multipliers=[3,6])
+    experiment_instance = Experiments(QFT_GEN,iterations=5,multipliers=[3])
     for test in ALL_TESTS[1:]:
         print(f'__{test.upper()}__')
         experiment_instance.set_save_dir(f'out/{folder}{test}_test')
@@ -201,5 +201,5 @@ if __name__=="__main__":
         experiment_instance.prob_params = QFTGeneration(GATE_SET, qubit_count)
         experiment_instance.run_test(test)
         boxplot_from_folder(f'out/{folder}{qubit_count}qubit{test}_test')
-    """
+    
     

@@ -7,13 +7,28 @@ from linear_genetic_programming import *
 class test_lgp(unittest.TestCase):
     @classmethod
     def setUp(self):
-        self.prob_param = AppliedProblemParameters([HGate(), CXGate()],
+        self.prob_param_no_bounds_or_falloff = AppliedProblemParameters([HGate(), CXGate()],
                                                    input_states=[Statevector.from_int(0,2**3)],
                                                    output_states=[Statevector.from_int(4,2**3)])
+        self.prob_param = AppliedProblemParameters([HGate(), CXGate()],
+                                                   input_states=[Statevector.from_int(0,2**3)],
+                                                   output_states=[Statevector.from_int(4,2**3)],
+                                                   genotype_len_bounds=(10,30), genotype_length_falloff='linear')
         self.g = Genotype(self.prob_param,"0001102")
         self.a_prob_param = AppliedProblemParameters([HGate(), XGate(), CXGate(), PhaseGate(0), 
                                                       RGate(0, 0), TGate(), TdgGate(), CPhaseGate(0)],
-                                                      target_circuit=QFT_blueprint(3))
+                                                      target_circuit=QFT_blueprint(3),
+                                                      genotype_len_bounds=(10,30), genotype_length_falloff='linear')
+
+    def test_problem_parameters_init(self):
+        with self.assertRaises(ValueError):
+            # empty gate set
+            AppliedProblemParameters([],QuantumCircuit(3))
+        with self.assertRaises(TypeError):
+            AppliedProblemParameters(10,QuantumCircuit(2))
+        with self.assertRaises(ValueError):
+            # no circuit or truth table provided
+            AppliedProblemParameters([HGate(),CXGate()])
 
     def test_genotype_init(self):
         control_circuit = QuantumCircuit(3)
@@ -30,6 +45,16 @@ class test_lgp(unittest.TestCase):
             self.assertGreaterEqual(len(random_g.genotype_str),20)
             # max length can be exceed by at most 1 gate worth of characters
             self.assertLess(len(random_g.genotype_str),43)
+        
+        with self.assertRaises(TypeError):
+            Genotype(10)
+        with self.assertRaises(ValueError):
+            Genotype(self.prob_param_no_bounds_or_falloff, min_length=10, falloff='linear')
+        with self.assertRaises(ValueError):
+            self.prob_param_no_bounds_or_falloff.genotype_length_bounds = None
+            Genotype(self.prob_param_no_bounds_or_falloff)
+        with self.assertRaises(RuntimeError):
+            self.g.construct_gate("1000",QuantumCircuit(5))
 
     def test_genotype_single_crossover(self):
         for _ in range(10):

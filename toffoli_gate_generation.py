@@ -1,7 +1,7 @@
 from qiskit import QuantumCircuit
 from qiskit.circuit.library import *
 
-from linear_genetic_programming import AppliedProblemParameters, Evolution, ProblemParametersCombined
+from linear_genetic_programming import AppliedProblemParameters, Evolution
 from linear_genetic_programming_utils import basis_states
     
 GATE_SET = [HGate(), XGate(), CXGate(), PhaseGate(0),
@@ -29,12 +29,12 @@ def genericToffoliConstructor(n=3):
 
 def ToffoliGeneration(set_of_gates, n=3):
     """creates a ProblemParameters object using the toffoli gate truth table"""
-    return AppliedProblemParameters(set_of_gates, genericToffoliConstructor(n), basis_states(n))
-    #return ProblemParametersCombined(set_of_gates, c, basis_states())
+    return AppliedProblemParameters(set_of_gates, genericToffoliConstructor(n), basis_states(n),
+                                    genotype_len_bounds=[30,45], genotype_length_falloff='linear')
 
 if __name__=="__main__":
     for n in range(3,6):
-        print(genericToffoliConstructor([],n))
+        print(genericToffoliConstructor(n))
 
     TOFFOLI = ToffoliGeneration(GATE_SET)
     E = Evolution(TOFFOLI, sample_percentage=0.1, gen_mulpilier=5, alpha=2, beta=3, gamma=3)
@@ -43,15 +43,6 @@ if __name__=="__main__":
     #print(g.genotype_str)
     #print(g.to_circuit())
     
-    population = E.random_search(remove_duplicates=True)[0]
-    population = E.evolutionary_search(MINIMUM_FITNESS=0, remove_duplicates=True)[0]#, random_sample_size=5)
+    population = E.random_search()[0]
+    population = E.evolutionary_search(MINIMUM_FITNESS=0)[0]#, random_sample_size=5)
     print(population[0].to_list())
-
-    #grid_search(Evolution(TOFFOLI, sample=10, number_of_generations=20,
-    #                      individuals_per_generation=50, alpha=1, beta=2))
-
-    #grid_search_threaded(Evolution(TOFFOLI, sample=10, number_of_generations=20,
-    #                               individuals_per_generation=50, alpha=1, beta=2))
-
-    #grid_search(Evolution(TOFFOLI),lengths=([0,15,30,45],[30,45,60]),
-    #            falloff=['linear','logarithmic','reciprocal'], iterations=3)

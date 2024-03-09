@@ -1,7 +1,6 @@
 import matplotlib.pyplot as plt
 from time import time
 
-from linear_genetic_programming import ProblemParametersCombined
 from linear_genetic_programming_utils import plot_many_averages, plot_list
 
 def remaining_time_calc(remaining_time):
@@ -16,74 +15,21 @@ def remaining_time_calc(remaining_time):
             remaining_time = f'{int(remaining_time)} hours {int((remaining_time-int(remaining_time))*60)} minuites'
         return remaining_time
 
-def run_with_params(evolution, x, iterations, i, total, start_time, min_fitness, random_sample_size, sample_percentage, remove_duplicates, tolerance):
-    # update sample_percent
-    evolution.sample_percentage = sample_percentage
-    evolution.SAMPLE_SIZE = int(evolution.GENERATION_SIZE*sample_percentage)
-    # update tolerance
-    if tolerance:
-        evolution.metadata.tolerance = tolerance
-    print(f"LOOP {x+1}/{iterations} TEST {(i-1)%total + 1}/{total} - checking min:{min_fitness} random:{random_sample_size} "+
-          f"sample-percent:{sample_percentage} no-dupe:{remove_duplicates} tolerance:{tolerance}")
-    run_start = time()
-    if i!=1:
-        estimated_total_time = (run_start-start_time)*total*iterations/(i-1)
-        remaining_time = estimated_total_time*(total*iterations-(i-1))/(total*iterations)
-        estimated_total_time = remaining_time_calc(estimated_total_time)
-        if estimated_total_time:
-            print(f"expected total runtime = {estimated_total_time}")
-        remaining_time = remaining_time_calc(remaining_time)
-        if remaining_time:
-            print(f"expected remaining runtime = {remaining_time}")
-    best_genotype = evolution.evolutionary_search(MINIMUM_FITNESS=min_fitness, random_sample_size=random_sample_size, remove_duplicates=remove_duplicates, output=False)[0]
-    print(f"actual runtime = {remaining_time_calc(time()-run_start)}")
-    print(f"[{x*'0'}{(iterations-x)*'.'}] [{(i%total)*'#'}{(total-(i%total))*'_'}]")
-    return {'min_fitness':min_fitness, 'random_sample_size':random_sample_size, 'sample_percentage':sample_percentage, 'remove_duplicates':remove_duplicates, 'best':best_genotype}
-
-def grid_search(evolution, iterations=1, minimum_fitnesses=[0], random_sample_sizes=[0], sample_percentages=[0.05], tolerances=[0.05]):
-    """performs a grid search of the 'primary' parameters associated with genotype generation"""
-    results = []
-
-    start_time = time()
-    i = 1
-    total = len(minimum_fitnesses)*len(random_sample_sizes)*len(sample_percentages)#*2
-    if type(evolution.metadata)==ProblemParametersCombined:
-        total *= len(tolerances)
-    else:
-        tolerances = [None]
-
-    for x in range(iterations):
-        #for remove_duplicates in [True, False]:
-        for r_sample in random_sample_sizes:
-            for min_fitness in minimum_fitnesses:
-                for sample_percent in sample_percentages:
-                    for t in tolerances:
-                        results.append(run_with_params(evolution, x, iterations, i, total,
-                                                    start_time, min_fitness, r_sample,
-                                                    sample_percent, True, t))
-                        i+=1
-                        print(f"peak fitness for run: {results[-1]['best'].fitness}")
-    print(f"[{iterations*'.'}] [{total*'#'}]")
-
-    results = sorted(results, key=lambda result: result['best'].fitness, reverse=True)
-    
-    for j, r in enumerate(results):
-        print(f'## {j+1}')
-        print(' '.join([f'{key}:{r[key]}' for key in r][:-1]))
-        print(f"genotype: {r['best'].genotype_str}")
-        print(f"fitness: {r['best'].fitness}")
-        print(r['best'].to_circuit())
-    return results
-
-def multiple_runs(evolution, iterations=10, method='evolution', min_length=10, max_length=25, MINIMUM_FITNESS=0,
+def multiple_runs(evolution, iterations=10, method='evolution', min_length=None, max_length=None, MINIMUM_FITNESS=0,
                   crossover_proportion=0.5, insert_delete_proportion=0.1, remove_duplicates=True,
                   use_double_point_crossover=True, short_circuit_preference=None, output=True, plot=True, legend=True, save_dir='out/'):
+    if min_length==None or max_length==None:
+        if evolution.metadata.genotype_length_bounds!=None and len(evolution.metadata.genotype_length_bounds)==2:
+            min_length, max_length = evolution.metadata.genotype_length_bounds
+        else:
+            raise ValueError('Genotype generation parameters not fully specified')
     peak_fitness_non_global = (len(evolution.metadata.input_states) - 1) / len(evolution.metadata.input_states)
     start_time = time()
     to_plot = []
     out = []
     stats = {'peak_fitness':[],'runtime':[], 'generations_taken_to_converge':[], 'best_genotype_length':[], 'best_genotype_depth':[]}
     for i in range(iterations):
+        # run with desired algoirithm
         if method=='evolution':
             population, fitness_trace = evolution.evolutionary_search(min_length, max_length, MINIMUM_FITNESS=MINIMUM_FITNESS,
                                                                     remove_duplicates=remove_duplicates,
@@ -97,8 +43,7 @@ def multiple_runs(evolution, iterations=10, method='evolution', min_length=10, m
             population, fitness_trace = evolution.stochastic_hill_climb(min_length, max_length, MINIMUM_FITNESS=MINIMUM_FITNESS,
                                                                         remove_duplicates=remove_duplicates, output=False)
         else:
-            print('invalid method parameter')
-            return
+            raise ValueError('Invalid method parameter')
         to_plot.append(fitness_trace)
         if population[0].get_fitness() > peak_fitness_non_global:
             out.append((i, population))
@@ -126,6 +71,7 @@ def multiple_runs(evolution, iterations=10, method='evolution', min_length=10, m
             if plot:
                 plot_list(to_plot[run], 'Generations', 'Circuit Fitness', False)
                 plt.show()
+            # save optimal circuits to file
             with open(f'{save_dir}optimal_circuits.txt','a+',encoding='utf-8') as file:
                 file.write(f'Run {run+1}: Top {evolution.SAMPLE_SIZE} genotypes:\n')
                 for i in range(evolution.SAMPLE_SIZE):

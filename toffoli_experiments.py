@@ -4,10 +4,10 @@ from toffoli_gate_generation import ToffoliGeneration, genericToffoliConstructor
 from box_plot import boxplot_from_folder
 
 if __name__=="__main__":
-    folder = 'toffoli/' # should end in slash, or be empty
+    folder = 'temp/' # should end in slash, or be empty
 
     QFT_GEN = ToffoliGeneration(GATE_SET, 3)
-    experiment_instance = Experiments(QFT_GEN,iterations=5,multipliers=[2],
+    experiment_instance = Experiments(QFT_GEN,iterations=5,multipliers=[3],
                                       test_gate_sets={'reduced':[HGate(), CXGate(), TGate(), TdgGate()],
                                                       'overcomplete':GATE_SET})
     for test in ALL_TESTS[1:]:

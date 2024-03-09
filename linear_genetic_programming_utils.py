@@ -18,10 +18,6 @@ def encode_to_letter(n):
     elif n < 80:
         key = ['α','β','γ','δ','ε','ζ','η','θ','λ','μ',
                'ξ','ρ','σ','τ','φ','χ','ψ','ω'][n-62]
-    #elif n < 62:
-    #    key = str(n-52)
-    #elif n < 64:
-    #    key = ['+','/'][n-62]
     else:
         return None
     return key
@@ -29,10 +25,6 @@ def encode_to_letter(n):
 def basis_states(N=3):
     """returns a list of the 2**N basis states for an N-qubit system"""
     return [Statevector.from_int(i, 2**N) for i in range(2**N)]
-
-def list_to_state(x):
-    """DEPRECATED: coverts a list of the form [0,0,0] to a Statevector"""
-    return Statevector.from_int(x[2]*4+x[1]*2+x[0], 2**3)
 
 def ansi(n=0):
     '''returns the ANSI escape code for n (used for text colouring)'''
@@ -47,7 +39,6 @@ def ansi(n=0):
     except:
         return ''
     
-
 def list_avr(l):
     """calculates the average value of a single list"""
     return sum(l)/len(l)
@@ -172,7 +163,7 @@ def plot_many_averages(float_lists, x_label=None, y_label=None, plot_trendline=T
 def remove_duplicates(genotype_list):
     '''removes any genotypes with duplicate string representations.
        removing duplicates by circuit representation would produce a much larger overhead
-       N.B. this function in likely not the most efficient way'''
+       N.B. this function is likely not the most efficient way'''
     seen_genotypes = []
     out = []
     for i in range(len(genotype_list)):
@@ -180,15 +171,3 @@ def remove_duplicates(genotype_list):
             seen_genotypes.append(genotype_list[i].genotype_str)
             out.append(genotype_list[i])
     return out
-
-def matrix_difference_fitness(m_1, m_2, tolerance=0.05):
-    '''takes the difference betweens two matricies and counts the
-       proportion of entries which are zero (elements are identical
-       in both matricies, up to a tolerance)'''
-    difference_matrix = (m_1-m_2).data.flatten()
-    count = 0
-    for x in difference_matrix:
-        if abs(x) < tolerance:
-            #count += 1
-            count += (tolerance-abs(x)) / tolerance
-    return count / len(difference_matrix)

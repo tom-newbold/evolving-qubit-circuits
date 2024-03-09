@@ -90,5 +90,4 @@ class test_lgp_utils(unittest.TestCase):
         self.assertNotEqual(smooth_line(test_list, 5),test_list)
         self.assertNotEqual(smooth_line(test_list),test_list)
 
-    # == TEST PLOTTING FUNCS ?? ==
     # == TESTING remove_duplicates REQUIRES LIST OF GENOTYPES

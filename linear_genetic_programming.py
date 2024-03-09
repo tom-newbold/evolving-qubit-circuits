@@ -10,14 +10,26 @@ from linear_genetic_programming_utils import *
 from grid_search_old import remaining_time_calc
 
 class Genotype:
-    def __init__(self, problem_parameters, genotype_string=None, min_length=15, max_length=45, falloff='linear'):            
+    def __init__(self, problem_parameters, genotype_string=None, min_length=None, max_length=None, falloff=None):            
         self.genotype_str = genotype_string
         self.circuit = None
+        if type(problem_parameters)!=AppliedProblemParameters:
+            raise TypeError('First argument to Genotype constructor is not instace of ProblemParameters')
         self.metadata = problem_parameters
         self.fitness = None
         self.depth = None
         if self.genotype_str==None:
-            self.generate_random_genotype(min_length, max_length, falloff)#PARAMETERS
+            if min_length==None or max_length==None or falloff==None:
+                if min_length!=None and max_length!=None:
+                    self.generate_random_genotype(min_length, max_length, problem_parameters.genotype_length_falloff)
+                elif problem_parameters.genotype_length_bounds!=None and len(problem_parameters.genotype_length_bounds)==2:
+                    self.generate_random_genotype(problem_parameters.genotype_length_bounds[0],
+                                                  problem_parameters.genotype_length_bounds[1],
+                                                  problem_parameters.genotype_length_falloff)
+                else:
+                    raise ValueError('Random generation parameters missing or only partially specified')
+            else:
+                self.generate_random_genotype(min_length, max_length, falloff)
 
     ### ---------- GENOTYPE UTILS ----------
 
@@ -65,10 +77,10 @@ class Genotype:
             )
         except:
             print(g_list)
-            raise ValueError()
+            raise RuntimeError(f'Cannot decode gate {genotype_string}')
         return c_instance
     
-    def generate_random_genotype(self, min_length, max_length, falloff):#, input_count_weighted=True):
+    def generate_random_genotype(self, min_length, max_length, falloff):
         """generates a random genotype according to the given parameters"""
         gradient = -1/(max_length-min_length)
         intercept = -max_length*gradient
@@ -128,7 +140,7 @@ class Genotype:
     def get_depth(self):
         if self.depth==None:
             self.depth = len(self.genotype_str)
-            #self.depth = self.to_circuit().depth
+            #self.depth = self.to_circuit().depth # too computationally expensive
         return self.depth
     
     ### ---------- EVOLUTIONARY OPERATORS ----------
@@ -151,6 +163,7 @@ class Genotype:
             return genotype_1, genotype_2
         else:
             if uniform:
+                # makes both split points the same value
                 g_1_split = g_2_split = min(g_1_split, g_2_split)
             new_genotype_1 = genotype_1_list[:g_1_split] + genotype_2_list[g_2_split:]
             new_genotype_2 = genotype_2_list[:g_2_split] + genotype_1_list[g_1_split:]
@@ -174,12 +187,12 @@ class Genotype:
             return genotype_1, genotype_2
         else:
             if uniform:
+                # makes both split points the same value
                 g_1_split_left = g_2_split_left = min(g_1_split_left, g_2_split_left)
                 g_1_split_right = g_2_split_right = min(g_1_split_right, g_2_split_right)
             new_genotype_1 = genotype_1_list[:g_1_split_left] + genotype_2_list[g_2_split_left:g_2_split_right] + genotype_1_list[g_1_split_right:]
             new_genotype_2 = genotype_2_list[:g_2_split_left] + genotype_1_list[g_1_split_left:g_1_split_right] + genotype_2_list[g_2_split_right:]
             return Genotype(genotype_1.metadata, ''.join(new_genotype_1)), Genotype(genotype_1.metadata, ''.join(new_genotype_2))
-    
     
     @staticmethod
     def mutation(genotype):
@@ -211,10 +224,7 @@ class Genotype:
 
                 old_param_count = len(genotype.metadata.gate_set[old_gate_index].params)
                 new_param_count = len(genotype.metadata.gate_set[new_gate_index].params)
-                #if len(gate) != 1 + old_input_count + old_param_count:
-                #    print('## ERROR')
-                #print(f'old {old_input_count} new {new_input_count} input; old {old_param_count} new {new_param_count} param')
-
+                
                 prev_params = gate[-old_param_count:] if old_param_count != 0 else ''
                 # adjust params
                 if len(prev_params) > new_param_count:
@@ -241,7 +251,6 @@ class Genotype:
                     new_input = random.randint(0,genotype.metadata.qubit_count-1)
                     if str(new_input) not in prev_gate[1:1+input_count]:
                         # adds new input if not a duplicate
-                        # print('inserting new input')
                         gate = gate[:index_to_change] + str(new_input) + gate[index_to_change+1:]
 
         genotype_list[mutation_point] = gate
@@ -276,16 +285,23 @@ class Genotype:
 from abc import ABC, abstractmethod
 
 class ProblemParameters(ABC):
-    def __init__(self, qubits, set_of_gates):
+    def __init__(self, qubits, set_of_gates, genotype_len_bounds=(), genotype_length_falloff=None):
         """if set_of_gates is a dictionary, any invalid keys are remapped;
            if set_of_gates is a list, keys are assigned (single digit ints
            if there are less than 10 gate, otherwise a range of english and
            greek letters are used - the set can contain at most 80 gates)"""
         self.qubit_count = qubits
         self.set_gate_set(set_of_gates)
+        if len(genotype_len_bounds)>=2:
+            self.genotype_length_bounds = (genotype_len_bounds[0],genotype_len_bounds[1])
+        else:
+            self.genotype_length_bounds = None
+        self.genotype_length_falloff = genotype_length_falloff
 
     def set_gate_set(self, set_of_gates):
         """parses the input set_of_gates to a valid dictionary"""
+        if len(set_of_gates)==0:
+            raise ValueError('set_of_gates is empty')
         if type(set_of_gates) == dict:
             # checks chosen symbols
             set_of_gates_dict = {}
@@ -360,8 +376,6 @@ class ProblemParameters(ABC):
         """mean square fidelity function over a set of input and output states"""
         M = Operator(candidate_circuit)
         fidelity_sum = 0
-        #if len(input_states)!=len(output_states):
-        #    raise ValueError('Inconsistent size of input_states and output_states')
         penalty = 1/len(input_states)
         for i, state in enumerate(input_states):
             calc_state = state.evolve(M)
@@ -377,12 +391,14 @@ class ProblemParameters(ABC):
         pass
 
     def get_null_circuit_fitness(self):
+        # gets fitness of circuit with no gates
         return Genotype(self, '').get_fitness()
 
 class AppliedProblemParameters(ProblemParameters):
-    def __init__(self, set_of_gates, target_circuit=None, input_states=[], output_states=[], N=3):
+    def __init__(self, set_of_gates, target_circuit=None, input_states=[], output_states=[], N=3, genotype_len_bounds=(), genotype_length_falloff=None):
         """if output_states is a circuit object, uses to evaluate truth table;
            otherwise, assumed to be a precalulated list of states"""
+        # sets number of qubits and input states
         try:
             N = target_circuit.num_qubits
         except:
@@ -393,11 +409,12 @@ class AppliedProblemParameters(ProblemParameters):
             self.input_states = basis_states(N)
 
         try:
+            # tries to calculate the effect of target_circuit on input_states
             self.M = Operator(target_circuit)
             self.output_states = [s.evolve(self.M) for s in self.input_states]
         except:            
             self.output_states = output_states
-        super().__init__(N, set_of_gates)
+        super().__init__(N, set_of_gates, genotype_len_bounds, genotype_length_falloff)
 
         if len(self.input_states)!=len(self.output_states):
             raise ValueError('Inconsistent size of input_states and output_states')
@@ -409,6 +426,7 @@ class AppliedProblemParameters(ProblemParameters):
         self.recalc_states()
 
     def recalc_states(self, input_states=[]):
+        """resets input and ountput states, when new circuit set"""
         if len(input_states) > 0:
             self.input_states = input_states
         else:
@@ -420,31 +438,6 @@ class AppliedProblemParameters(ProblemParameters):
         if candidate_circuit.num_qubits!=self.qubit_count:
             raise ValueError('Qubit count mismatch')
         return self._ProblemParameters__msf(candidate_circuit, self.input_states, self.output_states)
-
-class ProblemParametersMatrix(ProblemParameters):
-    def __init__(self, set_of_gates, target_behaviour_circuit, N=3):
-        super().__init__(N, set_of_gates)
-        self.M = Operator(target_behaviour_circuit)
-
-    def circuit_fitness(self, candidate_circuit):
-        return matrix_difference_fitness(self.M, Operator(candidate_circuit))
-
-class ProblemParametersCombined(AppliedProblemParameters):
-    def __init__(self, set_of_gates, target_behaviour_circuit=None, input_states=[], mdf_tolerance=0.05):
-        """evaluates the truth table on the provided input_states using target_behaviour_circuit"""
-        super().__init__(set_of_gates, target_behaviour_circuit, input_states)
-        self.tolerance = mdf_tolerance
-
-    def __mdf(self, circuit):
-        '''matrix difference fitness for circuit'''
-        return matrix_difference_fitness(self.M, Operator(circuit), self.tolerance)
-
-    def circuit_fitness(self, candidate_circuit):
-        '''re-overrides with combination of msf and mdf'''
-        msf = self._ProblemParameters__msf(candidate_circuit, self.input_states, self.output_states)
-        mdf = self._ProblemParametersCombined__mdf(candidate_circuit)
-        return msf*mdf
-    
 
 class Evolution:
     def __init__(self, problem_parameters, sample_percentage=0.05, number_of_generations=50,
@@ -458,6 +451,8 @@ class Evolution:
         self.alpha = alpha
         self.beta = beta
         self.gamma = gamma
+
+    ### ---------- CIRCUIT SELECTION ----------
 
     @staticmethod
     def sort_by_fitness(population, min_fitness=0, prefer_short_circuits=False, prefer_long_circuits=False, remove_dupe=True):
@@ -484,7 +479,9 @@ class Evolution:
         end = (1-step)*self.SAMPLE_SIZE + step*self.GENERATION_SIZE
         return by_fitness[:self.SAMPLE_SIZE] + by_fitness[self.SAMPLE_SIZE:end:step]
         
-    def random_search(self, min_length=30, max_length=45, falloff='linear', remove_duplicates=False,
+        ### ---------- BASELINE ALGORITHMS ----------
+
+    def random_search(self, min_length=30, max_length=45, falloff='linear', remove_duplicates=True,
                       output=True, plot_fitness=True, plot_depth=False):
         """returns final population and fitness trace"""
         fitness_trace = [[0] for i in range(self.SAMPLE_SIZE)]
@@ -496,10 +493,10 @@ class Evolution:
                 g = Genotype(self.metadata, min_length=min_length, max_length=max_length, falloff=falloff)
                 g.get_fitness()
                 population.append(g)
-            # sort population by fitness, take top 5
+            # sort population by fitness, take top sample
             population = self.top_by_fitness(population, remove_dupe=remove_duplicates)
-            # each run compares the 100 new programs with the
-            # 5 carried forward from the previous generation
+            # each run compares the new programs with the
+            # sample carried forward from the previous generation
             if output:
                 print(f'Generation {generation+1} best: {population[0].genotype_str}')
             if plot_fitness:
@@ -523,7 +520,6 @@ class Evolution:
                 print(population[i].fitness)
 
             print('best random circuit:')
-            #population[0]['circuit'].draw(output='mpl',style='iqp')
             print(population[0].to_circuit())
 
             if plot_fitness:
@@ -538,7 +534,7 @@ class Evolution:
         return population, fitness_trace
     
     def stochastic_hill_climb(self, min_length=30, max_length=45, falloff='linear', MINIMUM_FITNESS=0.0,
-                              remove_duplicates=False, output=True, plot_fitness=True, plot_depth=False):
+                              remove_duplicates=True, output=True, plot_fitness=True, plot_depth=False):
         """returns final population and fitness trace"""
         best_genotype = Genotype(self.metadata, '')
         best_genotype.fitness = MINIMUM_FITNESS
@@ -552,10 +548,6 @@ class Evolution:
             for _ in range(self.GENERATION_SIZE):
                 g = Genotype(self.metadata, min_length=min_length, max_length=max_length, falloff=falloff)
                 m = g.get_fitness()
-                #m_delta = m - best_genotype.fitness
-                #if m_delta > 0:
-                #    # only take better circuits
-                #    population.append(g)
                 population.append(g)
 
             if len(population) > 0:
@@ -569,16 +561,6 @@ class Evolution:
 
             if output:
                 print(f'Generation {generation+1} best: {best_genotype.genotype_str}')
-            '''if plot_fitness:
-                try:
-                    fitness_trace.append(best_genotype.fitness)
-                except:
-                    fitness_trace.append(0)
-            if plot_depth:
-                try:
-                    depth_trace.append(best_genotype.get_depth())
-                except:
-                    depth_trace.append(0)'''
             if plot_fitness:
                 for x in range(self.SAMPLE_SIZE):
                     try:
@@ -611,8 +593,8 @@ class Evolution:
     ### ---------- EVOLUTIONARY SEARCH ----------
 
     def develop_circuits_uniform(self, inital_population, use_double_point_crossover=True):
-        '''use a prespecified distribution of search operators
-        population should be sorted by fitness'''
+        """use a prespecified distribution of search operators
+        population should be sorted by fitness"""
         population = inital_population.copy()
         # crossover operation for every pair of genotypes in the sample
         for g_1_index in range(len(inital_population)):
@@ -643,13 +625,12 @@ class Evolution:
 
     def develop_circuits_random(self, inital_population, operation_count, use_double_point_crossover=True,
                                 crossover_proportion=0.5, insert_delete_proportion=0.1):
-        '''use a random assortment of search operators'''
+        """use a random assortment of search operators"""
         population = inital_population.copy()
         operations = ['crossover', 'mutation', 'insersion', 'deletion']
         w = [(1-insert_delete_proportion)*crossover_proportion,
              (1-insert_delete_proportion)*(1-crossover_proportion),
              insert_delete_proportion/2, insert_delete_proportion/2]
-        #for o in range(operation_count):
         while operation_count > 0:
             # randomly select from the search operators
             operation = random.choices(population=operations, weights=w, k=1)[0]
@@ -684,16 +665,17 @@ class Evolution:
                 operation_count -= self.alpha*self.beta
         return population
 
+    """DEPRECATED FOR PERFORMANCE REASONS
     def develop_circuits_combined(self, inital_population, operation_count=250, double_point_crossover=True,
-                                  crossover_proportion=0.5, insert_delete_proportion=0.1):
+                                  crossover_proportion=0.5, insert_delete_proportion=0.1): 
         #population_uniform = self.develop_circuits_uniform(inital_population, double_point_crossover)#[len(inital_population):]
-        #len(population_uniform)//10
         population_random = self.develop_circuits_random(inital_population, operation_count, double_point_crossover,
                                                          crossover_proportion, insert_delete_proportion)
         #return population_uniform + population_random
         return population_random
+    """
     
-    def evolutionary_search(self, min_length=30, max_length=60, falloff=None, remove_duplicates=False,
+    def evolutionary_search(self, min_length=30, max_length=60, falloff=None, remove_duplicates=True,
                             MINIMUM_FITNESS=0, crossover_proportion=0.5, insert_delete_proportion=0.1, 
                             output=True, plot_fitness=True, plot_depth=False,
                             random_sample_size=0, use_double_point_crossover=True, prefer_short_circuits=None):
@@ -734,7 +716,6 @@ class Evolution:
 
         start_time = time()
         for i in range(self.GENERATION_COUNT):
-            #if (i-1)%10==0 and not output:
             if not output:
                 if i!=1:
                     remaining_time = (time()-start_time) * (self.GENERATION_COUNT-i)/(i+1)
@@ -749,11 +730,11 @@ class Evolution:
                 g.get_fitness()
                 population.append(g)
 
-            population = self.develop_circuits_combined(population, int(self.GENERATION_SIZE*(self.GENERATION_MULTIPLIER-1)),
-                                                        use_double_point_crossover, crossover_proportion, insert_delete_proportion)
+            # create new circuits
+            population = self.develop_circuits_random(population, int(self.GENERATION_SIZE*(self.GENERATION_MULTIPLIER-1)),
+                                                      use_double_point_crossover, crossover_proportion, insert_delete_proportion)
             for g in population:
                 g.get_fitness()
-                #population.append(g)
 
             if output:
                 print(f'Generation {i+1} Size (pre-selection): {len(population)}')
@@ -779,7 +760,6 @@ class Evolution:
                     except:
                         depth_trace[k].append(0)
                         
-        #print(f"[{self.GENERATION_COUNT*'#'}]"+20*" ", end='\r')     
         if not output: print((80+self.GENERATION_COUNT)*" ", end='\r') 
 
         # output
