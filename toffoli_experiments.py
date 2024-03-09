@@ -1,7 +1,8 @@
 from qiskit.circuit.library import *
-from qft_experiments import Experiments, ALL_TESTS
-from toffoli_gate_generation import ToffoliGeneration, genericToffoliConstructor, GATE_SET
+
+from experiments import Experiments, ALL_TESTS
 from box_plot import boxplot_from_folder
+from toffoli_gate_generation import ToffoliGeneration, genericToffoliConstructor, GATE_SET
 
 if __name__=="__main__":
     folder = 'temp/' # should end in slash, or be empty
@@ -16,7 +17,8 @@ if __name__=="__main__":
         experiment_instance.run_test(test, genericToffoliConstructor)
         boxplot_from_folder(f'out/{folder}{test}_test')
     
-    test = 'algorithm' # ALL_TESTS[0]
+    # separate algorithm test for each qubit count
+    test = 'algorithm'
     for qubit_count in [3,4,5]:
         print(f'\n\n__{qubit_count}qubit_ALGORITHM__')
         experiment_instance.set_save_dir(f'out/{folder}{qubit_count}qubit{test}_test')

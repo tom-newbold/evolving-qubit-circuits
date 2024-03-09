@@ -36,8 +36,9 @@ def boxplot_from_folder(filepath=""):
                 else:
                     data.append(d[c])
                 csv_name = csv_to_plot[d_i][i].rstrip(".csv").split("_")
-                labels.append(f'{csv_name[0]} x{csv_name[1][-1]}')
+                labels.append(f'{csv_name[0]}\nx{csv_name[1][-1]}')
             plt.clf()
+            plt.figure(layout='tight') # fit to labels
             plt.title(' '.join(c.split('_')))
             plt.boxplot(data, labels=labels)
             if len(r)!=0 and r[1] >= max([max(boxplot) for boxplot in data]):
@@ -48,17 +49,13 @@ def boxplot_from_folder(filepath=""):
                 plt.ylim(bottom=0)
             plt.xticks(rotation=20) # orient column labels
             plt.grid(axis='y')
-            plt.tight_layout() # fit to labels
             plt.savefig(f'{filepath}/{["testparam","multiplier"][d_i]}_grouping/{c.replace("/","_")}_boxplot.png')
             #plt.show()
 
 if __name__=="__main__":
-    folder = 'functional_test/' # see qft_experiments.py
-    #filepath = 'out/autosave_test_2'
-    #boxplot_from_folder(filepath)
+    folder = 'functional_test/' # should end in slash, or be empty
     
     subfolders = [name for name in os.listdir('out/'+folder) if os.path.isdir('out/'+folder+name)]
     print(subfolders)
     for subdir in subfolders:
         boxplot_from_folder(f'out/{folder}{subdir}')
-    

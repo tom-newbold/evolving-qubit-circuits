@@ -40,8 +40,6 @@ if __name__=="__main__":
     E = Evolution(TOFFOLI, sample_percentage=0.1, gen_mulpilier=5, alpha=2, beta=3, gamma=3)
 
     #g = Genotype(TOFFOLI, '022125220242212522024142201024051201')
-    #print(g.genotype_str)
-    #print(g.to_circuit())
     
     population = E.random_search()[0]
     population = E.evolutionary_search(MINIMUM_FITNESS=0)[0]#, random_sample_size=5)

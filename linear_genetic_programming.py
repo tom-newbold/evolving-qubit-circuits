@@ -7,10 +7,13 @@ from qiskit import QuantumCircuit
 from qiskit.quantum_info import Operator, Statevector
 
 from linear_genetic_programming_utils import *
-from grid_search_old import remaining_time_calc
+from bulk_runs import remaining_time_calc
 
 class Genotype:
     def __init__(self, problem_parameters, genotype_string=None, min_length=None, max_length=None, falloff=None):            
+        """omitting genotype_string causes string to be randomly generated according to either provided params,
+           or params from problem_parameters; falloff takes one of the following values
+           ['linear','logarithmic','reciprocal','']"""
         self.genotype_str = genotype_string
         self.circuit = None
         if type(problem_parameters)!=AppliedProblemParameters:
@@ -289,7 +292,9 @@ class ProblemParameters(ABC):
         """if set_of_gates is a dictionary, any invalid keys are remapped;
            if set_of_gates is a list, keys are assigned (single digit ints
            if there are less than 10 gate, otherwise a range of english and
-           greek letters are used - the set can contain at most 80 gates)"""
+           greek letters are used - the set can contain at most 80 gates);
+           genotype_length_falloff takes one of the following values:
+           ['linear','logarithmic','reciprocal','']"""
         self.qubit_count = qubits
         self.set_gate_set(set_of_gates)
         if len(genotype_len_bounds)>=2:
@@ -397,7 +402,9 @@ class ProblemParameters(ABC):
 class AppliedProblemParameters(ProblemParameters):
     def __init__(self, set_of_gates, target_circuit=None, input_states=[], output_states=[], N=3, genotype_len_bounds=(), genotype_length_falloff=None):
         """if output_states is a circuit object, uses to evaluate truth table;
-           otherwise, assumed to be a precalulated list of states"""
+           otherwise, assumed to be a precalulated list of states;
+           genotype_length_falloff takes one of the following values:
+           ['linear','logarithmic','reciprocal','']"""
         # sets number of qubits and input states
         try:
             N = target_circuit.num_qubits
@@ -421,7 +428,10 @@ class AppliedProblemParameters(ProblemParameters):
         
     def set_new_circuit(self, new_circuit):
         """sets the target_circuit (matrix) to a match the new circuit"""
-        self.qubit_count = new_circuit.num_qubits
+        if self.qubit_count!=new_circuit.num_qubits:
+            self.qubit_count = new_circuit.num_qubits
+            # gate combinations will change with different qubit count
+            self.all_gate_combinations = self.generate_gate_combinations()
         self.M = Operator(new_circuit)
         self.recalc_states()
 
@@ -675,7 +685,7 @@ class Evolution:
         return population_random
     """
     
-    def evolutionary_search(self, min_length=30, max_length=60, falloff=None, remove_duplicates=True,
+    def evolutionary_search(self, min_length=None, max_length=None, falloff=None, remove_duplicates=True,
                             MINIMUM_FITNESS=0, crossover_proportion=0.5, insert_delete_proportion=0.1, 
                             output=True, plot_fitness=True, plot_depth=False,
                             random_sample_size=0, use_double_point_crossover=True, prefer_short_circuits=None):
