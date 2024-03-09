@@ -59,7 +59,7 @@ class Experiments:
             raise ValueError('No circuit constructor provided')
         stats = {}
         to_plot = {}
-        for qubit_count in [3, 4, 5][::-1]:
+        for qubit_count in [3, 4, 5]:
             qubit_count_str = f'{qubit_count}qubits'
             # unique identifier used to name output files
             print(f'<{qubit_count_str}>')
