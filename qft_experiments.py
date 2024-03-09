@@ -6,7 +6,7 @@ from box_plot import boxplot_from_folder
 from quantum_fourier_transform import QFTGeneration, GATE_SET, GATE_SET_SIMPLE
 
 if __name__=="__main__":
-    folder = 'temp/' # should end in slash, or be empty
+    folder = 'qft/' # should end in slash, or be empty
 
     QFT_GEN = QFTGeneration(GATE_SET, 3)
     experiment_instance = Experiments(QFT_GEN,iterations=25,multipliers=[5],

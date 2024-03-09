@@ -5,7 +5,7 @@ from box_plot import boxplot_from_folder
 from toffoli_gate_generation import ToffoliGeneration, genericToffoliConstructor, GATE_SET
 
 if __name__=="__main__":
-    folder = 'temp/' # should end in slash, or be empty
+    folder = 'toffoli/' # should end in slash, or be empty
 
     QFT_GEN = ToffoliGeneration(GATE_SET, 3)
     experiment_instance = Experiments(QFT_GEN,iterations=25,multipliers=[5],

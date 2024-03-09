@@ -2,6 +2,8 @@ import os
 import matplotlib.pyplot as plt
 from pandas import read_csv
 
+from experiments import ALL_TESTS
+
 def boxplot_from_folder(filepath=""):
     with open(filepath+'/params.txt','r') as file:
         # fetches run parameters in order to consruct csv filenames
@@ -53,9 +55,12 @@ def boxplot_from_folder(filepath=""):
             #plt.show()
 
 if __name__=="__main__":
-    folder = 'functional_test/' # should end in slash, or be empty
+    folder = '' # should end in slash, or be empty
     
     subfolders = [name for name in os.listdir('out/'+folder) if os.path.isdir('out/'+folder+name)]
     print(subfolders)
     for subdir in subfolders:
-        boxplot_from_folder(f'out/{folder}{subdir}')
+        if any(test_string in subdir for test_string in ALL_TESTS):
+            boxplot_from_folder(f'out/{folder}{subdir}')
+        else:
+            print(f'{subdir} is not a test output folder')
