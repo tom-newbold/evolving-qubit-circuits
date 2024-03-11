@@ -1,4 +1,4 @@
-# Evolutionary Algorithms for Generating Quantum Logic Gate Circuits
+# Evolving Quantum Logic Gate Circuits in Qiskit
 
 This software suite simplifies the process of applying a genetic programming methodology to quantum logic gate circuits. Provided alongside the base suite are examples of application to the Toffoli Gate problem and the Quantum Fourier Transform.
 
