@@ -1,3 +1,4 @@
+import os
 import random, math
 import numpy as np
 import matplotlib.pyplot as plt
@@ -731,8 +732,9 @@ class Evolution:
                     remaining_time = (time()-start_time) * (self.GENERATION_COUNT-i)/(i+1)
                     remaining_time = remaining_time_calc(remaining_time)
                     if remaining_time:
+                        print(" "*os.get_terminal_size().columns, end='\r')
                         print(f"run progress: [{i*'#'}{(self.GENERATION_COUNT-i)*'_'}] "+
-                              f"// estimated time remaining for run ~ {remaining_time}"+20*" ", end='\r')
+                              f"// estimated time remaining for run ~ {remaining_time}", end='\r')
 
             # added random sample
             for _ in range(random_sample_size):
