@@ -4,7 +4,8 @@ from pandas import read_csv
 
 from experiments import ALL_TESTS
 
-def boxplot_from_folder(filepath=""):
+def boxplot_from_folder(filepath="", fitness_reference=None):
+    """takes folder of experimental results and plots box plots"""
     with open(filepath+'/params.txt','r') as file:
         # fetches run parameters in order to consruct csv filenames
         lines = [l.strip('\n') for l in file.readlines()]
@@ -38,24 +39,28 @@ def boxplot_from_folder(filepath=""):
                 else:
                     data.append(d[c])
                 csv_name = csv_to_plot[d_i][i].rstrip(".csv").split("_")
-                labels.append(f'{csv_name[0]}\nx{csv_name[1][-1]}')
+                #labels.append(f'{csv_name[0]}\n{csv_name[1]}')
+                labels.append(f'{csv_name[0]}')
             plt.clf()
-            plt.figure(layout='tight') # fit to labels
+            plt.figure().set_figwidth(3) # sets boxplot width
             plt.title(' '.join(c.split('_')))
-            plt.boxplot(data, labels=labels)
+            plt.boxplot(data, labels=labels, widths=[1/len(data) for _ in data])
+            if fitness_reference and c=="peak_fitness":
+                plt.axhline(fitness_reference, c='r', linestyle='dashed')
             if len(r)!=0 and r[1] >= max([max(boxplot) for boxplot in data]):
                 # set vertical limit/ticks if range is provided
                 plt.ylim(r)
                 plt.yticks([r[0] + i*(r[1]-r[0])/10 for i in range(11)])
             else:
                 plt.ylim(bottom=0)
-            plt.xticks(rotation=20) # orient column labels
+            #plt.xticks(rotation=20) # orient column labels
+            plt.tight_layout() # refit to labels
             plt.grid(axis='y')
             plt.savefig(f'{filepath}/{["testparam","multiplier"][d_i]}_grouping/{c.replace("/","_")}_boxplot.png')
             #plt.show()
 
 if __name__=="__main__":
-    folder = '' # should end in slash, or be empty
+    folder = 'gecco/' # should end in slash, or be empty
     
     subfolders = [name for name in os.listdir('out/'+folder) if os.path.isdir('out/'+folder+name)]
     print(subfolders)

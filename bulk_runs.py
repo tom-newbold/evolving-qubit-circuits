@@ -62,7 +62,7 @@ def multiple_runs(evolution, iterations=10, method='evolution', min_length=None,
         stats['best_genotype_depth'].append(population[0].to_circuit().depth())
 
     if plot:
-        plot_many_averages(to_plot, 'Generations', 'Circuit Fitness', legend=legend)
+        plot_many_averages(to_plot, 'Generations', 'Circuit Fitness', legend=legend, reference_line=peak_fitness_non_global)
         plt.show()
 
     if output:
