@@ -15,10 +15,11 @@ def QFTGeneration(set_of_gates, N=3):
                                     genotype_length_falloff='linear')
     
 if __name__=="__main__":
+    print(QFT_blueprint(3).decompose().draw('text'))
     QFT_GEN = QFTGeneration(GATE_SET, 3)
     QFT_GEN.print_gate_set()
 
-    E = Evolution(QFT_GEN, sample_percentage=0.1, gen_mulpilier=10)
+    E = Evolution(QFT_GEN, sample_percentage=0.1, gen_mulpilier=6)
     
     null_f = QFT_GEN.get_null_circuit_fitness()
     population = E.evolutionary_search(MINIMUM_FITNESS=min(null_f, 0),
