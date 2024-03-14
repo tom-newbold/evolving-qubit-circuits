@@ -733,8 +733,9 @@ class Evolution:
                     remaining_time = remaining_time_calc(remaining_time)
                     if remaining_time:
                         print(" "*os.get_terminal_size().columns, end='\r')
-                        print(f"run progress: [{i*'#'}{(self.GENERATION_COUNT-i)*'_'}] "+
-                              f"// estimated time remaining for run ~ {remaining_time}", end='\r')
+                        x = math.ceil(self.GENERATION_COUNT/50)
+                        print(f"run progress: [{(i//x)*'#'}{(self.GENERATION_COUNT//x-i//x)*'_'}] "+
+                            f"// estimated time remaining for run ~ {remaining_time}", end='\r')
 
             # added random sample
             for _ in range(random_sample_size):

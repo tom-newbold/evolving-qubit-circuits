@@ -39,10 +39,10 @@ def boxplot_from_folder(filepath="", fitness_reference=None):
                 else:
                     data.append(d[c])
                 csv_name = csv_to_plot[d_i][i].rstrip(".csv").split("_")
-                #labels.append(f'{csv_name[0]}\n{csv_name[1]}')
-                labels.append(f'{csv_name[0]}')
+                labels.append(f'{csv_name[0]}\n{csv_name[1]}')
+                #labels.append(f'{csv_name[0]}')
             plt.clf()
-            plt.figure().set_figwidth(3) # sets boxplot width
+            #plt.figure().set_figwidth(3) # sets boxplot width
             plt.title(' '.join(c.split('_')))
             plt.boxplot(data, labels=labels, widths=[1/len(data) for _ in data])
             if fitness_reference and c=="peak_fitness":
