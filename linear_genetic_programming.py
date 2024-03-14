@@ -489,15 +489,6 @@ class Evolution:
         step = 1 if step==0 else step
         end = (1-step)*self.SAMPLE_SIZE + step*self.GENERATION_SIZE
         return by_fitness[:self.SAMPLE_SIZE] + by_fitness[self.SAMPLE_SIZE:end:step]
-        #out = by_fitness[:self.SAMPLE_SIZE]
-        #for t in range(self.GENERATION_SIZE-self.SAMPLE_SIZE):
-        #    try:
-        #        tournament = random.choices(by_fitness[self.SAMPLE_SIZE:], k=self.SAMPLE_SIZE) # k is tournament size
-        #        out.append(Evolution.sort_by_fitness(tournament, remove_dupe=True)[0])
-        #    except:
-        #        print(by_fitness[self.SAMPLE_SIZE:])
-        #        break
-        #return out
         
         ### ---------- BASELINE ALGORITHMS ----------
 

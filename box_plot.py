@@ -46,7 +46,7 @@ def boxplot_from_folder(filepath="", fitness_reference=None):
             plt.title(' '.join(c.split('_')))
             plt.boxplot(data, labels=labels, widths=[1/len(data) for _ in data])
             if fitness_reference and c=="peak_fitness":
-                plt.axhline(fitness_reference, c='r', linestyle='dashed')
+                plt.axhline(fitness_reference, c='r', linewidth=0.5, linestyle='dashed')
             if len(r)!=0 and r[1] >= max([max(boxplot) for boxplot in data]):
                 # set vertical limit/ticks if range is provided
                 plt.ylim(r)
