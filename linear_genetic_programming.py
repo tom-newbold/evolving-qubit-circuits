@@ -451,7 +451,7 @@ class AppliedProblemParameters(ProblemParameters):
         return self._ProblemParameters__msf(candidate_circuit, self.input_states, self.output_states)
 
 class Evolution:
-    def __init__(self, problem_parameters, sample_percentage=0.05, number_of_generations=50,
+    def __init__(self, problem_parameters, sample_percentage=0.1, number_of_generations=50,
                  individuals_per_generation=100, gen_mulpilier=5, alpha=1, beta=2, gamma=2):
         self.metadata = problem_parameters
         self.SAMPLE_SIZE = int(individuals_per_generation*sample_percentage)
