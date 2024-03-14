@@ -9,7 +9,6 @@ class TournamentEvolution(Evolution):
     def top_by_fitness(self, population, min_fitness=0, prefer_short_circuits=False, prefer_long_circuits=False, remove_dupe=True):
         """finds the best circuits in the population; top sample taken as well as uniform selection of remaining circuits"""
         by_fitness = Evolution.sort_by_fitness(population, min_fitness, prefer_short_circuits, prefer_long_circuits, remove_dupe)
-        step = (len(by_fitness)-self.SAMPLE_SIZE)//(self.GENERATION_SIZE-self.SAMPLE_SIZE)
         out = by_fitness[:self.SAMPLE_SIZE]
         for t in range(self.GENERATION_SIZE-self.SAMPLE_SIZE):
             try:
@@ -24,8 +23,6 @@ class FitnessProportionateEvolution(Evolution):
     def top_by_fitness(self, population, min_fitness=0, prefer_short_circuits=False, prefer_long_circuits=False, remove_dupe=True):
         """finds the best circuits in the population; top sample taken as well as uniform selection of remaining circuits"""
         by_fitness = Evolution.sort_by_fitness(population, min_fitness, prefer_short_circuits, prefer_long_circuits, remove_dupe)
-        step = (len(by_fitness)-self.SAMPLE_SIZE)//(self.GENERATION_SIZE-self.SAMPLE_SIZE)
-        step = 1 if step==0 else step
         out = by_fitness[:self.SAMPLE_SIZE]
         remaining = by_fitness[self.SAMPLE_SIZE:]
         for t in range(self.GENERATION_SIZE-self.SAMPLE_SIZE):
