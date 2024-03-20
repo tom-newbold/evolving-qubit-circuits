@@ -38,7 +38,7 @@ ITERATIONS = 25
 GENERATIONS = 50
 if __name__=="__main__":
     N, M = 3, 6
-    folder = 'out/selection_test'
+    folder = 'out/selection_test/'
 
     QFT_GEN = QFTGeneration(GATE_SET, N)
     stats = {}
@@ -57,7 +57,7 @@ if __name__=="__main__":
     for param, method in test_methods:
         e_instance.output(to_plot, stats, param, M)
     # save params
-    with open(folder+'/params.txt','w') as file:
+    with open(folder+'params.txt','w') as file:
         file.write(f'{ITERATIONS}\n6\n{",".join(list(stats.keys()))}')
         file.close()
     # plot boxplots

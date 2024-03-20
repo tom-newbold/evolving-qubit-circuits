@@ -39,12 +39,12 @@ def boxplot_from_folder(filepath="", fitness_reference=None):
                 else:
                     data.append(d[c])
                 csv_name = csv_to_plot[d_i][i].rstrip(".csv").split("_")
-                labels.append(f'{csv_name[0]}\n{csv_name[1]}')
-                #labels.append(f'{csv_name[0]}')
+                #labels.append(f'{csv_name[0]}\n{csv_name[1]}')
+                labels.append(f'{csv_name[0]}')
             plt.clf()
-            #plt.figure().set_figwidth(3) # sets boxplot width
-            plt.title(' '.join(c.split('_')))
-            plt.boxplot(data, labels=labels, widths=[1/len(data) for _ in data])
+            plt.figure().set_figwidth(3) # sets boxplot width TODO comment
+            #plt.title(' '.join(c.split('_')))
+            plt.boxplot(data, labels=labels, widths=[1.5/len(data) for _ in data])
             if fitness_reference and c=="peak_fitness":
                 plt.axhline(fitness_reference, c='r', linewidth=0.5, linestyle='dashed')
             if len(r)!=0 and r[1] >= max([max(boxplot) for boxplot in data]):
@@ -53,19 +53,23 @@ def boxplot_from_folder(filepath="", fitness_reference=None):
                 plt.yticks([r[0] + i*(r[1]-r[0])/10 for i in range(11)])
             else:
                 plt.ylim(bottom=0)
-            #plt.xticks(rotation=20) # orient column labels
+            #plt.xticks(rotation=45) # orient column labels
             plt.tight_layout() # refit to labels
             plt.grid(axis='y')
             plt.savefig(f'{filepath}/{["testparam","multiplier"][d_i]}_grouping/{c.replace("/","_")}_boxplot.png')
             #plt.show()
 
 if __name__=="__main__":
-    folder = 'gecco/' # should end in slash, or be empty
+    folder = 'gecco_local/' # should end in slash, or be empty
+    
     
     subfolders = [name for name in os.listdir('out/'+folder) if os.path.isdir('out/'+folder+name)]
     print(subfolders)
     for subdir in subfolders:
         if any(test_string in subdir for test_string in ALL_TESTS):
-            boxplot_from_folder(f'out/{folder}{subdir}')
+            n = int(subdir.split('_')[1][0]) # SPECIFIC: REMOVE
+            boxplot_from_folder(f'out/{folder}{subdir}', (2**n-1)/(2**n))
+            #boxplot_from_folder(f'out/{folder}{subdir}')
         else:
             print(f'{subdir} is not a test output folder')
+    

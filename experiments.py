@@ -26,7 +26,7 @@ class Experiments:
         """performs multiple runs on each algorithm"""
         stats = {}
         to_plot = {}
-        for algorithm in ['random','evolution']:#TODO
+        for algorithm in algorithms:
             print(f'<{algorithm}>') # unique identifier used to name output files
             E = Evolution(self.prob_params, number_of_generations=self.gen_count,
                           sample_percentage=self.default_sample_percent, gen_mulpilier=gen_multiplier)

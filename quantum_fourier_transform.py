@@ -22,6 +22,7 @@ if __name__=="__main__":
     E = Evolution(QFT_GEN, sample_percentage=0.1, gen_mulpilier=6)
     
     null_f = QFT_GEN.get_null_circuit_fitness()
+    E.stochastic_hill_climb()
     population = E.evolutionary_search(MINIMUM_FITNESS=min(null_f, 0),
                                        use_double_point_crossover=True)[0]
     #random_sample_size=10

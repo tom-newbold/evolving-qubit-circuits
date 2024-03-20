@@ -492,7 +492,7 @@ class Evolution:
         
         ### ---------- BASELINE ALGORITHMS ----------
 
-    def random_search(self, min_length=30, max_length=45, falloff='linear', remove_duplicates=True,
+    def random_search(self, min_length=None, max_length=None, falloff=None, remove_duplicates=True,
                       output=True, plot_fitness=True, plot_depth=False):
         """returns final population and fitness trace"""
         fitness_trace = [[0] for i in range(self.SAMPLE_SIZE)]
@@ -544,7 +544,7 @@ class Evolution:
 
         return population, fitness_trace
     
-    def stochastic_hill_climb(self, min_length=30, max_length=45, falloff='linear', MINIMUM_FITNESS=0.0,
+    def stochastic_hill_climb(self, min_length=None, max_length=None, falloff=None, MINIMUM_FITNESS=0.0,
                               remove_duplicates=True, output=True, plot_fitness=True, plot_depth=False):
         """returns final population and fitness trace"""
         best_genotype = Genotype(self.metadata, '')
@@ -555,12 +555,15 @@ class Evolution:
         depth_trace = [[] for i in range(self.SAMPLE_SIZE)]
 
         population = []
-        for generation in range(self.GENERATION_COUNT):
-            for _ in range(self.GENERATION_SIZE):
-                g = Genotype(self.metadata, min_length=min_length, max_length=max_length, falloff=falloff)
-                m = g.get_fitness()
-                population.append(g)
+        for _ in range(self.GENERATION_SIZE):
+            g = Genotype(self.metadata, min_length=min_length, max_length=max_length, falloff=falloff)
+            m = g.get_fitness()
+            population.append(g)
+        population = self.top_by_fitness(population, remove_dupe=remove_duplicates)
+        population = random.choices(population,weights=[g.get_fitness() for g in population], k=1)
 
+        for generation in range(self.GENERATION_COUNT):
+            population = self.develop_circuits_random(population, self.GENERATION_SIZE, crossover_proportion=0, insert_delete_proportion=0.25)
             if len(population) > 0:
                 population = self.top_by_fitness(population, remove_dupe=remove_duplicates)
                 # select a random genotype, using the fitness improvements as weights
