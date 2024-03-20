@@ -735,7 +735,7 @@ class Evolution:
                     remaining_time = (time()-start_time) * (self.GENERATION_COUNT-i)/(i+1)
                     remaining_time = remaining_time_calc(remaining_time)
                     if remaining_time:
-                        print(" "*os.get_terminal_size().columns, end='\r')
+                        print(" "*(os.get_terminal_size().columns-1), end='\r')
                         x = math.ceil(self.GENERATION_COUNT/50)
                         print(f"run progress: [{(i//x)*'#'}{(self.GENERATION_COUNT//x-i//x)*'_'}] "+
                             f"// estimated time remaining for run ~ {remaining_time}", end='\r')
