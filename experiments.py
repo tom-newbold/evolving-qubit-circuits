@@ -22,7 +22,7 @@ class Experiments:
         os.makedirs(save_filepath, exist_ok=True)
         self.base_filepath = save_filepath
 
-    def run_algorithm_test(self, algorithms=['random','stochastic','evolution'], gen_multiplier=8):
+    def run_algorithm_test(self, gen_multiplier=8, algorithms=['random','stochastic','evolution']):
         """performs multiple runs on each algorithm"""
         stats = {}
         to_plot = {}
