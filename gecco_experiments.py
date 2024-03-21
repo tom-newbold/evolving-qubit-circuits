@@ -23,7 +23,6 @@ BOUNDS = [15,45]
 MULTIPLIER = 8
 if __name__=="__main__":
     base_filepath="out/gecco_local"
-    #['random','evolution']
     # toffoli
     for qubit_count in [3,4,5]:
         print(f'toffoli{qubit_count}')
