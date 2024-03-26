@@ -1,3 +1,4 @@
+import os
 import random, math
 import numpy as np
 import matplotlib.pyplot as plt
@@ -450,7 +451,7 @@ class AppliedProblemParameters(ProblemParameters):
         return self._ProblemParameters__msf(candidate_circuit, self.input_states, self.output_states)
 
 class Evolution:
-    def __init__(self, problem_parameters, sample_percentage=0.05, number_of_generations=50,
+    def __init__(self, problem_parameters, sample_percentage=0.1, number_of_generations=50,
                  individuals_per_generation=100, gen_mulpilier=5, alpha=1, beta=2, gamma=2):
         self.metadata = problem_parameters
         self.SAMPLE_SIZE = int(individuals_per_generation*sample_percentage)
@@ -491,7 +492,7 @@ class Evolution:
         
         ### ---------- BASELINE ALGORITHMS ----------
 
-    def random_search(self, min_length=30, max_length=45, falloff='linear', remove_duplicates=True,
+    def random_search(self, min_length=None, max_length=None, falloff=None, remove_duplicates=True,
                       output=True, plot_fitness=True, plot_depth=False):
         """returns final population and fitness trace"""
         fitness_trace = [[0] for i in range(self.SAMPLE_SIZE)]
@@ -543,7 +544,7 @@ class Evolution:
 
         return population, fitness_trace
     
-    def stochastic_hill_climb(self, min_length=30, max_length=45, falloff='linear', MINIMUM_FITNESS=0.0,
+    def stochastic_hill_climb(self, min_length=None, max_length=None, falloff=None, MINIMUM_FITNESS=0.0,
                               remove_duplicates=True, output=True, plot_fitness=True, plot_depth=False):
         """returns final population and fitness trace"""
         best_genotype = Genotype(self.metadata, '')
@@ -554,12 +555,15 @@ class Evolution:
         depth_trace = [[] for i in range(self.SAMPLE_SIZE)]
 
         population = []
-        for generation in range(self.GENERATION_COUNT):
-            for _ in range(self.GENERATION_SIZE):
-                g = Genotype(self.metadata, min_length=min_length, max_length=max_length, falloff=falloff)
-                m = g.get_fitness()
-                population.append(g)
+        for _ in range(self.GENERATION_SIZE):
+            g = Genotype(self.metadata, min_length=min_length, max_length=max_length, falloff=falloff)
+            m = g.get_fitness()
+            population.append(g)
+        population = self.top_by_fitness(population, remove_dupe=remove_duplicates)
+        population = random.choices(population,weights=[g.get_fitness() for g in population], k=1)
 
+        for generation in range(self.GENERATION_COUNT):
+            population = self.develop_circuits_random(population, self.GENERATION_SIZE, crossover_proportion=0, insert_delete_proportion=0.25)
             if len(population) > 0:
                 population = self.top_by_fitness(population, remove_dupe=remove_duplicates)
                 # select a random genotype, using the fitness improvements as weights
@@ -731,8 +735,10 @@ class Evolution:
                     remaining_time = (time()-start_time) * (self.GENERATION_COUNT-i)/(i+1)
                     remaining_time = remaining_time_calc(remaining_time)
                     if remaining_time:
-                        print(f"run progress: [{i*'#'}{(self.GENERATION_COUNT-i)*'_'}] "+
-                              f"// estimated time remaining for run ~ {remaining_time}"+20*" ", end='\r')
+                        print(" "*(os.get_terminal_size().columns-1), end='\r')
+                        x = math.ceil(self.GENERATION_COUNT/50)
+                        print(f"run progress: [{(i//x)*'#'}{(self.GENERATION_COUNT//x-i//x)*'_'}] "+
+                            f"// estimated time remaining for run ~ {remaining_time}", end='\r')
 
             # added random sample
             for _ in range(random_sample_size):

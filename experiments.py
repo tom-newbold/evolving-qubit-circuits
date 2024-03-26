@@ -22,11 +22,11 @@ class Experiments:
         os.makedirs(save_filepath, exist_ok=True)
         self.base_filepath = save_filepath
 
-    def run_algorithm_test(self, gen_multiplier=8):
+    def run_algorithm_test(self, gen_multiplier=8, algorithms=['random','stochastic','evolution']):
         """performs multiple runs on each algorithm"""
         stats = {}
         to_plot = {}
-        for algorithm in ['random','stochastic','evolution']:
+        for algorithm in algorithms:
             print(f'<{algorithm}>') # unique identifier used to name output files
             E = Evolution(self.prob_params, number_of_generations=self.gen_count,
                           sample_percentage=self.default_sample_percent, gen_mulpilier=gen_multiplier)
@@ -77,17 +77,18 @@ class Experiments:
         stats = {}
         to_plot = {}
         for crossover in [3, 5, 7]:
-            for x in ['single','double']:
-                dist_str = f'{x}crossover{crossover}'
-                # unique identifier used to name output files
-                print(f'<{dist_str}>')
-                E = Evolution(self.prob_params, number_of_generations=self.gen_count,
-                              sample_percentage=self.default_sample_percent, gen_mulpilier=gen_multiplier)
+            #for x in ['single','double']:
+            #dist_str = f'{x}crossover{crossover}'
+            dist_str = f'crossover{crossover}'
+            # unique identifier used to name output files
+            print(f'<{dist_str}>')
+            E = Evolution(self.prob_params, number_of_generations=self.gen_count,
+                            sample_percentage=self.default_sample_percent, gen_mulpilier=gen_multiplier)
 
-                to_plot[dist_str], stats[dist_str] = multiple_runs(E, crossover_proportion=crossover/10,
-                                                                use_double_point_crossover= x=='double',
-                                                                iterations=self.ITERATIONS, plot=False,
-                                                                save_dir=self.base_filepath+'/')
+            to_plot[dist_str], stats[dist_str] = multiple_runs(E, crossover_proportion=crossover/10,
+                                                            #use_double_point_crossover= x=='double',
+                                                            iterations=self.ITERATIONS, plot=False,
+                                                            save_dir=self.base_filepath+'/')
         return stats, to_plot
     
     def run_multiobjective_test(self, gen_multiplier=8):
@@ -127,7 +128,12 @@ class Experiments:
             # writes dataframe to unique file, statistical analysis and further plots can be carried out externally
             file.write(DataFrame.to_csv(df))
             file.close()
-        plot_many_averages(p[test_param], 'Generations', 'Circuit Fitness', legend=False)
+        if 'qubits' in test_param:
+            n = int(test_param[0])
+        else:
+            n = self.prob_params.qubit_count
+        plot_many_averages(p[test_param], 'Generations', 'Circuit Fitness', legend=False, reference_line=(2**n-1)/(2**n))
+        #plot_many_averages(p[test_param], 'Generations', 'Circuit Fitness', legend=False)
         if save: # saves figure if specified
             plt.savefig(self.base_filepath+f'/{test_param}_mult{multiplier}_graph.png')
         else:
@@ -154,7 +160,7 @@ class Experiments:
                 s, p = t_func(multiplier)
             to_plot.append(p)
             all_stats.append(s)
-
+    
         with open(self.base_filepath+'/params.txt','w') as file:
             # save parameters to allow easy csv reading
             file.write(f'{self.ITERATIONS}\n{",".join([str(m) for m in self.test_multipliers])}\n{",".join(all_stats[0])}')

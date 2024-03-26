@@ -42,5 +42,6 @@ if __name__=="__main__":
     #g = Genotype(TOFFOLI, '022125220242212522024142201024051201')
     
     population = E.random_search()[0]
+    population = E.stochastic_hill_climb()[0]
     population = E.evolutionary_search(MINIMUM_FITNESS=0)[0]#, random_sample_size=5)
     print(population[0].to_list())

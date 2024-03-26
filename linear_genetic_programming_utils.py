@@ -88,7 +88,7 @@ def smooth_line(float_list, half_width=2):
 
 def plot_list(float_list, x_label=None, y_label=None, plot_average=True):
     """plots a list of floats"""
-    plt.clf()
+    plt.close()
     plt.figure(layout='constrained')
     if type(float_list[0])==list:
         x_axis = [i for i in range(len(float_list[0]))]
@@ -126,8 +126,8 @@ def plot_list(float_list, x_label=None, y_label=None, plot_average=True):
     
     plt.grid()
 
-def plot_many_averages(float_lists, x_label=None, y_label=None, plot_trendline=True, trendline_halfwidth=4, legend=True):
-    plt.clf()
+def plot_many_averages(float_lists, x_label=None, y_label=None, plot_trendline=True, trendline_halfwidth=4, legend=True, reference_line=None):
+    plt.close()
     plt.figure(layout='constrained')
     lw = 20/(20+len(float_lists[0]))
 
@@ -135,9 +135,12 @@ def plot_many_averages(float_lists, x_label=None, y_label=None, plot_trendline=T
     max_values = [1] + [max(get_max_list(float_list)) for float_list in float_lists]
     to_plot = [get_averages_list(float_list) for float_list in float_lists]
 
+    if reference_line!=None:
+        plt.axhline(reference_line, c='r', linestyle='dashed', label='ideal line')
+
     if plot_trendline:
         trend = smooth_line(get_averages_list(to_plot), half_width=trendline_halfwidth)
-        plt.plot(x_axis[trendline_halfwidth:], trend[trendline_halfwidth:], linewidth=1.25*lw, label='trendline')
+        plt.plot(x_axis[trendline_halfwidth:], trend[trendline_halfwidth:], linewidth=1.25*lw, label='trendline', color='black')
     
     for run, line in enumerate(to_plot):
         plt.plot(x_axis, line, linewidth=lw, linestyle='dashed', label=f'run {run+1}')

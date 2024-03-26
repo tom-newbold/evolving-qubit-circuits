@@ -7,8 +7,8 @@ from toffoli_gate_generation import ToffoliGeneration, genericToffoliConstructor
 if __name__=="__main__":
     folder = 'toffoli/' # should end in slash, or be empty
 
-    QFT_GEN = ToffoliGeneration(GATE_SET, 3)
-    experiment_instance = Experiments(QFT_GEN,iterations=25,multipliers=[5],
+    TOFFOLI_GEN = ToffoliGeneration(GATE_SET, 3)
+    experiment_instance = Experiments(TOFFOLI_GEN,iterations=25,multipliers=[5],
                                       test_gate_sets={'reduced':[HGate(), CXGate(), TGate(), TdgGate()],
                                                       'overcomplete':GATE_SET})
     for test in ALL_TESTS[1:]:
