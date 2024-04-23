@@ -105,8 +105,9 @@ def plot_list(float_list, x_label=None, y_label=None, plot_average=True):
         plt.plot(x_axis, float_list)
     
     while len(x_axis) > 20:
-        x_axis = [i*5 for i in range(len(x_axis)//5+1)]
-    plt.xticks([0]+x_axis)
+        x_axis = [x_axis[i*5] for i in range(len(x_axis)//5+1)]
+    #plt.xticks([0]+x_axis)
+    plt.xticks(x_axis)
     if x_label:
         plt.xlabel(x_label)
     if y_label:

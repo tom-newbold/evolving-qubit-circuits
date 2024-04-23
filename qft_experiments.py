@@ -11,6 +11,7 @@ if __name__=="__main__":
     QFT_GEN = QFTGeneration(GATE_SET, 3)
     experiment_instance = Experiments(QFT_GEN,iterations=25,multipliers=[3,6],generation_count=100,
                                       test_gate_sets={'reduced':GATE_SET_SIMPLE,'overcomplete':GATE_SET})
+    
     for test in ALL_TESTS[1:]:
         print(f'__{test.upper()}__')
         experiment_instance.set_save_dir(f'out/{folder}{test}_test')
@@ -29,5 +30,4 @@ if __name__=="__main__":
         experiment_instance.prob_params = QFTGeneration(GATE_SET, qubit_count)
         experiment_instance.run_test(test)
         boxplot_from_folder(f'out/{folder}{qubit_count}qubit{test}_test', (2**qubit_count-1)/(2**qubit_count))
-    
     
