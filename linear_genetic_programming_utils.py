@@ -1,5 +1,6 @@
 import math
 import matplotlib.pyplot as plt
+import numpy as np
 
 from qiskit.quantum_info import Statevector
 
@@ -41,6 +42,8 @@ def ansi(n=0):
     
 def list_avr(l):
     """calculates the average value of a single list"""
+    if len(l)==0:
+        return 
     return sum(l)/len(l)
 
 def get_averages_list(float_list):
@@ -50,7 +53,10 @@ def get_averages_list(float_list):
         return None
     if type(float_list[0])!=list:
         return None
-    return [list_avr([y[i] for y in float_list]) for i in range(len(float_list[0]))]
+    #return [list_avr([y[i] if i<len(y) else None for y in float_list]) for i in range(len(float_list[0]))]
+    #print([len(list(filter(lambda y: i<len(y), float_list))) for i in range(len(float_list[0]))])
+    longest_list_length = max([len(f) for f in float_list])
+    return [list_avr([y[i] for y in filter(lambda y: i<len(y), float_list)]) for i in range(longest_list_length)]
 
 def get_max_list(float_list):
     """calculate the maximum value across each list at every index
@@ -132,7 +138,8 @@ def plot_many_averages(float_lists, x_label=None, y_label=None, plot_trendline=T
     plt.figure(layout='constrained')
     lw = 20/(20+len(float_lists[0]))
 
-    x_axis = [i for i in range(len(float_lists[0][0]))]
+    list_lengths = [len(float_lists[i][0]) for i in range(len(float_lists))]
+    x_axis = [i for i in range(max(list_lengths))]
     max_values = [1] + [max(get_max_list(float_list)) for float_list in float_lists]
     to_plot = [get_averages_list(float_list) for float_list in float_lists]
 
@@ -140,13 +147,19 @@ def plot_many_averages(float_lists, x_label=None, y_label=None, plot_trendline=T
         plt.axhline(reference_line, c='r', linestyle='dashed', label='ideal line')
 
     if plot_trendline:
-        trend = smooth_line(get_averages_list(to_plot), half_width=trendline_halfwidth)
-        plt.plot(x_axis[trendline_halfwidth:], trend[trendline_halfwidth:], linewidth=1.25*lw, label='trendline', color='black')
+        #trend = smooth_line(get_averages_list(to_plot), half_width=trendline_halfwidth)
+        list_lengths = sorted(list_lengths, reverse=True)
+        trend = get_averages_list(to_plot)[:list_lengths[1]]
+        temp_x_axis = x_axis[:len(trend)]
+        for length in list_lengths[2:]:
+            temp_x_axis = temp_x_axis[:length] + [length+0.5] + temp_x_axis[length:]
+            trend = trend[:length] + [np.nan] + trend[length:]
+        plt.plot(temp_x_axis[trendline_halfwidth:], trend[trendline_halfwidth:], linewidth=1.25*lw, label='trendline', color='black')
     
     for run, line in enumerate(to_plot):
-        plt.plot(x_axis, line, linewidth=lw, linestyle='dashed', label=f'run {run+1}')
+        plt.plot(x_axis[:len(line)], line, linewidth=lw, linestyle='dashed', label=f'run {run+1}')
     if legend:
-        plt.legend(loc='upper left', ncols=math.ceil(len(float_lists)/5), prop={'size': 'small'})
+        plt.legend(loc='upper left', ncols=math.ceil(len(float_lists)/5), prop={'size': 'x-small'})
 
     max_value = max(max_values)
     if max_value > 1:

@@ -729,7 +729,10 @@ class Evolution:
                     depth_trace[k].append(0)
 
         start_time = time()
+        stagnation_counter = 0
         for i in range(self.GENERATION_COUNT):
+            prev_average = list_avr([p.fitness for p in population[:self.SAMPLE_SIZE]])
+
             if not output:
                 if i!=1:
                     remaining_time = (time()-start_time) * (self.GENERATION_COUNT-i)/(i+1)
@@ -760,6 +763,7 @@ class Evolution:
             else:
                 population = self.top_by_fitness(population, min_fitness=MINIMUM_FITNESS, remove_dupe=remove_duplicates)
 
+            # output / track fitness
             if output:
                 print(f'Generation {i+1} Best Genotype: {population[0].genotype_str}')
                 print(f'Generation {i+1} Best Fitness: {population[0].fitness}')
@@ -775,6 +779,16 @@ class Evolution:
                         depth_trace[k].append(population[k].get_depth())
                     except:
                         depth_trace[k].append(0)
+
+            # check for convergence
+            current_average = list_avr([p.fitness for p in population[:self.SAMPLE_SIZE]])
+            if math.isclose(current_average,prev_average, abs_tol=0.005):
+                stagnation_counter += 1
+            else:
+                stagnation_counter = 0
+                prev_average = current_average
+            if stagnation_counter > self.GENERATION_COUNT//10:
+                break
                         
         if not output: print((80+self.GENERATION_COUNT)*" ", end='\r') 
 
