@@ -110,10 +110,12 @@ def plot_list(float_list, x_label=None, y_label=None, plot_average=True):
         x_axis = [i+1 for i in range(len(float_list))]
         plt.plot(x_axis, float_list)
     
-    while len(x_axis) > 20:
-        x_axis = [x_axis[i*5] for i in range(len(x_axis)//5+1)]
+    #while len(x_axis) > 20:
+    #    print(x_axis)
+    #    x_axis = [x_axis[i*5] for i in range(len(x_axis)//5+1)]
     #plt.xticks([0]+x_axis)
-    plt.xticks(x_axis)
+    scale = math.floor(math.log(x_axis[-1]/4,5)) # or len(x_axis)?
+    plt.xticks([i*5**scale for i in range(len(x_axis)//(5**scale)+1)])
     if x_label:
         plt.xlabel(x_label)
     if y_label:
