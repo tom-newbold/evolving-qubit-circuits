@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 from time import time
 
 from qiskit import QuantumCircuit, transpile
-from qiskit.transpiler.passes import CommutativeCancellation, InverseCancellation
+from qiskit.transpiler.passes import CommutativeCancellation, InverseCancellation, CommutativeInverseCancellation
 from qiskit.transpiler import PassManager
 from qiskit.quantum_info import Operator, Statevector
 from qiskit.circuit.library import *
@@ -91,7 +91,11 @@ class Genotype:
             print('removing redundancy')
             print(circuit)
         pre_len = len(circuit.data)
-        pm = PassManager([CommutativeCancellation(),InverseCancellation(gates_to_cancel=[XGate(), CXGate()])])
+        pm = PassManager([
+            CommutativeCancellation(),
+            InverseCancellation(gates_to_cancel=[XGate(), CXGate()]),
+            CommutativeInverseCancellation()
+        ])
         circuit = pm.run(circuit)
         post_len = len(circuit.data)
         if output:
@@ -529,10 +533,11 @@ class Evolution:
             if prefer_short_circuits:
                 by_fitness = sorted(by_fitness, key=lambda genotype: genotype.get_fitness()/genotype.get_depth(), reverse=True)
             else:
-                by_fitness = sorted(by_fitness, key=lambda genotype: genotype.get_fitness()*genotype.get_depth(), reverse=True)
+                by_fitness = sorted(by_fitness, key=lambda genotype: min(genotype.get_fitness()*genotype.get_depth(), 1/10**10), reverse=True)
         else:
-            #by_fitness = sorted(by_fitness, key=lambda genotype: genotype.remove_redundant_gates()[1]) # TODO: check runtime impace
+            #by_fitness = sorted(by_fitness, key=lambda genotype: genotype.remove_redundant_gates()[1]) # TODO: check runtime impact
             by_fitness = sorted(by_fitness, key=lambda genotype: genotype.get_fitness(), reverse=True)
+            #by_fitness = sorted(by_fitness, key=lambda genotype: genotype.get_fitness() - genotype.remove_redundant_gates()[1]) # THIS METHOD IS INEFFECTIVE
         while by_fitness[-1].get_fitness() < min_fitness:
             by_fitness.pop(-1)
         return by_fitness
@@ -822,7 +827,7 @@ class Evolution:
             if output:
                 print(f'Generation {i+1} Best Genotype: {population[0].genotype_str}')
                 print(f'Generation {i+1} Best Fitness: {population[0].fitness}')
-                print(f'Average Redundancy: {list_avr([g.remove_redundant_gates()[1] for g in population[:self.SAMPLE_SIZE]])}')
+                #print(f'Average Redundancy: {list_avr([g.remove_redundant_gates()[1] for g in population[:self.SAMPLE_SIZE]])}') # TODO
             if plot_fitness:
                 for k in range(self.SAMPLE_SIZE):
                     try:
