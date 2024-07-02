@@ -467,6 +467,7 @@ class AppliedProblemParameters(ProblemParameters):
         try:
             # tries to calculate the effect of target_circuit on input_states
             self.M = Operator(target_circuit)
+            self.M_in_tr = np.transpose(np.linalg.inv(self.M))
             self.output_states = [s.evolve(self.M) for s in self.input_states]
         except:            
             self.output_states = output_states
@@ -497,6 +498,11 @@ class AppliedProblemParameters(ProblemParameters):
         if candidate_circuit.num_qubits!=self.qubit_count:
             raise ValueError('Qubit count mismatch')
         return self._ProblemParameters__msf(candidate_circuit, self.input_states, self.output_states)
+    
+    def alt_fitness_TEMP(self, candidate_circuit):
+        if candidate_circuit.num_qubits!=self.qubit_count:
+            raise ValueError('Qubit count mismatch')
+        return np.trace(np.matmul(Operator(candidate_circuit),self.M_in_tr))/(2**self.qubit_count) # TODO analyse new fitness
 
 class Evolution:
     def __init__(self, problem_parameters, sample_percentage=0.1, number_of_generations=50,
@@ -525,7 +531,7 @@ class Evolution:
             else:
                 by_fitness = sorted(by_fitness, key=lambda genotype: genotype.get_fitness()*genotype.get_depth(), reverse=True)
         else:
-            by_fitness = sorted(by_fitness, key=lambda genotype: genotype.remove_redundant_gates()[1])#, reverse=True) # TODO: check runtime impace
+            #by_fitness = sorted(by_fitness, key=lambda genotype: genotype.remove_redundant_gates()[1]) # TODO: check runtime impace
             by_fitness = sorted(by_fitness, key=lambda genotype: genotype.get_fitness(), reverse=True)
         while by_fitness[-1].get_fitness() < min_fitness:
             by_fitness.pop(-1)
@@ -821,6 +827,7 @@ class Evolution:
                 for k in range(self.SAMPLE_SIZE):
                     try:
                         fitness_trace[k].append(population[k].fitness)
+                        #fitness_trace[k].append(self.metadata.alt_fitness_TEMP(population[k].to_circuit())) # TODO
                     except:
                         fitness_trace[k].append(0)
             if plot_depth:
@@ -837,7 +844,7 @@ class Evolution:
             else:
                 stagnation_counter = 0
                 prev_average = current_average
-            if stagnation_counter > self.GENERATION_COUNT//10:
+            if stagnation_counter > self.GENERATION_COUNT//8:
                 break
                         
         if not output: print((80+self.GENERATION_COUNT)*" ", end='\r') 
