@@ -4,8 +4,11 @@ import numpy as np
 import matplotlib.pyplot as plt
 from time import time
 
-from qiskit import QuantumCircuit
+from qiskit import QuantumCircuit, transpile
+from qiskit.transpiler.passes import CommutativeCancellation, InverseCancellation
+from qiskit.transpiler import PassManager
 from qiskit.quantum_info import Operator, Statevector
+from qiskit.circuit.library import *
 
 from linear_genetic_programming_utils import *
 from bulk_runs import remaining_time_calc
@@ -65,6 +68,35 @@ class Genotype:
                     raise ValueError
             self.circuit = circuit_instance
             return circuit_instance
+        
+    def from_circuit(self, circuit):
+        g = ''
+        print(circuit.data[0])
+        #next(gate for gate in self.metadata.gate_set if circuit.data[0].name == gate.name)
+        for gate in circuit.data:
+            g += str(next(gate_index for gate_index in self.metadata.gate_set if gate[0].name == self.metadata.gate_set[gate_index].name))
+            for qb in gate.qubits+gate.clbits:
+                g += str(qb._index)
+            for p in gate[0].params:
+                g += str(int(math.pi/p))
+            #print(g)
+        print(g)
+        self.genotype_str = g
+        self.circuit = circuit
+        self.fitness = None
+        self.depth = None
+
+    @staticmethod
+    def remove_redundant_gates(circuit):
+        print('removing redundancy')
+        print(circuit)
+        pre_len = len(circuit.data)
+        pm = PassManager([CommutativeCancellation(),InverseCancellation(gates_to_cancel=[XGate(), CXGate()])])
+        circuit = pm.run(circuit)
+        print(circuit)
+        post_len = len(circuit.data)
+        print(f'compression ratio: {post_len}/{pre_len}')
+        return circuit
     
     def construct_gate(self, genotype_string, c_instance):
         """constructs a single gate from a string and appends to the given circuit"""
