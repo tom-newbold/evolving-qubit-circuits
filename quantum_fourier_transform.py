@@ -21,7 +21,7 @@ def QFTGeneration(set_of_gates, N=3):
                                     genotype_length_falloff='linear')
     
 if __name__=="__main__":
-    N=4
+    N=3
     #print(QFT_blueprint(3).decompose().draw('text'))
     QFT_GEN = QFTGeneration(GATE_SET, N)
     QFT_GEN.print_gate_set()
