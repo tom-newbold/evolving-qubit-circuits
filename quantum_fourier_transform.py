@@ -36,5 +36,5 @@ if __name__=="__main__":
     to_plot, stats = multiple_runs(E, iterations=10, MINIMUM_FITNESS=min(null_f, 0))
     print(f'average runtime: {remaining_time_calc(list_avr(stats["runtime"]))}')
     ##plot_many_averages(to_plot, 'Generations', 'Circuit Fitness', legend=False, reference_line=(2**N-1)/(2**N))
-    print(stats['generations_taken_to_converge'])
+    print(f"convergence: {stats['generations_taken_to_converge']}")
         
