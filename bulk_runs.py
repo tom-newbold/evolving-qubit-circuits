@@ -45,8 +45,8 @@ def multiple_runs(evolution, iterations=10, method='evolution', min_length=None,
         else:
             raise ValueError('Invalid method parameter')
         to_plot.append(fitness_trace)
-        if population[0].get_fitness() > peak_fitness_non_global:
-            out.append((i, population))
+        #if population[0].get_fitness() > peak_fitness_non_global: -----------------------------------------------
+        out.append((i, population))
         delta_time = time()-start_time
         print(f'{(i+1)*"█"}{(iterations-i-1)*"░"} runtime = {remaining_time_calc(delta_time)}')
         start_time = time()
@@ -54,10 +54,11 @@ def multiple_runs(evolution, iterations=10, method='evolution', min_length=None,
         # stats to return
         stats['peak_fitness'].append(fitness_trace[0][-1])
         stats['runtime'].append(delta_time)
-        for i in range(len(fitness_trace[0])):
-            if fitness_trace[0][i]==fitness_trace[0][-1]:
-                stats['generations_taken_to_converge'].append(i)
-                break
+        #for i in range(len(fitness_trace[0])):
+        #    if fitness_trace[0][i]==fitness_trace[0][-1]:
+        #        stats['generations_taken_to_converge'].append(i)
+        #        break
+        stats['generations_taken_to_converge'].append(len(fitness_trace[0])) # TODO Check this matches run length
         stats['best_genotype_length'].append(len(population[0].genotype_str))
         stats['best_genotype_depth'].append(population[0].to_circuit().depth())
 
