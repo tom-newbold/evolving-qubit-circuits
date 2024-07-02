@@ -86,23 +86,25 @@ class Genotype:
         self.reduced_circuit = None
 
     @staticmethod
-    def static_remove_redundant_gates(circuit):
-        print('removing redundancy')
-        print(circuit)
+    def static_remove_redundant_gates(circuit, output=False):
+        if output:
+            print('removing redundancy')
+            print(circuit)
         pre_len = len(circuit.data)
         pm = PassManager([CommutativeCancellation(),InverseCancellation(gates_to_cancel=[XGate(), CXGate()])])
         circuit = pm.run(circuit)
-        print(circuit)
         post_len = len(circuit.data)
-        print(f'compression ratio: {post_len}/{pre_len}')
-        print(f'redundancy = {int(100*(pre_len-post_len)/pre_len)}%')
+        if output:
+            print(circuit)
+            print(f'compression ratio: {post_len}/{pre_len}')
+            print(f'redundancy = {int(100*(pre_len-post_len)/pre_len)}%')
         return circuit
     
-    def remove_redundant_gates(self):
+    def remove_redundant_gates(self, output=False):
         if self.redundancy == None:
             circuit = self.to_circuit()
             pre_len = len(circuit.data)
-            circuit = Genotype.static_remove_redundant_gates(circuit)
+            circuit = Genotype.static_remove_redundant_gates(circuit, output)
             post_len = len(circuit.data)
             self.redundancy = (pre_len-post_len)/pre_len
             self.reduced_circuit = circuit
@@ -523,6 +525,7 @@ class Evolution:
             else:
                 by_fitness = sorted(by_fitness, key=lambda genotype: genotype.get_fitness()*genotype.get_depth(), reverse=True)
         else:
+            by_fitness = sorted(by_fitness, key=lambda genotype: genotype.remove_redundant_gates()[1])#, reverse=True) # TODO: check runtime impace
             by_fitness = sorted(by_fitness, key=lambda genotype: genotype.get_fitness(), reverse=True)
         while by_fitness[-1].get_fitness() < min_fitness:
             by_fitness.pop(-1)
@@ -813,6 +816,7 @@ class Evolution:
             if output:
                 print(f'Generation {i+1} Best Genotype: {population[0].genotype_str}')
                 print(f'Generation {i+1} Best Fitness: {population[0].fitness}')
+                print(f'Average Redundancy: {list_avr([g.remove_redundant_gates()[1] for g in population[:self.SAMPLE_SIZE]])}')
             if plot_fitness:
                 for k in range(self.SAMPLE_SIZE):
                     try:

@@ -26,11 +26,8 @@ if __name__=="__main__":
     
     null_f = QFT_GEN.get_null_circuit_fitness()
     population = E.evolutionary_search(MINIMUM_FITNESS=min(null_f, 0),
-                                       use_double_point_crossover=True,
-                                       plot_fitness=False)[0]
-    #c = Genotype.static_remove_redundant_gates(population[0].to_circuit())
+                                       use_double_point_crossover=True)[0]#,plot_fitness=False
     reduced, redundancy = population[0].remove_redundant_gates()
-    print(reduced)
     print(redundancy)
 
     
