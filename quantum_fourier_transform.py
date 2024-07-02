@@ -28,9 +28,10 @@ if __name__=="__main__":
     population = E.evolutionary_search(MINIMUM_FITNESS=min(null_f, 0),
                                        use_double_point_crossover=True,
                                        plot_fitness=False)[0]
-    c = Genotype.remove_redundant_gates(population[0].to_circuit())
-    population[0].from_circuit(c)
-    print(population[0].to_circuit())
+    #c = Genotype.static_remove_redundant_gates(population[0].to_circuit())
+    reduced, redundancy = population[0].remove_redundant_gates()
+    print(reduced)
+    print(redundancy)
 
     
 

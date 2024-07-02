@@ -25,6 +25,8 @@ class Genotype:
         self.metadata = problem_parameters
         self.fitness = None
         self.depth = None
+        self.redundancy = None
+        self.reduced_circuit = None
         if self.genotype_str==None:
             if min_length==None or max_length==None or falloff==None:
                 if min_length!=None and max_length!=None:
@@ -70,24 +72,21 @@ class Genotype:
             return circuit_instance
         
     def from_circuit(self, circuit):
-        g = ''
-        print(circuit.data[0])
-        #next(gate for gate in self.metadata.gate_set if circuit.data[0].name == gate.name)
+        self.genotype_str = ''
         for gate in circuit.data:
-            g += str(next(gate_index for gate_index in self.metadata.gate_set if gate[0].name == self.metadata.gate_set[gate_index].name))
+            self.genotype_str += str(next(gate_index for gate_index in self.metadata.gate_set if gate[0].name == self.metadata.gate_set[gate_index].name))
             for qb in gate.qubits+gate.clbits:
-                g += str(qb._index)
+                self.genotype_str += str(qb._index)
             for p in gate[0].params:
-                g += str(int(math.pi/p))
-            #print(g)
-        print(g)
-        self.genotype_str = g
+                self.genotype_str += str(int(math.pi/p))
         self.circuit = circuit
         self.fitness = None
         self.depth = None
+        self.redundancy = None
+        self.reduced_circuit = None
 
     @staticmethod
-    def remove_redundant_gates(circuit):
+    def static_remove_redundant_gates(circuit):
         print('removing redundancy')
         print(circuit)
         pre_len = len(circuit.data)
@@ -96,7 +95,20 @@ class Genotype:
         print(circuit)
         post_len = len(circuit.data)
         print(f'compression ratio: {post_len}/{pre_len}')
+        print(f'redundancy = {int(100*(pre_len-post_len)/pre_len)}%')
         return circuit
+    
+    def remove_redundant_gates(self):
+        if self.redundancy == None:
+            circuit = self.to_circuit()
+            pre_len = len(circuit.data)
+            circuit = Genotype.static_remove_redundant_gates(circuit)
+            post_len = len(circuit.data)
+            self.redundancy = (pre_len-post_len)/pre_len
+            self.reduced_circuit = circuit
+            return self.reduced_circuit, self.redundancy
+        else:
+            return self.reduced_circuit, self.redundancy
     
     def construct_gate(self, genotype_string, c_instance):
         """constructs a single gate from a string and appends to the given circuit"""
@@ -166,6 +178,8 @@ class Genotype:
         self.circuit = None
         self.fitness = None
         self.depth = None
+        self.redundancy = None
+        self.reduced_circuit = None
 
     def get_fitness(self):
         """calculates fitness for genotype and stores"""
