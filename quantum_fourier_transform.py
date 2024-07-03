@@ -1,9 +1,8 @@
 from qiskit.circuit.library import QFT as QFT_blueprint
 from qiskit.circuit.library import *
 
-from linear_genetic_programming import AppliedProblemParameters, Evolution, Genotype
-from linear_genetic_programming_utils import plot_many_averages, list_avr
-from bulk_runs import multiple_runs, remaining_time_calc
+from linear_genetic_programming import AppliedProblemParameters, Evolution
+from bulk_runs import multiple_runs
     
 #GATE_SET = [HGate(), XGate(), YGate(), ZGate(), CXGate(), PhaseGate(0), 
 #            RGate(0, 0), TGate(), TdgGate(), CHGate(), CPhaseGate(0),
@@ -39,6 +38,5 @@ if __name__=="__main__":
     '''
 
     to_plot, stats = multiple_runs(E, iterations=10)#, MINIMUM_FITNESS=min(null_f, 0))
-    print(f'average runtime: {remaining_time_calc(list_avr(stats["runtime"]))}')
     ##plot_many_averages(to_plot, 'Generations', 'Circuit Fitness', legend=False, reference_line=(2**N-1)/(2**N))
     print(f"convergence: {stats['generations_taken_to_converge']}")

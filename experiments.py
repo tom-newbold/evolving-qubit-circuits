@@ -120,6 +120,23 @@ class Experiments:
 
             to_plot[elite_str], stats[elite_str] = multiple_runs(E, iterations=self.ITERATIONS, plot=False, save_dir=self.base_filepath+'/')
         return stats, to_plot
+    
+    def run_sorting_test(self, gen_multiplier=8):
+        """performs multiple runs using different sorting functions"""
+        stats = {}
+        to_plot = {}
+        functions = {
+            'base':None,
+            'redundancy': lambda genotype: genotype.get_fitness() - genotype.remove_redundant_gates()[1],
+            'redundancydepth': lambda genotype: (genotype.get_fitness() - 0.05*genotype.remove_redundant_gates()[1])/(genotype.get_depth()**0.5)
+        }
+        for func_name in functions:
+            # unique identifier used to name output files
+            print(f'<{func_name}>')
+            E = Evolution(self.prob_params, number_of_generations=self.gen_count, gen_mulpilier=gen_multiplier, sorting_function_override=functions[func_name])
+
+            to_plot[func_name], stats[func_name] = multiple_runs(E, iterations=self.ITERATIONS, plot=False, save_dir=self.base_filepath+'/')
+        return stats, to_plot
 
     def output(self, p, s, test_param, multiplier, save=True):
         """writes stats to dataframe, plots graph of averages, and saves when required"""
@@ -143,7 +160,8 @@ class Experiments:
         # initialise dictionary of test functions
         test_functions = {'gateset':self.run_gateset_test,'algorithm':self.run_algorithm_test,
                           'qubit':self.run_qubitcount_test,'distribution':self.run_distribution_test,
-                          'multiobjective':self.run_multiobjective_test,'elitism':self.run_elitism_test}
+                          'multiobjective':self.run_multiobjective_test,'elitism':self.run_elitism_test,
+                          'sorting':self.run_sorting_test}
         if test_name not in test_functions:
             raise ValueError('Invalid test_name')
         t_func = test_functions[test_name]

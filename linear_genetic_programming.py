@@ -92,10 +92,10 @@ class Genotype:
             print(circuit)
         pre_len = len(circuit.data)
         pm = PassManager([
-#            CommutativeCancellation(),
-#            InverseCancellation(gates_to_cancel=[XGate(), CXGate()]),
-#            CommutativeInverseCancellation(),
-            HoareOptimizer()
+            CommutativeCancellation(),
+            InverseCancellation(gates_to_cancel=[XGate(), CXGate()]),
+            CommutativeInverseCancellation()#,
+            #HoareOptimizer()
         ])
         circuit = pm.run(circuit)
         post_len = len(circuit.data)
@@ -511,7 +511,8 @@ class AppliedProblemParameters(ProblemParameters):
 
 class Evolution:
     def __init__(self, problem_parameters, sample_percentage=0.1, number_of_generations=50,
-                 individuals_per_generation=100, gen_mulpilier=5, alpha=1, beta=2, gamma=2):
+                 individuals_per_generation=100, gen_mulpilier=5, alpha=1, beta=2, gamma=2,
+                 sorting_function_override=None):
         self.metadata = problem_parameters
         self.SAMPLE_SIZE = int(individuals_per_generation*sample_percentage)
         print(f'sample size: {self.SAMPLE_SIZE}')
@@ -521,11 +522,12 @@ class Evolution:
         self.alpha = alpha
         self.beta = beta
         self.gamma = gamma
+        self.sorting_function_override = sorting_function_override
 
     ### ---------- CIRCUIT SELECTION ----------
 
     @staticmethod
-    def sort_by_fitness(population, min_fitness=0, prefer_short_circuits=False, prefer_long_circuits=False, remove_dupe=True):
+    def sort_by_fitness(population, min_fitness=0, prefer_short_circuits=False, prefer_long_circuits=False, remove_dupe=True, sorting_function_override=None):
         """sorts population by fitness, also removed duplicates / sorts by circuit depth if specified"""
         by_fitness = population.copy()
         if remove_dupe:
@@ -539,15 +541,19 @@ class Evolution:
             # just fitness
             # by_fitness = sorted(by_fitness, key=lambda genotype: genotype.get_fitness(), reverse=True)
             # also minimising redundancy # min(x, 1/10**10)
-            by_fitness = sorted(by_fitness, key=lambda genotype: genotype.get_fitness() - genotype.remove_redundant_gates()[1], reverse=True)
+            # by_fitness = sorted(by_fitness, key=lambda genotype: genotype.get_fitness() - genotype.remove_redundant_gates()[1], reverse=True) # SLOWER BUT WORKS
             # by_fitness = sorted(by_fitness, key=lambda genotype: (genotype.get_fitness() - 0.05*genotype.remove_redundant_gates()[1])/math.sqrt(genotype.get_depth()), reverse=True)
+            if sorting_function_override != None:
+                by_fitness = sorted(by_fitness, key=sorting_function_override, reverse=True)
+            else:
+                by_fitness = sorted(by_fitness, key=lambda genotype: genotype.get_fitness(), reverse=True)
         while by_fitness[-1].get_fitness() < min_fitness:
             by_fitness.pop(-1)
         return by_fitness
     
     def top_by_fitness(self, population, min_fitness=0, prefer_short_circuits=False, prefer_long_circuits=False, remove_dupe=True):
         """finds the best circuits in the population; top sample taken as well as uniform selection of remaining circuits"""
-        by_fitness = Evolution.sort_by_fitness(population, min_fitness, prefer_short_circuits, prefer_long_circuits, remove_dupe)
+        by_fitness = Evolution.sort_by_fitness(population, min_fitness, prefer_short_circuits, prefer_long_circuits, remove_dupe, self.sorting_function_override)
         step = (len(by_fitness)-self.SAMPLE_SIZE)//(self.GENERATION_SIZE-self.SAMPLE_SIZE)
         step = 1 if step==0 else step
         end = (1-step)*self.SAMPLE_SIZE + step*self.GENERATION_SIZE

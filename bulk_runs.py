@@ -1,7 +1,7 @@
 import matplotlib.pyplot as plt
 from time import time
 
-from linear_genetic_programming_utils import plot_many_averages, plot_list
+from linear_genetic_programming_utils import plot_many_averages, plot_list, list_avr
 
 def remaining_time_calc(remaining_time):
     if remaining_time > 0.001:
@@ -79,5 +79,6 @@ def multiple_runs(evolution, iterations=10, method='evolution', min_length=None,
                     file.write(f'{pop[i].genotype_str}\n{pop[i].get_fitness()}\n')
                 file.write(f'best circuit:\n{str(pop[0].to_circuit().draw("text"))}\n\n')
                 file.close()
+        print(f'average runtime: {remaining_time_calc(list_avr(stats["runtime"]))}')
 
     return to_plot, stats
