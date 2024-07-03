@@ -535,7 +535,7 @@ class Evolution:
             else:
                 by_fitness = sorted(by_fitness, key=lambda genotype: min(genotype.get_fitness()*genotype.get_depth(), 1/10**10), reverse=True)
         else:
-            by_fitness = sorted(by_fitness, key=lambda genotype: genotype.remove_redundant_gates()[1]) # TODO: check runtime impact
+            #by_fitness = sorted(by_fitness, key=lambda genotype: genotype.remove_redundant_gates()[1]) # TODO: check runtime impact
             by_fitness = sorted(by_fitness, key=lambda genotype: genotype.get_fitness(), reverse=True)
             #by_fitness = sorted(by_fitness, key=lambda genotype: genotype.get_fitness() - genotype.remove_redundant_gates()[1]) # THIS METHOD IS INEFFECTIVE
         while by_fitness[-1].get_fitness() < min_fitness:
@@ -852,7 +852,7 @@ class Evolution:
             if stagnation_counter > self.GENERATION_COUNT//8:
                 break
                         
-        if not output: print((80+self.GENERATION_COUNT)*" ", end='\r') 
+        if not output: print(" "*(os.get_terminal_size().columns-1), end='\r') # print((80+self.GENERATION_COUNT)*" ", end='\r') 
 
         # output
         if output:
