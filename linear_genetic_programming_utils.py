@@ -42,8 +42,8 @@ def ansi(n=0):
     
 def list_avr(l):
     """calculates the average value of a single list"""
-    if len(l)==0:
-        return 
+    #if len(l)==0:
+    #    return None
     return sum(l)/len(l)
 
 def get_averages_list(float_list):

@@ -45,8 +45,12 @@ def multiple_runs(evolution, iterations=10, method='evolution', min_length=None,
         else:
             raise ValueError('Invalid method parameter')
         to_plot.append(fitness_trace)
+        # sort by true fitness
+        evolution.sorting_function_override = None
+        population = evolution.top_by_fitness(population)
         if population[0].get_fitness() > peak_fitness_non_global:
             out.append((i, population))
+        # calculate runtime
         delta_time = time()-start_time
         print(f'{(i+1)*"█"}{(iterations-i-1)*"░"} runtime = {remaining_time_calc(delta_time)}')
         start_time = time()
