@@ -37,7 +37,7 @@ if __name__=="__main__":
     #for n in range(3,6):
     #    print(genericToffoliConstructor(n))
 
-    TOFFOLI = ToffoliGeneration(UNIVERSAL_GATE_SET)
+    TOFFOLI = ToffoliGeneration(GATE_SET)
     E = Evolution(TOFFOLI, sample_percentage=0.1, gen_mulpilier=8, alpha=2, beta=3, gamma=3)
 
     #g = Genotype(TOFFOLI, '022125220242212522024142201024051201')
