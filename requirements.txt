@@ -3,3 +3,4 @@ pandas
 qiskit
 matplotlib
 unittest
+z3-solver

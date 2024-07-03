@@ -5,9 +5,9 @@ import matplotlib.pyplot as plt
 from time import time
 
 from qiskit import QuantumCircuit, transpile
-from qiskit.transpiler.passes import CommutativeCancellation, InverseCancellation, CommutativeInverseCancellation
+from qiskit.transpiler.passes import CommutativeCancellation, InverseCancellation, CommutativeInverseCancellation, HoareOptimizer
 from qiskit.transpiler import PassManager
-from qiskit.quantum_info import Operator, Statevector
+from qiskit.quantum_info import Operator
 from qiskit.circuit.library import *
 
 from linear_genetic_programming_utils import *
@@ -92,9 +92,10 @@ class Genotype:
             print(circuit)
         pre_len = len(circuit.data)
         pm = PassManager([
-            CommutativeCancellation(),
-            InverseCancellation(gates_to_cancel=[XGate(), CXGate()]),
-            CommutativeInverseCancellation()
+#            CommutativeCancellation(),
+#            InverseCancellation(gates_to_cancel=[XGate(), CXGate()]),
+#            CommutativeInverseCancellation(),
+            HoareOptimizer()
         ])
         circuit = pm.run(circuit)
         post_len = len(circuit.data)
@@ -533,11 +534,13 @@ class Evolution:
             if prefer_short_circuits:
                 by_fitness = sorted(by_fitness, key=lambda genotype: genotype.get_fitness()/genotype.get_depth(), reverse=True)
             else:
-                by_fitness = sorted(by_fitness, key=lambda genotype: min(genotype.get_fitness()*genotype.get_depth(), 1/10**10), reverse=True)
+                by_fitness = sorted(by_fitness, key=lambda genotype: genotype.get_fitness()*genotype.get_depth(), reverse=True)
         else:
-            #by_fitness = sorted(by_fitness, key=lambda genotype: genotype.remove_redundant_gates()[1]) # TODO: check runtime impact
-            by_fitness = sorted(by_fitness, key=lambda genotype: genotype.get_fitness(), reverse=True)
-            #by_fitness = sorted(by_fitness, key=lambda genotype: genotype.get_fitness() - genotype.remove_redundant_gates()[1]) # THIS METHOD IS INEFFECTIVE
+            # just fitness
+            # by_fitness = sorted(by_fitness, key=lambda genotype: genotype.get_fitness(), reverse=True)
+            # also minimising redundancy # min(x, 1/10**10)
+            by_fitness = sorted(by_fitness, key=lambda genotype: genotype.get_fitness() - genotype.remove_redundant_gates()[1], reverse=True)
+            # by_fitness = sorted(by_fitness, key=lambda genotype: (genotype.get_fitness() - 0.05*genotype.remove_redundant_gates()[1])/math.sqrt(genotype.get_depth()), reverse=True)
         while by_fitness[-1].get_fitness() < min_fitness:
             by_fitness.pop(-1)
         return by_fitness
