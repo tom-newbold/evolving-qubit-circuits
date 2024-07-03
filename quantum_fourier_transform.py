@@ -11,6 +11,7 @@ from bulk_runs import multiple_runs, remaining_time_calc
 GATE_SET = [HGate(), XGate(), YGate(), ZGate(), CXGate(), PhaseGate(0),
             TGate(), TdgGate(), CPhaseGate(0), RYGate(0), RYGate(0).control()]
 GATE_SET_SIMPLE = [HGate(), CXGate(), TGate(), TdgGate()]
+from toffoli_gate_generation import UNIVERSAL_GATE_SET
 
 def QFTGeneration(set_of_gates, N=3):
     '''creates a ProblemParameters object with the desired input and output states,
@@ -23,7 +24,7 @@ def QFTGeneration(set_of_gates, N=3):
 if __name__=="__main__":
     N=3
     #print(QFT_blueprint(3).decompose().draw('text'))
-    QFT_GEN = QFTGeneration(GATE_SET, N)
+    QFT_GEN = QFTGeneration(UNIVERSAL_GATE_SET, N)
     QFT_GEN.print_gate_set()
 
     E = Evolution(QFT_GEN, number_of_generations=25 * 2**(N-1), sample_percentage=0.1, gen_mulpilier=8, beta=5)
@@ -37,7 +38,7 @@ if __name__=="__main__":
 
     '''
 
-    to_plot, stats = multiple_runs(E, iterations=10)#, MINIMUM_FITNESS=min(null_f, 0))
+    to_plot, stats = multiple_runs(E, iterations=20)#, MINIMUM_FITNESS=min(null_f, 0))
     print(f'average runtime: {remaining_time_calc(list_avr(stats["runtime"]))}')
     ##plot_many_averages(to_plot, 'Generations', 'Circuit Fitness', legend=False, reference_line=(2**N-1)/(2**N))
     print(f"convergence: {stats['generations_taken_to_converge']}")

@@ -1,11 +1,12 @@
 from qiskit import QuantumCircuit
 from qiskit.circuit.library import *
 
-from linear_genetic_programming import AppliedProblemParameters, Evolution
+from linear_genetic_programming import AppliedProblemParameters, Evolution, Genotype
 from linear_genetic_programming_utils import basis_states
     
 GATE_SET = [HGate(), XGate(), CXGate(), PhaseGate(0),
             TGate(), TdgGate(), CHGate(), CPhaseGate(0)]
+UNIVERSAL_GATE_SET = [HGate(), SGate(), SdgGate(), CXGate(), TGate(), TdgGate()]
 
 def genericToffoliConstructor(n=3):
     """constructs a generic controlled-not gate, to be used as blueprint for evolution"""
@@ -36,7 +37,7 @@ if __name__=="__main__":
     #for n in range(3,6):
     #    print(genericToffoliConstructor(n))
 
-    TOFFOLI = ToffoliGeneration(GATE_SET)
+    TOFFOLI = ToffoliGeneration(UNIVERSAL_GATE_SET)
     E = Evolution(TOFFOLI, sample_percentage=0.1, gen_mulpilier=8, alpha=2, beta=3, gamma=3)
 
     #g = Genotype(TOFFOLI, '022125220242212522024142201024051201')
@@ -44,4 +45,4 @@ if __name__=="__main__":
     #population = E.random_search()[0]
     #population = E.stochastic_hill_climb()[0]
     population = E.evolutionary_search(MINIMUM_FITNESS=0)[0]#, random_sample_size=5)
-    print(population[0].to_list())
+    population[0].remove_redundant_gates(True)
