@@ -127,8 +127,9 @@ class Experiments:
         to_plot = {}
         functions = {
             'base':None,
-            'redundancy': lambda genotype: genotype.get_fitness() - genotype.remove_redundant_gates()[1],
-            'redundancydepth': lambda genotype: (genotype.get_fitness() - 0.05*genotype.remove_redundant_gates()[1])/(genotype.get_depth()**0.5)
+            'sub': lambda genotype: genotype.get_fitness() - genotype.remove_redundant_gates()[1],
+            'mult': lambda genotype: genotype.get_fitness() * (1-genotype.remove_redundant_gates()[1]),
+            #'redundancydepth': lambda genotype: (genotype.get_fitness() - 0.05*genotype.remove_redundant_gates()[1])/(genotype.get_depth()**0.5)
         }
         for func_name in functions:
             # unique identifier used to name output files

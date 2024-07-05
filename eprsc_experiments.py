@@ -6,7 +6,7 @@ if __name__=="__main__":
     folder = 'out/eprsc'
 
     QFT_GEN = QFTGeneration(GATE_SET, 3)
-    experiment_instance = Experiments(QFT_GEN,iterations=5,multipliers=[6],generation_count=100,
+    experiment_instance = Experiments(QFT_GEN,iterations=10,multipliers=[6],generation_count=100,
                                       test_gate_sets={'overcomplete':GATE_SET}, save_filepath=f'{folder}')
     
     experiment_instance.run_test('sorting')
