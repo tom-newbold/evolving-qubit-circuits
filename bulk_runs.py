@@ -65,6 +65,7 @@ def multiple_runs(evolution, iterations=10, method='evolution', min_length=None,
         stats['generations_taken_to_converge'].append(len(fitness_trace[0])) # TODO Check this matches run length
         stats['best_genotype_length'].append(len(population[0].genotype_str))
         stats['best_genotype_depth'].append(population[0].to_circuit().depth())
+        stats['average_redundancy'].append(list_avr([g.remove_redundant_gates()[1] for g in population[:evolution.SAMPLE_SIZE]]))
 
     if plot:
         plot_many_averages(to_plot, 'Generations', 'Circuit Fitness', legend=legend, reference_line=peak_fitness_non_global)
