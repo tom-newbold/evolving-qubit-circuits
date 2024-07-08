@@ -27,7 +27,7 @@ def multiple_runs(evolution, iterations=10, method='evolution', min_length=None,
     start_time = time()
     to_plot = []
     out = []
-    stats = {'peak_fitness':[],'runtime':[], 'generations_taken_to_converge':[], 'best_genotype_length':[], 'best_genotype_depth':[]}
+    stats = {'peak_fitness':[],'runtime':[], 'generations_taken_to_converge':[], 'best_genotype_length':[], 'best_genotype_depth':[], 'average_redundancy':[]}
     for i in range(iterations):
         # run with desired algoirithm
         if method=='evolution':
