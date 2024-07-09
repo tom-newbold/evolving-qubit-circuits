@@ -4,8 +4,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 from time import time
 
-from qiskit import QuantumCircuit, transpile
-from qiskit.transpiler.passes import CommutativeCancellation, InverseCancellation, CommutativeInverseCancellation, HoareOptimizer
+from qiskit import QuantumCircuit
+from qiskit.transpiler.passes import CommutativeInverseCancellation, HoareOptimizer
 from qiskit.transpiler import PassManager
 from qiskit.quantum_info import Operator
 from qiskit.circuit.library import *
@@ -92,10 +92,8 @@ class Genotype:
             print(circuit)
         pre_len = len(circuit.data)
         pm = PassManager([
-            CommutativeCancellation(),
-            InverseCancellation(gates_to_cancel=[XGate(), CXGate()]),
-            CommutativeInverseCancellation()#,
-            #HoareOptimizer()
+            CommutativeInverseCancellation(),
+            HoareOptimizer()
         ])
         circuit = pm.run(circuit)
         post_len = len(circuit.data)
@@ -105,7 +103,7 @@ class Genotype:
             print(f'redundancy = {int(100*(pre_len-post_len)/pre_len)}%')
         return circuit
     
-    def remove_redundant_gates(self, output=False):
+    def remove_redundant_gates(self, output=False, approx=False):
         if self.redundancy == None:
             circuit = self.to_circuit()
             pre_len = len(circuit.data)
@@ -453,6 +451,8 @@ class ProblemParameters(ABC):
         # gets fitness of circuit with no gates
         return Genotype(self, '').get_fitness()
 
+from qiskit import Aer, execute
+
 class AppliedProblemParameters(ProblemParameters):
     def __init__(self, set_of_gates, target_circuit=None, input_states=[], output_states=[], N=3, genotype_len_bounds=(), genotype_length_falloff=None):
         """if output_states is a circuit object, uses to evaluate truth table;
@@ -472,7 +472,6 @@ class AppliedProblemParameters(ProblemParameters):
         try:
             # tries to calculate the effect of target_circuit on input_states
             self.M = Operator(target_circuit)
-            self.M_in_tr = np.transpose(np.linalg.inv(self.M))
             self.output_states = [s.evolve(self.M) for s in self.input_states]
         except:            
             self.output_states = output_states
@@ -504,10 +503,6 @@ class AppliedProblemParameters(ProblemParameters):
             raise ValueError('Qubit count mismatch')
         return self._ProblemParameters__msf(candidate_circuit, self.input_states, self.output_states)
     
-    def alt_fitness_TEMP(self, candidate_circuit):
-        if candidate_circuit.num_qubits!=self.qubit_count:
-            raise ValueError('Qubit count mismatch')
-        return np.trace(np.matmul(Operator(candidate_circuit),self.M_in_tr))/(2**self.qubit_count) # TODO analyse new fitness
 
 class Evolution:
     def __init__(self, problem_parameters, sample_percentage=0.1, number_of_generations=50,
@@ -764,6 +759,7 @@ class Evolution:
                             random_sample_size=0, use_double_point_crossover=True, prefer_short_circuits=None):
         """generates random population, evolves over generation using input parameters
            returns final population and fitness trace"""
+        
         fitness_trace = [[] for _ in range(self.SAMPLE_SIZE)]
         depth_trace = [[] for _ in range(self.SAMPLE_SIZE)]
 
@@ -850,6 +846,7 @@ class Evolution:
                         depth_trace[k].append(population[k].get_depth())
                     except:
                         depth_trace[k].append(0)
+            
 
             # check for convergence
             current_average = list_avr([p.fitness for p in population[:self.SAMPLE_SIZE]])

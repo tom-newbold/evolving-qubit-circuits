@@ -8,6 +8,8 @@ GATE_SET = [HGate(), XGate(), CXGate(), PhaseGate(0),
             TGate(), TdgGate(), CHGate(), CPhaseGate(0)]
 UNIVERSAL_GATE_SET = [HGate(), SGate(), SdgGate(), CXGate(), TGate(), TdgGate()]
 
+CLIFFORD_T = [HGate(), XGate(), SGate(), SdgGate(), CXGate(), TGate(), TdgGate()]
+
 def genericToffoliConstructor(n=3):
     """constructs a generic controlled-not gate, to be used as blueprint for evolution"""
     c = QuantumCircuit(n)
@@ -37,8 +39,8 @@ if __name__=="__main__":
     #for n in range(3,6):
     #    print(genericToffoliConstructor(n))
 
-    TOFFOLI = ToffoliGeneration(GATE_SET)
-    E = Evolution(TOFFOLI, sample_percentage=0.1, gen_mulpilier=8, alpha=2, beta=3, gamma=3)
+    TOFFOLI = ToffoliGeneration(CLIFFORD_T, 5)
+    E = Evolution(TOFFOLI, sample_percentage=0.1, gen_mulpilier=8, alpha=2, beta=2, gamma=2)
 
     #g = Genotype(TOFFOLI, '022125220242212522024142201024051201')
     
