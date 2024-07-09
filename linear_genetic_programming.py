@@ -13,6 +13,12 @@ from qiskit.circuit.library import *
 from linear_genetic_programming_utils import *
 from bulk_runs import remaining_time_calc
 
+# Redundancy class imports 
+from sklearn import linear_model
+from skops.io import dump, load
+import pandas
+CLIFFORD_T = [HGate(), XGate(), SGate(), SdgGate(), CXGate(), TGate(), TdgGate()]
+
 class Genotype:
     def __init__(self, problem_parameters, genotype_string=None, min_length=None, max_length=None, falloff=None):            
         """omitting genotype_string causes string to be randomly generated according to either provided params,
@@ -451,7 +457,6 @@ class ProblemParameters(ABC):
         # gets fitness of circuit with no gates
         return Genotype(self, '').get_fitness()
 
-from qiskit import Aer, execute
 
 class AppliedProblemParameters(ProblemParameters):
     def __init__(self, set_of_gates, target_circuit=None, input_states=[], output_states=[], N=3, genotype_len_bounds=(), genotype_length_falloff=None):
@@ -507,7 +512,7 @@ class AppliedProblemParameters(ProblemParameters):
 class Evolution:
     def __init__(self, problem_parameters, sample_percentage=0.1, number_of_generations=50,
                  individuals_per_generation=100, gen_mulpilier=5, alpha=1, beta=2, gamma=2,
-                 sorting_function_override=None):
+                 sorting_function_override=None, redundancy_model_name=None):
         self.metadata = problem_parameters
         self.SAMPLE_SIZE = int(individuals_per_generation*sample_percentage)
         print(f'sample size: {self.SAMPLE_SIZE}')
@@ -518,6 +523,17 @@ class Evolution:
         self.beta = beta
         self.gamma = gamma
         self.sorting_function_override = sorting_function_override
+        if redundancy_model_name==None or type(redundancy_model_name)!=str:
+            self.redundancy_model = None
+        else:
+            self.redundancy_model = Redundancy(gate_set=problem_parameters.gate_set, N=problem_parameters.qubit_count)
+            if len(self.redundancy_model.load_model(redundancy_model_name))==0:
+                #model not loaded
+                self.redundancy_model = None
+            elif sorting_function_override==None:
+                self.sorting_function_override = lambda genotype: genotype.get_fitness() # - self.redundancy_model.estimate_redundancy(genotype)/20 # TODO make this a parameter
+                # TODO Currently only loading model as sorting by estimated redundancy is not currently working
+                print('-> setup sorting function using redundancy estimate')
 
     ### ---------- CIRCUIT SELECTION ----------
 
@@ -879,3 +895,96 @@ class Evolution:
                 plt.show()
 
         return population, fitness_trace
+    
+
+class Redundancy:
+    def __init__(self, training_sample_size=10000, validation_sample_size=100, gate_set=CLIFFORD_T, N=3):
+        self.rand_gen = AppliedProblemParameters(gate_set, QuantumCircuit(N), genotype_len_bounds=(5,200), genotype_length_falloff='logarithmic')
+        self.TRAINING_SET_SIZE = training_sample_size
+        self.VALIDATION_SET_SIZE = validation_sample_size
+        self.model = None
+
+    def train(self, override=False):
+        '''Generates random circuits and calculates their redundancy exactly,
+           then uses linear regression to generate a formula to approximate'''
+        if (not override) and self.model!=None:
+            print('Coefficients already generated')
+            return self.model.coef_
+        df = pandas.DataFrame(columns=self.rand_gen.all_gate_combinations + ['total', 'redundancy'], dtype='Int64')
+        # generate datapoints
+        for i in range(self.TRAINING_SET_SIZE):
+            if i%(self.TRAINING_SET_SIZE//50) == 0:
+                progress = int(i/(self.TRAINING_SET_SIZE//50))
+                print(f'training: {"#"*progress}{"-"*(50-progress)}', end='\r')
+            rand_genotype = Genotype(self.rand_gen)
+            distribution = Redundancy.count_gate_combinations(rand_genotype)
+            redundancy = rand_genotype.remove_redundant_gates(approx=False)[1]
+            distribution['redundancy'] = redundancy
+
+            df.loc[i] = distribution
+        print('')
+
+        # train
+        regr = linear_model.LinearRegression()
+        regr.fit(df[self.rand_gen.all_gate_combinations].values, df['redundancy'])
+        self.model = regr
+
+        return df, self.model.coef_
+    
+    def validate(self):
+        '''Calulates max, min and average error across a smaller independent sample'''
+        square_error = []
+        for i in range(self.VALIDATION_SET_SIZE):
+            if i%(self.VALIDATION_SET_SIZE//10) == 0:
+                progress = int(i/(self.VALIDATION_SET_SIZE//10))
+                print(f'validating: {"#"*progress}{"-"*(10-progress)}', end='\r')
+            rand_genotype = Genotype(self.rand_gen)
+            square_error.append(self.calc_error(rand_genotype))
+
+        print('\nerrors')
+        print(square_error)
+        print(f'max: {max(square_error)}')
+        print(f'min: {min(square_error)}')
+        print(f'average: {sum(square_error)/len(square_error)}')
+            
+        return square_error
+
+    @staticmethod
+    def count_gate_combinations(genotype, calc_total=True):
+        '''Counts each independant gate permuation'''
+        out = {gate:0 for gate in genotype.metadata.all_gate_combinations}
+        i = 0
+        j = 1
+        while j<len(genotype.genotype_str):
+            if genotype.genotype_str[i:j] in out:
+                out[genotype.genotype_str[i:j]] += 1
+                i = j
+            j += 1
+
+        if calc_total: out['total'] = sum([out[key] for key in out])
+        return out
+    
+    def estimate_redundancy(self, genotype):
+        '''Predicts the redundancy using the model'''
+        genotype_dict = Redundancy.count_gate_combinations(genotype, False)
+        values = [genotype_dict[gate] for gate in genotype.metadata.all_gate_combinations]
+        return self.model.predict([values])[0]
+
+    def calc_error(self, genotype):
+        '''Calculated difference of squares between exact and approximated values for redundancy'''
+        return (self.estimate_redundancy(genotype) - genotype.remove_redundant_gates(approx=False)[1])**2
+
+    
+    def save_model(self, model_name):
+        dump(self.model, f'models/{model_name}.skops')
+        print('model saved')
+
+    def load_model(self, model_name):
+        try:
+            loaded_model = load(f'models/{model_name}.skops')
+            self.model = loaded_model
+            print('model loaded')
+            return self.model.coef_
+        except:
+            print(f'Cannot find model with name {model_name}.\nMake sure "{model_name}.skops" exists, or retrain the model.')
+            return []

@@ -39,8 +39,9 @@ if __name__=="__main__":
     #for n in range(3,6):
     #    print(genericToffoliConstructor(n))
 
-    TOFFOLI = ToffoliGeneration(CLIFFORD_T, 5)
-    E = Evolution(TOFFOLI, sample_percentage=0.1, gen_mulpilier=8, alpha=2, beta=2, gamma=2)
+    TOFFOLI = ToffoliGeneration(CLIFFORD_T, 3)
+    E = Evolution(TOFFOLI, sample_percentage=0.1, gen_mulpilier=8, alpha=2, beta=2, gamma=2,
+                  redundancy_model_name='clifford-t-redundancy-model-10000samples-3qubits')
 
     #g = Genotype(TOFFOLI, '022125220242212522024142201024051201')
     
