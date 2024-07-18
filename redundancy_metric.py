@@ -5,8 +5,9 @@ from toffoli_gate_generation import ToffoliGeneration
 if __name__=="__main__":
     app = ToffoliGeneration(GATE_SET)
     app.print_gate_set()
-    g = Genotype(app, 'F17E01K027K027K122D0E20F14D0E02H0H0A0A1I126I126I126A2')#A1A1F04A2B1A2F04E02B1E02
+    g = Genotype(app, '000102')#A1A1C04A2B1A2C04E02B1E02
     c = Genotype.static_remove_redundant_gates(g.to_circuit(), True)
+    print(len(c.data))
     #g.from_circuit(c)
 
     #import numpy as np

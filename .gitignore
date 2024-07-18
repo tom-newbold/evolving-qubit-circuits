@@ -3,3 +3,4 @@ out/
 verbose_circuit_msf_test.py
 eval_optimisation.py
 models/
+data/

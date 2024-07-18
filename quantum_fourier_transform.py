@@ -26,7 +26,7 @@ if __name__=="__main__":
     QFT_GEN = QFTGeneration(GATE_SET, N)
     QFT_GEN.print_gate_set()
 
-    E = Evolution(QFT_GEN, number_of_generations=25 * 2**(N-1), sample_percentage=0.1, gen_mulpilier=5, beta=5)
+    E = Evolution(QFT_GEN, number_of_generations=25 * 2**(N-1), sample_percentage=0.1, gen_mulpilier=8, beta=4, redundancy_model_name='qft-redundancy-model')
     
     
     #null_f = QFT_GEN.get_null_circuit_fitness()
