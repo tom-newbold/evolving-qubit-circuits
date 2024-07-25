@@ -85,7 +85,15 @@ class Genotype:
                 self.genotype_str += str(qb._index)
             for p in gate[0].params:
                 self.genotype_str += str(int(math.pi/p))
+        self.reset()
         self.circuit = circuit
+
+    def from_genotype(self, genotype):
+        self.genotype_str = genotype
+        self.reset()
+
+    def reset(self):
+        self.circuit = None
         self.fitness = None
         self.depth = None
         self.redundancy = None
@@ -186,11 +194,7 @@ class Genotype:
                 if len(g) > max_length:
                     break
         self.genotype_str = g
-        self.circuit = None
-        self.fitness = None
-        self.depth = None
-        self.redundancy = None
-        self.reduced_circuit = None
+        self.reset()
 
     def get_fitness(self):
         """calculates fitness for genotype and stores"""
@@ -201,7 +205,7 @@ class Genotype:
     def get_depth(self):
         if self.depth==None:
             self.depth = len(self.genotype_str)
-            #self.depth = self.to_circuit().depth # too computationally expensive
+            #self.depth = self.to_circuit().depth() # too computationally expensive
         return self.depth
     
     ### ---------- EVOLUTIONARY OPERATORS ----------
@@ -593,7 +597,7 @@ class Evolution:
             if plot_fitness:
                 for x in range(self.SAMPLE_SIZE):
                     try:
-                        fitness_trace[x].append(population[x].fitness)
+                        fitness_trace[x].append(population[x].get_fitness())
                     except:
                         fitness_trace[x].append(0)
             if plot_depth:
@@ -608,7 +612,7 @@ class Evolution:
             print(f'top {s}:')
             for i in range(s):
                 print(population[i].genotype_str)
-                print(population[i].fitness)
+                print(population[i].get_fitness())
 
             print('best random circuit:')
             print(population[0].to_circuit())
@@ -658,7 +662,7 @@ class Evolution:
             if plot_fitness:
                 for x in range(self.SAMPLE_SIZE):
                     try:
-                        fitness_trace[x].append(population[x].fitness)
+                        fitness_trace[x].append(population[x].get_fitness())
                     except:
                         fitness_trace[x].append(0)
             if plot_depth:
@@ -729,11 +733,12 @@ class Evolution:
             # randomly select from the search operators
             operation = random.choices(population=operations, weights=w, k=1)[0]
             # randomly select a genotype
-            g_1 = random.choices(inital_population, weights=[g.get_fitness() for g in inital_population], k=1)[0]
+            #g_1 = random.choices(inital_population, weights=[g.get_fitness() for g in inital_population], k=1)[0]
+            g_1, g_2 = random.choices(inital_population, weights=[g.get_fitness() for g in inital_population], k=2)
             if operation == 'crossover':
-                g_2 = g_1
-                while g_2 == g_1:
-                    g_2 = random.choices(inital_population, weights=[g.get_fitness() for g in inital_population], k=1)[0]
+                #g_2 = g_1
+                #while g_2 == g_1:
+                #    g_2 = random.choices(inital_population, weights=[g.get_fitness() for g in inital_population], k=1)[0]
                 if use_double_point_crossover==True:
                     for c in range(self.gamma):
                         g_3, g_4 = Genotype.double_crossover(g_1, g_2)
@@ -769,8 +774,8 @@ class Evolution:
         return population_random
     """
     
-    def evolutionary_search(self, min_length=None, max_length=None, falloff=None, remove_duplicates=True,
-                            MINIMUM_FITNESS=0, crossover_proportion=0.5, insert_delete_proportion=0.1, 
+    def evolutionary_optimisation(self, population=[], remove_duplicates=True,
+                            MINIMUM_FITNESS=0, crossover_proportion=0.25, insert_delete_proportion=0.2, 
                             output=True, plot_fitness=True, plot_depth=False,
                             random_sample_size=0, use_double_point_crossover=True, prefer_short_circuits=None):
         """generates random population, evolves over generation using input parameters
@@ -779,31 +784,17 @@ class Evolution:
         fitness_trace = [[] for _ in range(self.SAMPLE_SIZE)]
         depth_trace = [[] for _ in range(self.SAMPLE_SIZE)]
 
-        population = []
-        while len(population) < self.SAMPLE_SIZE:
-            for _ in range(self.GENERATION_SIZE):
-                g = Genotype(self.metadata, min_length=min_length, max_length=max_length, falloff=falloff)
-                g.get_fitness()
-                population.append(g)
-            population = self.top_by_fitness(population)
-            if population[-1].get_fitness() >= MINIMUM_FITNESS:
-                break
-            else:
-                for i in range(len(population)):
-                    if population[i].get_fitness() < MINIMUM_FITNESS:
-                        population = population[:i]
-                        break
-        if output:
-            print(f'Generation 0 (initial) Best Genotype: {population[0].genotype_str}')
-            print(f'Generation 0 (initial) Size: {len(population)}')
+        if len(population) < self.SAMPLE_SIZE:
+            raise ValueError('Incorrect population size')
+
         if plot_fitness:
             for k in range(self.SAMPLE_SIZE):
                 try:
-                    fitness_trace[k].append(population[k].fitness)
+                    fitness_trace[k].append(population[k].get_fitness())
                 except:
                     fitness_trace[k].append(0)
         if plot_depth:
-            for x in range(self.SAMPLE_SIZE):
+            for k in range(self.SAMPLE_SIZE):
                 try:
                     depth_trace[k].append(population[k].get_depth())
                 except:
@@ -812,7 +803,7 @@ class Evolution:
         start_time = time()
         stagnation_counter = 0
         for i in range(self.GENERATION_COUNT):
-            prev_average = list_avr([p.fitness for p in population[:self.SAMPLE_SIZE]])
+            prev_average = list_avr([p.get_fitness() for p in population[:self.SAMPLE_SIZE]])
 
             if not output:
                 if i!=1:
@@ -825,10 +816,10 @@ class Evolution:
                             f"// estimated time remaining for run ~ {remaining_time}", end='\r')
 
             # added random sample
-            for _ in range(random_sample_size):
-                g = Genotype(self.metadata, min_length=min_length, max_length=max_length, falloff=falloff)
-                g.get_fitness()
-                population.append(g)
+            #for _ in range(random_sample_size):
+            #    g = Genotype(self.metadata, min_length=min_length, max_length=max_length, falloff=falloff)
+            #    g.get_fitness()
+            #    population.append(g)
 
             # create new circuits
             population = self.develop_circuits_random(population, int(self.GENERATION_SIZE*(self.GENERATION_MULTIPLIER-1)),
@@ -847,17 +838,17 @@ class Evolution:
             # output / track fitness
             if output:
                 print(f'Generation {i+1} Best Genotype: {population[0].genotype_str}')
-                print(f'Generation {i+1} Best Fitness: {population[0].fitness}')
+                print(f'Generation {i+1} Best Fitness: {population[0].get_fitness()}')
                 #print(f'Average Redundancy: {list_avr([g.remove_redundant_gates()[1] for g in population[:self.SAMPLE_SIZE]])}') # TODO
             if plot_fitness:
                 for k in range(self.SAMPLE_SIZE):
                     try:
-                        fitness_trace[k].append(population[k].fitness)
+                        fitness_trace[k].append(population[k].get_fitness())
                         #fitness_trace[k].append(self.metadata.alt_fitness_TEMP(population[k].to_circuit())) # TODO
                     except:
                         fitness_trace[k].append(0)
             if plot_depth:
-                for x in range(self.SAMPLE_SIZE):
+                for k in range(self.SAMPLE_SIZE):
                     try:
                         depth_trace[k].append(population[k].get_depth())
                     except:
@@ -865,7 +856,8 @@ class Evolution:
             
 
             # check for convergence
-            current_average = list_avr([p.fitness for p in population[:self.SAMPLE_SIZE]])
+            current_average = list_avr([p.get_fitness() for p in population[:self.SAMPLE_SIZE]])
+            current_average = list_avr([self.sorting_function_override(p) for p in population[:self.SAMPLE_SIZE]])
             if math.isclose(current_average,prev_average, abs_tol=0.005):
                 stagnation_counter += 1
             else:
@@ -881,7 +873,7 @@ class Evolution:
             print(f'Top {self.SAMPLE_SIZE} genotypes:')
             for i in range(self.SAMPLE_SIZE):
                 print(population[i].genotype_str)
-                print(population[i].fitness)
+                print(population[i].get_fitness())
             print('best circuit:')
             print(population[0].to_circuit())
 
@@ -895,6 +887,35 @@ class Evolution:
                 plt.show()
 
         return population, fitness_trace
+    
+    def evolutionary_search(self, min_length=None, max_length=None, falloff=None, remove_duplicates=True,
+                            MINIMUM_FITNESS=0, crossover_proportion=0.5, insert_delete_proportion=0.1, 
+                            output=True, plot_fitness=True, plot_depth=False,
+                            random_sample_size=0, use_double_point_crossover=True, prefer_short_circuits=None):
+        """generates random population, evolves over generation using input parameters
+           returns final population and fitness trace"""
+        
+        population = []
+        while len(population) < self.SAMPLE_SIZE:
+            for _ in range(self.GENERATION_SIZE):
+                g = Genotype(self.metadata, min_length=min_length, max_length=max_length, falloff=falloff)
+                g.get_fitness()
+                population.append(g)
+            population = self.top_by_fitness(population)
+            if population[-1].get_fitness() >= MINIMUM_FITNESS:
+                break
+            else:
+                for i in range(len(population)):
+                    if population[i].get_fitness() < MINIMUM_FITNESS:
+                        population = population[:i]
+                        break
+        if output:
+            print(f'Generation 0 (initial) Best Genotype: {population[0].genotype_str}')
+            print(f'Generation 0 (initial) Size: {len(population)}')
+        
+        return self.evolutionary_optimisation(population, remove_duplicates, MINIMUM_FITNESS, crossover_proportion,
+                                              insert_delete_proportion, output, plot_fitness, plot_depth,
+                                              random_sample_size, use_double_point_crossover, prefer_short_circuits)
     
 
 class Redundancy:
