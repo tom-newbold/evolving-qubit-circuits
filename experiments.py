@@ -125,18 +125,24 @@ class Experiments:
         """performs multiple runs using different sorting functions"""
         stats = {}
         to_plot = {}
+        k=100
         functions = {
             'base':None,
-            'sub': lambda genotype: genotype.get_fitness() - genotype.remove_redundant_gates()[1],
-            'mult': lambda genotype: genotype.get_fitness() * (1-genotype.remove_redundant_gates()[1]),
-            #'redundancydepth': lambda genotype: (genotype.get_fitness() - 0.05*genotype.remove_redundant_gates()[1])/(genotype.get_depth()**0.5)
+            'length': lambda genotype: k*genotype.get_fitness() - len(genotype.genotype_str),
+            'count': lambda genotype: k*genotype.get_fitness() - len(genotype.to_circuit().data),
+            'depth': lambda genotype: k*genotype.get_fitness() - genotype.to_circuit().depth()
         }
+        E = Evolution(self.prob_params)
+        from qiskit import transpile
+        from circuit_unoptimiser import unoptimiser
+        transpiled = transpile(self.prob_params.target_circuit, basis_gates=[self.prob_params.gate_set[gate_key].name for gate_key in self.prob_params.gate_set], optimization_level=0)
+        circuit_population = [unoptimiser(transpiled, self.prob_params, self.prob_params.qubit_count) for i in range(self.ITERATIONS)]
         for func_name in functions:
             # unique identifier used to name output files
             print(f'<{func_name}>')
             E = Evolution(self.prob_params, number_of_generations=self.gen_count, gen_mulpilier=gen_multiplier, sorting_function_override=functions[func_name])
 
-            to_plot[func_name], stats[func_name] = multiple_runs(E, iterations=self.ITERATIONS, plot=False, save_dir=self.base_filepath+'/')
+            to_plot[func_name], stats[func_name] = multiple_runs(E, iterations=self.ITERATIONS, method='optimisation', plot=False, save_dir=self.base_filepath+'/', circuit_population=circuit_population)
         return stats, to_plot
 
     def output(self, p, s, test_param, multiplier, save=True):

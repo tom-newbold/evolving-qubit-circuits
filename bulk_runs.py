@@ -17,7 +17,7 @@ def remaining_time_calc(remaining_time):
 
 def multiple_runs(evolution, iterations=10, method='evolution', min_length=None, max_length=None, MINIMUM_FITNESS=0,
                   crossover_proportion=0.5, insert_delete_proportion=0.1, remove_duplicates=True,
-                  use_double_point_crossover=True, short_circuit_preference=None, output=True, plot=True, legend=True, save_dir='out/'):
+                  use_double_point_crossover=True, short_circuit_preference=None, output=True, plot=True, legend=True, save_dir='out/', circuit_population=None):
     if min_length==None or max_length==None:
         if evolution.metadata.genotype_length_bounds!=None and len(evolution.metadata.genotype_length_bounds)==2:
             min_length, max_length = evolution.metadata.genotype_length_bounds
@@ -28,6 +28,8 @@ def multiple_runs(evolution, iterations=10, method='evolution', min_length=None,
     to_plot = []
     out = []
     stats = {'peak_fitness':[],'runtime':[], 'generations_taken_to_converge':[], 'best_genotype_length':[], 'best_genotype_depth':[], 'average_redundancy':[]}
+    if method=='optimisation' and circuit_population==None:
+        raise ValueError('Missing circuit_population')
     for i in range(iterations):
         # run with desired algoirithm
         if method=='evolution':
@@ -42,6 +44,14 @@ def multiple_runs(evolution, iterations=10, method='evolution', min_length=None,
         elif method=='stochastic':
             population, fitness_trace = evolution.stochastic_hill_climb(min_length, max_length, MINIMUM_FITNESS=MINIMUM_FITNESS,
                                                                         remove_duplicates=remove_duplicates, output=False)
+        elif method=='optimisation':
+            population = [circuit_population[i][1] for _ in range(evolution.SAMPLE_SIZE)]
+            population, fitness_trace = evolution.evolutionary_optimisation(population, MINIMUM_FITNESS=MINIMUM_FITNESS,
+                                                                    remove_duplicates=remove_duplicates,
+                                                                    use_double_point_crossover=use_double_point_crossover,
+                                                                    crossover_proportion=crossover_proportion,
+                                                                    insert_delete_proportion=insert_delete_proportion,
+                                                                    output=False, prefer_short_circuits=short_circuit_preference)
         else:
             raise ValueError('Invalid method parameter')
         to_plot.append(fitness_trace)

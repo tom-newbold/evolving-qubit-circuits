@@ -13,7 +13,9 @@ from qiskit.transpiler import PassManager
 import math
 from random import choice, randint
 
-del GATE_SET[3]
+#del GATE_SET[3]
+##from qiskit.circuit.library import SGate
+#GATE_SET.append(SGate())
 
 def unoptimiser(initial_circuit, app, N=3):
     circuit = initial_circuit.copy()
@@ -29,7 +31,7 @@ def unoptimiser(initial_circuit, app, N=3):
             [f'0{i}',f'0{i}'],
             [f'1{i}',f'1{i}'],
             [f'2{i}{j}',f'2{i}{j}'],
-            [f'3{i}',f'4{i}']
+            [f'4{i}',f'5{i}']
         ])
         i = randint(0, len(genotype.to_list())-1)
         genotype.from_genotype(''.join(genotype.to_list()[:i]+random_addition+genotype.to_list()[i:]))
@@ -85,7 +87,8 @@ def unoptimiser(initial_circuit, app, N=3):
                 print('> couldnt swap')
 
             #print(f'identity size = {circuit_to_dag(dag_to_circuit(dag_form)).size()}')
-    return circuit
+    genotype.from_circuit(circuit)
+    return circuit, genotype
 
 if __name__=="__main__":
     N = 3
@@ -101,7 +104,7 @@ if __name__=="__main__":
 
     #print(genotype.to_list())
     
-    circuit = unoptimiser(qft, qft_gen)
+    circuit = unoptimiser(qft, qft_gen)[0]
     print(circuit)
     print('^^ unoptimised')
 

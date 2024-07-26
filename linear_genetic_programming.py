@@ -469,6 +469,7 @@ class AppliedProblemParameters(ProblemParameters):
            genotype_length_falloff takes one of the following values:
            ['linear','logarithmic','reciprocal','']"""
         # sets number of qubits and input states
+        self.target_circuit=target_circuit
         try:
             N = target_circuit.num_qubits
         except:
@@ -856,8 +857,9 @@ class Evolution:
             
 
             # check for convergence
-            current_average = list_avr([p.get_fitness() for p in population[:self.SAMPLE_SIZE]])
-            current_average = list_avr([self.sorting_function_override(p) for p in population[:self.SAMPLE_SIZE]])
+            #current_average = list_avr([p.get_fitness() for p in population[:self.SAMPLE_SIZE]])
+            #current_average = list_avr([p.to_circuit().depth() for p in population[:self.SAMPLE_SIZE]])
+            current_average = list_avr([len(p.genotype_str) for p in population[:self.SAMPLE_SIZE]])
             if math.isclose(current_average,prev_average, abs_tol=0.005):
                 stagnation_counter += 1
             else:
