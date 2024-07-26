@@ -52,6 +52,7 @@ def multiple_runs(evolution, iterations=10, method='evolution', min_length=None,
                                                                     crossover_proportion=crossover_proportion,
                                                                     insert_delete_proportion=insert_delete_proportion,
                                                                     output=False, prefer_short_circuits=short_circuit_preference)
+            print(f'\nr_unopt/r_opt : {circuit_population[i][0].depth()/list_avr([g.to_circuit().depth() for g in population[:evolution.SAMPLE_SIZE]])}\n')
         else:
             raise ValueError('Invalid method parameter')
         to_plot.append(fitness_trace)

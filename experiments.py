@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 from pandas import DataFrame
 
 from linear_genetic_programming import Evolution
-from linear_genetic_programming_utils import plot_many_averages
+from linear_genetic_programming_utils import plot_many_averages, list_avr
 from bulk_runs import multiple_runs
 
 class Experiments:
@@ -143,6 +143,7 @@ class Experiments:
             E = Evolution(self.prob_params, number_of_generations=self.gen_count, gen_mulpilier=gen_multiplier, sorting_function_override=functions[func_name])
 
             to_plot[func_name], stats[func_name] = multiple_runs(E, iterations=self.ITERATIONS, method='optimisation', plot=False, save_dir=self.base_filepath+'/', circuit_population=circuit_population)
+            print(f'absolute r_opt: {list_avr(stats[func_name]["best_genotype_depth"])/transpiled.depth()}')
         return stats, to_plot
 
     def output(self, p, s, test_param, multiplier, save=True):
