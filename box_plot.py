@@ -19,15 +19,22 @@ def boxplot_from_folder(filepath="", fitness_reference=None):
     csv_to_plot = [[f'{tp}_mult{m}.csv' for tp in test_params for m in multipliers],[f'{tp}_mult{m}.csv' for m in multipliers for tp in test_params]]
     if len(multipliers)==1:
         csv_to_plot = [csv_to_plot[0]]
-    columns_to_plot = [("peak_fitness",[0,1]),("generations_taken_to_converge",[0,50]),("runtime",[]),("peak_fitness/runtime",[]),("best_genotype_length",[0,40]),("best_genotype_depth",[0,10]),("average_redundancy",[0,1]),("average_redundancy/runtime",[])]
+    columns_to_plot = [("peak_fitness",[0,1]),("generations_taken_to_converge",[0,50]),("runtime",[]),("peak_fitness/runtime",[]),
+                       ("best_genotype_length",[0,40]),("best_genotype_depth",[0,10]),("average_redundancy",[0,1]),("average_redundancy/runtime",[]),
+                       ("depth_compression_ratio",[]), ("length_compression_ratio",[])]
     # extracts dataframes
     dataframe_orders = [[read_csv(filepath+'/'+csv_filename) for csv_filename in c] for c in csv_to_plot]
 
     for d_i, dataframes in enumerate(dataframe_orders):
         for c, r in columns_to_plot:
-            if False in [c in d for d in dataframes] and '/' not in c:
-                # checks that column exisits in every dataframe, this is skiped for compound keys (division)
-                continue
+            # checks that column exisits in every dataframe
+            if False in [c in d for d in dataframes]:
+                if '/' in c: # checks compound keys (division)
+                    c_temp = c.split('/')
+                    if False in [c_temp[0] in d for d in dataframes] + [c_temp[1] in d for d in dataframes]:
+                        continue
+                else:
+                    continue
             data = []
             labels = []
             for i, d in enumerate(dataframes):
