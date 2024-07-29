@@ -22,17 +22,31 @@ def unoptimiser(initial_circuit, app, N=3):
     genotype = Genotype(app)
     genotype.from_circuit(circuit)
 
+    identity_chains = []
+    seen_gate_names = []
+    for key in app.gate_set:
+        gate = app.gate_set[key]
+        if len(gate.params)>0:
+            continue
+        if gate.inverse() in app.gate_set.values() and gate.inverse().name not in seen_gate_names:
+            seen_gate_names.append(gate.name)
+            base_gate_index = next(gate_index for gate_index in app.gate_set if gate.name == app.gate_set[gate_index].name)
+            inv_gate_index = next(gate_index for gate_index in app.gate_set if gate.inverse().name == app.gate_set[gate_index].name)
+            for i in range(circuit.num_qubits):
+                if gate.num_qubits==2:
+                    j_range = list(range(circuit.num_qubits))
+                    j_range.remove(i)
+                    for j in j_range:
+                        identity_chains.append([f'{base_gate_index}{i}{j}',f'{inv_gate_index}{i}{j}'])
+                        #identity_chains[-1] = [f'{x}{j}' for x in identity_chains[-1]]
+                else:
+                    identity_chains.append([f'{base_gate_index}{i}',f'{inv_gate_index}{i}'])
+                    identity_chains.append([f'{base_gate_index}{i}',f'{inv_gate_index}{i}']) # TWICE to balance gate probabilites with two-qubit gates
+    #print(identity_chains)
+
     for _ in range(N**2):
-        i = randint(0, circuit.num_qubits-1)
-        j_temp = list(range(circuit.num_qubits))
-        j_temp.remove(i)
-        j = choice(j_temp)
-        random_addition = choice([
-            [f'0{i}',f'0{i}'],
-            [f'1{i}',f'1{i}'],
-            [f'2{i}{j}',f'2{i}{j}'],
-            [f'4{i}',f'5{i}']
-        ])
+        random_addition = choice(identity_chains)
+
         i = randint(0, len(genotype.to_list())-1)
         genotype.from_genotype(''.join(genotype.to_list()[:i]+random_addition+genotype.to_list()[i:]))
         circuit = genotype.to_circuit()

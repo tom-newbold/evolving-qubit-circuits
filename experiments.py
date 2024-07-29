@@ -142,8 +142,13 @@ class Experiments:
             print(f'<{func_name}>')
             E = Evolution(self.prob_params, number_of_generations=self.gen_count, gen_mulpilier=gen_multiplier, sorting_function_override=functions[func_name])
 
-            to_plot[func_name], stats[func_name] = multiple_runs(E, iterations=self.ITERATIONS, method='optimisation', plot=False, save_dir=self.base_filepath+'/', circuit_population=circuit_population)
+            to_plot[func_name], stats[func_name] = multiple_runs(E, iterations=self.ITERATIONS, method='optimisation', plot=False, save_dir=self.base_filepath+'/',
+                                                                 circuit_population=circuit_population, insert_delete_proportion=0.5)
             print(f'absolute r_opt: {list_avr(stats[func_name]["best_genotype_depth"])/transpiled.depth()}')
+            stats[func_name]["r_opt_depth"] = [d/transpiled.depth() for d in stats[func_name]["best_genotype_depth"]]
+            stats[func_name]["r_unopt_depth"] = [c[0].depth()/transpiled.depth() for c in circuit_population]
+            stats[func_name]["r_opt_length"] = [l/len(transpiled.data) for l in stats[func_name]["best_genotype_length"]]
+            stats[func_name]["r_unopt_length"] = [len(c[0].data)/len(transpiled.data) for c in circuit_population]
         return stats, to_plot
 
     def output(self, p, s, test_param, multiplier, save=True):

@@ -1,13 +1,19 @@
 from circuit_unoptimiser import unoptimiser
 from quantum_fourier_transform import QFT_blueprint, QFTGeneration, GATE_SET
+from toffoli_gate_generation import genericToffoliConstructor, ToffoliGeneration, CLIFFORD_T
 from linear_genetic_programming import Genotype, Evolution
 from qiskit import transpile
 
+#GATE_SET = CLIFFORD_T
+
 N = 3
 qft = QFT_blueprint(N)
+#qft = genericToffoliConstructor(N)
 qft = transpile(qft, basis_gates=[gate.name for gate in GATE_SET], optimization_level=0)
+print(qft)
 
 qft_gen = QFTGeneration(GATE_SET, N)
+#qft_gen = ToffoliGeneration(GATE_SET, N)
 qft_gen.print_gate_set()
 
 E = Evolution(qft_gen, sorting_function_override=lambda genotype: 100*genotype.get_fitness() - len(genotype.to_circuit().data),
