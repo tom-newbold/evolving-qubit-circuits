@@ -17,23 +17,24 @@ def QFTGeneration(set_of_gates, N=3):
        a sample of the specified size generated based on the number of qubits'''
     lower_bound = N**2 + N
     return AppliedProblemParameters(set_of_gates, QFT_blueprint(N),
-                                    genotype_len_bounds=[lower_bound, 2*lower_bound],
+                                    genotype_len_bounds=[2*lower_bound, 4*lower_bound],
                                     genotype_length_falloff='linear')
     
 if __name__=="__main__":
-    N=3
+    N=4
     #print(QFT_blueprint(3).decompose().draw('text'))
     QFT_GEN = QFTGeneration(GATE_SET, N)
     QFT_GEN.print_gate_set()
 
-    E = Evolution(QFT_GEN, number_of_generations=25 * 2**(N-1), sample_percentage=0.1, gen_mulpilier=8, beta=4, redundancy_model_name='qft-redundancy-model')
+    E = Evolution(QFT_GEN, individuals_per_generation=25 * 2**(N-1), number_of_generations=100,
+                  sample_percentage=0.1, gen_mulpilier=8, beta=4)#, redundancy_model_name='qft-redundancy-model')
     
     
     #null_f = QFT_GEN.get_null_circuit_fitness()
     #MINIMUM_FITNESS=min(null_f, 0),
     population = E.evolutionary_search(use_double_point_crossover=True)[0]#,plot_fitness=False
-    reduced, redundancy = population[0].remove_redundant_gates()
-    print(redundancy)
+    #reduced, redundancy = population[0].remove_redundant_gates()
+    #print(redundancy)
 
     '''
 
