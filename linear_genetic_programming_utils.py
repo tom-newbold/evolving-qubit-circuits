@@ -23,6 +23,25 @@ def encode_to_letter(n):
         return None
     return key
 
+def letter_to_int(x):
+    if ord(x)>=ord('A') and ord(x)<=ord('Z'):
+        return ord(x)-ord('A')
+    elif ord(x)>=ord('a') and ord(x)<=ord('z'):
+        return 26 + ord(x)-ord('a')
+    other_symbols = ['Γ','Δ','Θ','Λ','Ξ','Π','Σ','Φ','Ψ','Ω',
+                     'α','β','γ','δ','ε','ζ','η','θ','λ','μ',
+                     'ξ','ρ','σ','τ','φ','χ','ψ','ω']
+    if x in other_symbols:
+        return 52 + other_symbols.index(x)
+    else:
+        return None
+    
+def int_handled(x):
+    try:
+        return int(x)
+    except:
+        return 10+letter_to_int(x)
+
 def basis_states(N=3):
     """returns a list of the 2**N basis states for an N-qubit system"""
     return [Statevector.from_int(i, 2**N) for i in range(2**N)]

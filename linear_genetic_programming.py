@@ -84,7 +84,11 @@ class Genotype:
             for qb in gate.qubits+gate.clbits:
                 self.genotype_str += str(qb._index)
             for p in gate[0].params:
-                self.genotype_str += str(int(math.pi/p))
+                p_int = int(math.pi/p)
+                if p_int < 10:
+                    self.genotype_str += str(p_int)
+                else:
+                    self.genotype_str += str(encode_to_letter(p_int-10))
         self.reset()
         self.circuit = circuit
 
@@ -131,11 +135,15 @@ class Genotype:
     
     def construct_gate(self, genotype_string, c_instance):
         """constructs a single gate from a string and appends to the given circuit"""
-        g_list = [int(x) for x in genotype_string[1:]]
+        g_list = [int_handled(x) for x in genotype_string[1:]]
 
         g = self.metadata.gate_set[genotype_string[0]].copy()
         if len(g.params) > 0:
-            g.params = [math.pi/x for x in g_list[g.num_qubits:]]
+            params = []
+            for x in g_list[g.num_qubits:]:
+                #params.append(math.pi/int_handled(x))
+                params.append(math.pi/x)
+            g.params = params
 
         try:
             c_instance.append(

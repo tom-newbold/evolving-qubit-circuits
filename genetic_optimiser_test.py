@@ -6,7 +6,7 @@ from qiskit import transpile
 
 #GATE_SET = CLIFFORD_T
 
-N = 3
+N = 6
 qft = QFT_blueprint(N)
 #qft = genericToffoliConstructor(N)
 qft = transpile(qft, basis_gates=[gate.name for gate in GATE_SET], optimization_level=0)
@@ -17,7 +17,7 @@ qft_gen = QFTGeneration(GATE_SET, N)
 qft_gen.print_gate_set()
 
 E = Evolution(qft_gen, sorting_function_override=lambda genotype: 100*genotype.get_fitness() - len(genotype.to_circuit().data),
-              number_of_generations=50, gen_mulpilier=8)
+              number_of_generations=100, gen_mulpilier=8)
 
 
 '''
@@ -29,9 +29,9 @@ for c in circuit_population:
     g.from_circuit(c)
     population.append(g)
 '''
-g = Genotype(qft_gen)
 g_circuit = unoptimiser(qft, qft_gen, N)[0]
 print(f'r_unopt = {g_circuit.depth()/qft.depth()}')
+g = Genotype(qft_gen)
 g.from_circuit(g_circuit)
 print(g.to_circuit())
 print(g.get_fitness())
