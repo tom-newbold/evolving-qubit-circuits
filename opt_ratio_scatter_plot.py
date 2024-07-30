@@ -18,17 +18,32 @@ for d_i, dataframe in enumerate([read_csv(filepath+'/'+csv_filename) for csv_fil
         plt.clf()
         plt.title(f'{metric} ratios')
         plt.scatter(dataframe[f"r_unopt_{metric}"], dataframe[f"r_opt_{metric}"])
+        plt.xlabel('r_unopt')
+        plt.ylabel('r_opt')
         plt.savefig(f'{filepath}/{csv_to_plot[d_i][:-4]}_{metric}_ratio_scatter.png')
 
 
 for metric in ['depth', 'length']:
     plt.clf()
+    plt.title(f'{metric} ratios (scaled by runtime)')
+    for d_i, dataframe in enumerate([read_csv(filepath+'/'+csv_filename) for csv_filename in csv_to_plot]):
+        #r_unopt_scaled = [a/b for a,b in zip(dataframe[f"r_unopt_{metric}"], dataframe["runtime"])]
+        r_opt_scaled = [a*b for a,b in zip(dataframe[f"r_unopt_{metric}"], dataframe["runtime"])]
+        plt.scatter(dataframe[f"r_unopt_{metric}"], r_opt_scaled, label=csv_to_plot[d_i][:-4])
+    
+    plt.xlabel('r_unopt')
+    plt.ylabel('r_opt * runtime')
+    plt.legend(loc='upper left', prop={'size': 'small'})
+    plt.savefig(f'{filepath}/all_{metric}_ratio_scatter.png')
+
+for metric in ['depth', 'length']:
+    plt.clf()
     plt.title(f'{metric} ratios')
     for d_i, dataframe in enumerate([read_csv(filepath+'/'+csv_filename) for csv_filename in csv_to_plot]):
-        r_unopt_scaled = [a/b for a,b in zip(dataframe[f"r_unopt_{metric}"], dataframe["runtime"])]
-        r_opt_scaled = [a/b for a,b in zip(dataframe[f"r_unopt_{metric}"], dataframe["runtime"])]
-        plt.scatter(r_unopt_scaled, r_opt_scaled, label=csv_to_plot[d_i][:-4])
         grad = list_avr([1/r for r in dataframe[f"{metric}_compression_ratio"]])
-        plt.plot([0, 5], [0, 5*grad]) # TODO Scale correctly
-    #plt.legend() # ???
-    plt.savefig(f'{filepath}/all_{metric}_ratio_scatter.png')
+        plt.plot([0, max(dataframe[f"r_unopt_{metric}"])], [0, max(dataframe[f"r_unopt_{metric}"])*grad], linestyle='dashed', label=csv_to_plot[d_i][:-4])
+    
+    plt.xlabel('r_unopt')
+    plt.ylabel('r_opt')
+    plt.legend(loc='upper left', prop={'size': 'small'})
+    plt.savefig(f'{filepath}/all_{metric}_ratio_line.png')

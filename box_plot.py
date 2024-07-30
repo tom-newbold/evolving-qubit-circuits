@@ -20,7 +20,7 @@ def boxplot_from_folder(filepath="", fitness_reference=None):
     if len(multipliers)==1:
         csv_to_plot = [csv_to_plot[0]]
     columns_to_plot = [("peak_fitness",[0,1]),("generations_taken_to_converge",[0,50]),("runtime",[]),("peak_fitness/runtime",[]),
-                       ("best_genotype_length",[0,40]),("best_genotype_depth",[0,10]),("average_redundancy",[0,1]),("average_redundancy/runtime",[]),
+                       ("best_genotype_length",[0,40]),("best_genotype_depth",[0,10]),("average_redundancy",[0,1]),("average_redundancy*runtime",[]),
                        ("depth_compression_ratio",[]), ("length_compression_ratio",[])]
     # extracts dataframes
     dataframe_orders = [[read_csv(filepath+'/'+csv_filename) for csv_filename in c] for c in csv_to_plot]
@@ -29,12 +29,15 @@ def boxplot_from_folder(filepath="", fitness_reference=None):
         for c, r in columns_to_plot:
             # checks that column exisits in every dataframe
             if False in [c in d for d in dataframes]:
-                if '/' in c: # checks compound keys (division)
+                # checks compound keys
+                if '/' in c:
                     c_temp = c.split('/')
-                    if False in [c_temp[0] in d for d in dataframes] + [c_temp[1] in d for d in dataframes]:
-                        continue
+                elif '*' in c:
+                    c_temp = c.split('*')
                 else:
                     continue
+                if False in [c_temp[0] in d for d in dataframes] + [c_temp[1] in d for d in dataframes]:
+                        continue
             data = []
             labels = []
             for i, d in enumerate(dataframes):
@@ -43,6 +46,10 @@ def boxplot_from_folder(filepath="", fitness_reference=None):
                     c = c.split('/')
                     data.append(d[c[0]]/d[c[1]])
                     c = '/'.join(c)
+                elif '*' in c:
+                    c = c.split('*')
+                    data.append(d[c[0]]*d[c[1]])
+                    c = '*'.join(c)
                 else:
                     data.append(d[c])
                 csv_name = csv_to_plot[d_i][i].rstrip(".csv").split("_")
@@ -63,7 +70,7 @@ def boxplot_from_folder(filepath="", fitness_reference=None):
             #plt.xticks(rotation=45) # orient column labels
             plt.tight_layout() # refit to labels
             plt.grid(axis='y')
-            plt.savefig(f'{filepath}/{["testparam","multiplier"][d_i]}_grouping/{c.replace("/","_")}_boxplot.png')
+            plt.savefig(f'{filepath}/{["testparam","multiplier"][d_i]}_grouping/{c.replace("/","_").replace("*","_")}_boxplot.png')
             #plt.show()
 
 if __name__=="__main__":
