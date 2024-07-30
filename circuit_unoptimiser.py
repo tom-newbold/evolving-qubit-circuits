@@ -95,10 +95,11 @@ def unoptimiser(initial_circuit, app, N=3):
                     #print(f'> new fitness: {genotype.get_fitness()}')
                 
                 else:
-                    print('> error')
+                    #print('> error')
                     i -= 1
             except:
-                print('> couldnt swap')
+                pass
+                #print('> couldnt swap')
 
             #print(f'identity size = {circuit_to_dag(dag_to_circuit(dag_form)).size()}')
     genotype.from_circuit(circuit)
