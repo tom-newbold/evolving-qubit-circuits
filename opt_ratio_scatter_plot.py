@@ -30,5 +30,5 @@ for metric in ['depth', 'length']:
         plt.scatter(r_unopt_scaled, r_opt_scaled, label=csv_to_plot[d_i][:-4])
         grad = list_avr([1/r for r in dataframe[f"{metric}_compression_ratio"]])
         plt.plot([0, 5], [0, 5*grad]) # TODO Scale correctly
-    plt.legend() # ???
+    #plt.legend() # ???
     plt.savefig(f'{filepath}/all_{metric}_ratio_scatter.png')

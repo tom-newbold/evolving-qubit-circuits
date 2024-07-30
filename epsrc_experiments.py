@@ -7,7 +7,7 @@ if __name__=="__main__":
     folder = 'out/eprsc_optimisers'
 
     QFT_GEN = ToffoliGeneration(GATE_SET, 3)
-    experiment_instance = Experiments(QFT_GEN,iterations=3,multipliers=[6],#generation_count=100,
+    experiment_instance = Experiments(QFT_GEN,iterations=20,multipliers=[8],generation_count=100,
                                       test_gate_sets={'overcomplete':GATE_SET}, save_filepath=f'{folder}')
     
     experiment_instance.run_test('sorting')
