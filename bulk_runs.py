@@ -46,7 +46,7 @@ def multiple_runs(evolution, iterations=10, method='evolution', min_length=None,
             population, fitness_trace = evolution.stochastic_hill_climb(min_length, max_length, MINIMUM_FITNESS=MINIMUM_FITNESS,
                                                                         remove_duplicates=remove_duplicates, output=False)
         elif method=='optimisation':
-            population = [circuit_population[i][1].copy() for _ in range(evolution.SAMPLE_SIZE)]
+            population = [circuit_population[i][1] for _ in range(evolution.SAMPLE_SIZE)]
             population, fitness_trace = evolution.evolutionary_optimisation(population, MINIMUM_FITNESS=MINIMUM_FITNESS,
                                                                     remove_duplicates=remove_duplicates,
                                                                     use_double_point_crossover=use_double_point_crossover,
