@@ -126,9 +126,11 @@ class Experiments:
         stats = {}
         to_plot = {}
         k=100
+        avr_gate_string_length = list_avr([len(s) for s in self.prob_params.all_gate_combinations])
+        print(f'avr symbols/gate : {avr_gate_string_length}')
         functions = {
             'base':None,
-            'length': lambda genotype: k*genotype.get_fitness() - len(genotype.genotype_str),
+            'length': lambda genotype: k*genotype.get_fitness() - len(genotype.genotype_str)/avr_gate_string_length,
             'count': lambda genotype: k*genotype.get_fitness() - len(genotype.to_circuit().data),
             'depth': lambda genotype: k*genotype.get_fitness() - genotype.to_circuit().depth()
         }
