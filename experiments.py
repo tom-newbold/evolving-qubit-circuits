@@ -121,18 +121,17 @@ class Experiments:
             to_plot[elite_str], stats[elite_str] = multiple_runs(E, iterations=self.ITERATIONS, plot=False, save_dir=self.base_filepath+'/')
         return stats, to_plot
     
-    def run_sorting_test(self, gen_multiplier=8):
+    def run_sorting_test(self, gen_multiplier=8, omega=100):
         """performs multiple runs using different sorting functions"""
         stats = {}
         to_plot = {}
-        k=100
         avr_gate_string_length = list_avr([len(s) for s in self.prob_params.all_gate_combinations])
         print(f'avr symbols/gate : {avr_gate_string_length}')
         functions = {
             'base':None,
-            'length': lambda genotype: k*genotype.get_fitness() - len(genotype.genotype_str)/avr_gate_string_length,
-            'count': lambda genotype: k*genotype.get_fitness() - len(genotype.to_circuit().data),
-            'depth': lambda genotype: k*genotype.get_fitness() - genotype.to_circuit().depth()
+            'length': lambda genotype: omega*genotype.get_fitness() - len(genotype.genotype_str)/avr_gate_string_length,
+            'count': lambda genotype: omega*genotype.get_fitness() - len(genotype.to_circuit().data),
+            'depth': lambda genotype: omega*genotype.get_fitness() - genotype.to_circuit().depth()
         }
         E = Evolution(self.prob_params)
         from qiskit import transpile
@@ -141,24 +140,25 @@ class Experiments:
         circuit_population = [unoptimiser(transpiled, self.prob_params, self.prob_params.qubit_count) for i in range(self.ITERATIONS)]
         for func_name in functions:
             # unique identifier used to name output files
-            print(f'<{func_name}>')
+            omega_func = f'{func_name}_omega{omega}'
+            print(f'<{omega_func}>')
             E = Evolution(self.prob_params, number_of_generations=self.gen_count, gen_mulpilier=gen_multiplier, sorting_function_override=functions[func_name])
 
-            to_plot[func_name], stats[func_name] = multiple_runs(E, iterations=self.ITERATIONS, method='optimisation', plot=False, save_dir=self.base_filepath+'/',
+            to_plot[omega_func], stats[omega_func] = multiple_runs(E, iterations=self.ITERATIONS, method='optimisation', plot=False, save_dir=self.base_filepath+'/',
                                                                  circuit_population=circuit_population, insert_delete_proportion=0.5)
             #print(f'absolute r_opt: {list_avr(stats[func_name]["best_genotype_depth"])/transpiled.depth()}')
 
             print([d==c[0].depth() for d, c in zip(stats[func_name]["best_genotype_depth"],circuit_population)])
-            stats[func_name]["r_opt_depth"] = [d/transpiled.depth() for d in stats[func_name]["best_genotype_depth"]]
-            stats[func_name]["r_unopt_depth"] = [c[0].depth()/transpiled.depth() for c in circuit_population]
-            stats[func_name]["r_opt_length"] = [l/len(transpiled.data) for l in stats[func_name]["best_genotype_length"]]
-            stats[func_name]["r_unopt_length"] = [len(c[0].data)/len(transpiled.data) for c in circuit_population]
+            stats[omega_func]["r_opt_depth"] = [d/transpiled.depth() for d in stats[func_name]["best_genotype_depth"]]
+            stats[omega_func]["r_unopt_depth"] = [c[0].depth()/transpiled.depth() for c in circuit_population]
+            stats[omega_func]["r_opt_length"] = [l/len(transpiled.data) for l in stats[func_name]["best_genotype_length"]]
+            stats[omega_func]["r_unopt_length"] = [len(c[0].data)/len(transpiled.data) for c in circuit_population]
         return stats, to_plot
 
     def output(self, p, s, test_param, multiplier, save=True):
         """writes stats to dataframe, plots graph of averages, and saves when required"""
         df = DataFrame.from_dict(s[test_param])
-        with open(self.base_filepath+f'/{test_param}_mult{multiplier}.csv','w') as file:
+        with open(self.base_filepath+f'{test_param}_mult{multiplier}.csv','w') as file:
             # writes dataframe to unique file, statistical analysis and further plots can be carried out externally
             file.write(DataFrame.to_csv(df))
             file.close()
@@ -173,7 +173,7 @@ class Experiments:
         else:
             plt.show()
 
-    def run_test(self, test_name, circuit_constructor=None):
+    def run_test(self, test_name, circuit_constructor=None, omega=None):
         # initialise dictionary of test functions
         test_functions = {'gateset':self.run_gateset_test,'algorithm':self.run_algorithm_test,
                           'qubit':self.run_qubitcount_test,'distribution':self.run_distribution_test,
@@ -191,6 +191,8 @@ class Experiments:
                 s, p = t_func(self.test_gate_sets, multiplier)
             elif test_name=='qubit':
                 s, p = t_func(circuit_constructor, multiplier)
+            elif test_name=='sorting' and omega!=None:
+                s, p = t_func(gen_multiplier=multiplier, omega=omega)
             else:
                 s, p = t_func(multiplier)
             to_plot.append(p)

@@ -24,15 +24,17 @@ if __name__=="__main__":
             folder = sys.argv[3]
         except:
             print('folder not specified, using default directory')
-            folder = f'out/epsrc_{sys.argv[1]}_{N}qubits'
+            folder = f'out/epsrc_{sys.argv[1]}{N}'
     else:
         print('no valid parameters provided, running with pre-specified parameters')
         APP = QFTGeneration(GATE_SET, 3)
         folder = 'out/eprsc_optimisers'
 
     #QFT_GEN = QFTGeneration(GATE_SET, 3)
-    experiment_instance = Experiments(APP,iterations=20,multipliers=[8],generation_count=100,
+    experiment_instance = Experiments(APP,iterations=50,multipliers=[8],generation_count=100,
                                       test_gate_sets={'overcomplete':GATE_SET}, save_filepath=f'{folder}')
     
-    experiment_instance.run_test('sorting')
-    boxplot_from_folder(f'{folder}', fitness_reference=(2**APP.qubit_count-1)/(2**APP.qubit_count))
+    for omega in [10, 100, 1000]:
+        print(f'OMEGA: {omega}')
+        experiment_instance.run_test('sorting', omega=omega)
+        boxplot_from_folder(f'{folder}', fitness_reference=(2**APP.qubit_count-1)/(2**APP.qubit_count))
