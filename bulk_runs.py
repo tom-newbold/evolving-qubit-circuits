@@ -46,7 +46,7 @@ def multiple_runs(evolution, iterations=10, method='evolution', min_length=None,
             population, fitness_trace = evolution.stochastic_hill_climb(min_length, max_length, MINIMUM_FITNESS=MINIMUM_FITNESS,
                                                                         remove_duplicates=remove_duplicates, output=False)
         elif method=='optimisation':
-            population = [circuit_population[i][1] for _ in range(evolution.SAMPLE_SIZE)]
+            population = [circuit_population[i][1].copy() for _ in range(evolution.SAMPLE_SIZE)]
             population, fitness_trace = evolution.evolutionary_optimisation(population, MINIMUM_FITNESS=MINIMUM_FITNESS,
                                                                     remove_duplicates=remove_duplicates,
                                                                     use_double_point_crossover=use_double_point_crossover,
@@ -74,7 +74,8 @@ def multiple_runs(evolution, iterations=10, method='evolution', min_length=None,
         #        stats['generations_taken_to_converge'].append(i)
         #        break
         stats['generations_taken_to_converge'].append(len(fitness_trace[0])) # TODO Check this matches run length
-        stats['best_genotype_length'].append(len(population[0].genotype_str))
+        #stats['best_genotype_length'].append(len(population[0].genotype_str))
+        stats['best_genotype_length'].append(len(population[0].to_circuit().data))
         stats['best_genotype_depth'].append(population[0].to_circuit().depth())
         stats['average_redundancy'].append(list_avr([g.remove_redundant_gates()[1] for g in population[:evolution.SAMPLE_SIZE]]))
         stats['depth_compression_ratio'].append(circuit_population[i][0].depth()/list_avr([g.to_circuit().depth() for g in population[:evolution.SAMPLE_SIZE]]))

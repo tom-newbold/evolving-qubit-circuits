@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 from pandas import read_csv
 from linear_genetic_programming_utils import list_avr
 
-filepath = 'out\eprsc_optimisers'
+filepath = 'out/epsrc_scatter_qft3'
 
 with open(filepath+'/params.txt','r') as file:
     # fetches run parameters in order to consruct csv filenames
@@ -12,7 +12,7 @@ with open(filepath+'/params.txt','r') as file:
     multipliers = [int(m) for m in lines[1].split(',')]
     test_params = lines[2].split(',')
 
-csv_to_plot = [f'{tp}_mult{m}.csv' for tp in test_params for m in [6]]
+csv_to_plot = [f'{tp}_mult{m}.csv' for tp in test_params for m in multipliers]
 for d_i, dataframe in enumerate([read_csv(filepath+'/'+csv_filename) for csv_filename in csv_to_plot]):
     for metric in ['depth', 'length']:
         plt.clf()
@@ -20,6 +20,7 @@ for d_i, dataframe in enumerate([read_csv(filepath+'/'+csv_filename) for csv_fil
         plt.scatter(dataframe[f"r_unopt_{metric}"], dataframe[f"r_opt_{metric}"])
         plt.xlabel('r_unopt')
         plt.ylabel('r_opt')
+        plt.tight_layout()
         plt.savefig(f'{filepath}/{csv_to_plot[d_i][:-4]}_{metric}_ratio_scatter.png')
 
 
@@ -27,14 +28,40 @@ for metric in ['depth', 'length']:
     plt.clf()
     plt.title(f'{metric} ratios (scaled by runtime)')
     for d_i, dataframe in enumerate([read_csv(filepath+'/'+csv_filename) for csv_filename in csv_to_plot]):
-        #r_unopt_scaled = [a/b for a,b in zip(dataframe[f"r_unopt_{metric}"], dataframe["runtime"])]
         r_opt_scaled = [a*b for a,b in zip(dataframe[f"r_unopt_{metric}"], dataframe["runtime"])]
         plt.scatter(dataframe[f"r_unopt_{metric}"], r_opt_scaled, label=csv_to_plot[d_i][:-4])
     
     plt.xlabel('r_unopt')
     plt.ylabel('r_opt * runtime')
     plt.legend(loc='upper left', prop={'size': 'small'})
+    plt.tight_layout()
     plt.savefig(f'{filepath}/all_{metric}_ratio_scatter.png')
+
+for metric in ['depth', 'length']:
+    plt.clf()
+    plt.title(f'{metric} compression ratios (scaled by runtime)')
+    for d_i, dataframe in enumerate([read_csv(filepath+'/'+csv_filename) for csv_filename in csv_to_plot]):
+        r_opt_scaled = [1/(a*b) for a,b in zip(dataframe[f"r_unopt_{metric}"], dataframe["runtime"])]
+        plt.scatter(dataframe[f"r_unopt_{metric}"], r_opt_scaled, label=csv_to_plot[d_i][:-4])
+    
+    plt.xlabel('r_unopt')
+    plt.ylabel('(r_opt * runtime)$^{-1}$')
+    plt.legend(loc='upper left', prop={'size': 'small'})
+    plt.tight_layout()
+    plt.savefig(f'{filepath}/all_{metric}_ratio_scatter_inverted.png')
+
+'''
+for metric in ['depth', 'length']:
+    plt.clf()
+    plt.title(f'{metric} ratios')
+    for d_i, dataframe in enumerate([read_csv(filepath+'/'+csv_filename) for csv_filename in csv_to_plot]):
+        plt.scatter(dataframe[f"r_unopt_{metric}"], dataframe[f"r_unopt_{metric}"], label=csv_to_plot[d_i][:-4])
+    
+    plt.xlabel('r_unopt')
+    plt.ylabel('r_opt')
+    plt.legend(loc='upper left', prop={'size': 'small'})
+    plt.savefig(f'{filepath}/all_{metric}_ratio_scatter_pure.png')
+'''
 
 for metric in ['depth', 'length']:
     plt.clf()
@@ -46,4 +73,5 @@ for metric in ['depth', 'length']:
     plt.xlabel('r_unopt')
     plt.ylabel('r_opt')
     plt.legend(loc='upper left', prop={'size': 'small'})
+    plt.tight_layout()
     plt.savefig(f'{filepath}/all_{metric}_ratio_line.png')
