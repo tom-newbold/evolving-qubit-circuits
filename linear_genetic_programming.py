@@ -514,6 +514,7 @@ class Evolution:
         #    else:
         #        by_fitness = sorted(by_fitness, key=lambda genotype: genotype.get_fitness()*genotype.get_depth(), reverse=True)
         #else:
+        
         # just fitness
         if sorting_function_override != None:
             by_fitness = sorted(by_fitness, key=sorting_function_override, reverse=True)

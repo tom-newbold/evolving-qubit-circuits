@@ -18,7 +18,7 @@ def plot_scatters(filepath):
 
     # compression ratio against unopt
     for metric in ['depth', 'length']:
-        for d_i, dataframe in enumerate([read_csv(filepath+'/'+csv_filename) for csv_filename in csv_to_plot]):
+        for d_i, dataframe in enumerate([read_csv(filepath+'/'+csv_filename) for csv_filename in csv_to_plot] + [read_csv(filepath+f'/qiskit_mult{m}') for m in multipliers]):
             plt.clf()
             plt.title(f'{csv_to_plot[d_i][:-4].split("_")[0]} - {metric} ratios')
             min_max = [min(dataframe[f"r_unopt_{metric}"]), max(dataframe[f"r_unopt_{metric}"])]

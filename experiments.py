@@ -143,10 +143,22 @@ class Experiments:
             print(f'unoptimising: {"#"*(i+1)}{"-"*(self.ITERATIONS-i-1)}', end='\r')
             circuit_population.append(unoptimiser(transpiled, self.prob_params, self.prob_params.qubit_count))
         print('')
+
+        qiskit_optimised = [transpile(c[0].copy(), basis_gates=[self.prob_params.gate_set[gate_key].name for gate_key in self.prob_params.gate_set],
+                                      optimization_level=3) for c in circuit_population]
+        stats['qiskit'] = {}
+        stats['qiskit']["peak_fitness"] = [self.prob_params.circuit_fitness(c) for c in qiskit_optimised]
+        stats['qiskit']["r_opt_depth"] = [c.depth()/transpiled.depth() for c in qiskit_optimised]
+        stats['qiskit']["r_unopt_depth"] = [c[0].depth()/transpiled.depth() for c in circuit_population]
+        stats['qiskit']["r_opt_length"] = [len(c.data)/len(transpiled.data) for c in qiskit_optimised]
+        stats['qiskit']["r_unopt_length"] = [len(c[0].data)/len(transpiled.data) for c in circuit_population]
+        # save runtime??
+
         for func_name in functions:
             # unique identifier used to name output files
             omega_func = f'{func_name}_omega{omega}'
             print(f'<{omega_func}>')
+            print(functions[func_name])
             E = Evolution(self.prob_params, number_of_generations=self.gen_count, gen_mulpilier=gen_multiplier, sorting_function_override=functions[func_name])
 
             to_plot[omega_func], stats[omega_func] = multiple_runs(E, iterations=self.ITERATIONS, method='optimisation', plot=False, save_dir=self.base_filepath+'/',
@@ -154,9 +166,9 @@ class Experiments:
             #print(f'absolute r_opt: {list_avr(stats[func_name]["best_genotype_depth"])/transpiled.depth()}')
 
             print([d==c[0].depth() for d, c in zip(stats[omega_func]["best_genotype_depth"],circuit_population)])
-            stats[omega_func]["r_opt_depth"] = [d/transpiled.depth() for d in stats[func_name]["best_genotype_depth"]]
+            stats[omega_func]["r_opt_depth"] = [d/transpiled.depth() for d in stats[omega_func]["best_genotype_depth"]]
             stats[omega_func]["r_unopt_depth"] = [c[0].depth()/transpiled.depth() for c in circuit_population]
-            stats[omega_func]["r_opt_length"] = [l/len(transpiled.data) for l in stats[func_name]["best_genotype_length"]]
+            stats[omega_func]["r_opt_length"] = [l/len(transpiled.data) for l in stats[omega_func]["best_genotype_length"]]
             stats[omega_func]["r_unopt_length"] = [len(c[0].data)/len(transpiled.data) for c in circuit_population]
         return stats, to_plot
 
@@ -205,6 +217,8 @@ class Experiments:
     
         with open(self.base_filepath+'/params.txt','w') as file:
             # save parameters to allow easy csv reading
+            if 'qiskit' in all_stats[0]: # TODO check this?
+                all_stats[0].remove('qiskit')
             file.write(f'{self.ITERATIONS}\n{",".join([str(m) for m in self.test_multipliers])}\n{",".join(all_stats[0])}')
             file.close()
 
