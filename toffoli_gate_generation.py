@@ -40,12 +40,10 @@ if __name__=="__main__":
     #    print(genericToffoliConstructor(n))
 
     TOFFOLI = ToffoliGeneration(CLIFFORD_T, 3)
-    E = Evolution(TOFFOLI, sample_percentage=0.1, gen_mulpilier=8, alpha=2, beta=2, gamma=2,
-                  redundancy_model_name='clifford-t-redundancy-model-10000samples-3qubits')
+    E = Evolution(TOFFOLI, sample_percentage=0.1, gen_mulpilier=8, alpha=2, beta=2, gamma=2)
 
     #g = Genotype(TOFFOLI, '022125220242212522024142201024051201')
     
     #population = E.random_search()[0]
     #population = E.stochastic_hill_climb()[0]
     population = E.evolutionary_search(MINIMUM_FITNESS=0)[0]#, random_sample_size=5)
-    population[0].remove_redundant_gates(True)

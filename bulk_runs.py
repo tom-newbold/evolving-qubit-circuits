@@ -28,7 +28,7 @@ def multiple_runs(evolution, iterations=10, method='evolution', min_length=None,
     to_plot = []
     out = []
     stats = {'peak_fitness':[],'runtime':[], 'generations_taken_to_converge':[], 'best_genotype_length':[],
-             'best_genotype_depth':[], 'average_redundancy':[], 'depth_compression_ratio':[], 'length_compression_ratio':[]}
+             'best_genotype_depth':[], 'depth_compression_ratio':[], 'length_compression_ratio':[]}
     if method=='optimisation' and circuit_population==None:
         raise ValueError('Missing circuit_population')
     for i in range(iterations):
@@ -77,7 +77,6 @@ def multiple_runs(evolution, iterations=10, method='evolution', min_length=None,
         #stats['best_genotype_length'].append(len(population[0].genotype_str))
         stats['best_genotype_length'].append(len(population[0].to_circuit().data))
         stats['best_genotype_depth'].append(population[0].to_circuit().depth())
-        stats['average_redundancy'].append(list_avr([g.remove_redundant_gates()[1] for g in population[:evolution.SAMPLE_SIZE]]))
         stats['depth_compression_ratio'].append(circuit_population[i][0].depth()/list_avr([g.to_circuit().depth() for g in population[:evolution.SAMPLE_SIZE]]))
         stats['length_compression_ratio'].append(len(circuit_population[i][0].data)/list_avr([len(g.to_circuit().data) for g in population[:evolution.SAMPLE_SIZE]]))
 

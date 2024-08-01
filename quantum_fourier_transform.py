@@ -27,14 +27,12 @@ if __name__=="__main__":
     QFT_GEN.print_gate_set()
 
     E = Evolution(QFT_GEN, individuals_per_generation=25 * 2**(N-1), number_of_generations=100,
-                  sample_percentage=0.1, gen_mulpilier=8, beta=4)#, redundancy_model_name='qft-redundancy-model')
+                  sample_percentage=0.1, gen_mulpilier=8, beta=4)
     
     
     #null_f = QFT_GEN.get_null_circuit_fitness()
     #MINIMUM_FITNESS=min(null_f, 0),
     population = E.evolutionary_search(use_double_point_crossover=True)[0]#,plot_fitness=False
-    #reduced, redundancy = population[0].remove_redundant_gates()
-    #print(redundancy)
 
     '''
 

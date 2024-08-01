@@ -184,17 +184,6 @@ if __name__=="__main__":
     plt.ylabel('depth error')
     plt.show()
 
-    '''
-    for var in redundancy.rand_gen.all_gate_combinations:
-        plt.clf()
-        plt.title(var)
-        plt.scatter(df[var], df['redundancy'])
-        x = np.linspace(0, int(max(df[var])), 2)
-        y = redundancy.model.coef_[redundancy.rand_gen.all_gate_combinations.index(var)] * x
-        plt.plot(x, y)
-        plt.ylabel('redundancy')
-        plt.show()
-    '''
     
     import time
     t_1 = 0

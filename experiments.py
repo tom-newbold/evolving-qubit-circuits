@@ -152,7 +152,7 @@ class Experiments:
                                                                  circuit_population=circuit_population, insert_delete_proportion=0.5)
             #print(f'absolute r_opt: {list_avr(stats[func_name]["best_genotype_depth"])/transpiled.depth()}')
 
-            print([d==c[0].depth() for d, c in zip(stats[func_name]["best_genotype_depth"],circuit_population)])
+            print([d==c[0].depth() for d, c in zip(stats[omega_func]["best_genotype_depth"],circuit_population)])
             stats[omega_func]["r_opt_depth"] = [d/transpiled.depth() for d in stats[func_name]["best_genotype_depth"]]
             stats[omega_func]["r_unopt_depth"] = [c[0].depth()/transpiled.depth() for c in circuit_population]
             stats[omega_func]["r_opt_length"] = [l/len(transpiled.data) for l in stats[func_name]["best_genotype_length"]]
