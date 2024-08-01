@@ -502,34 +502,40 @@ class Evolution:
     ### ---------- CIRCUIT SELECTION ----------
 
     @staticmethod
-    def sort_by_fitness(population, min_fitness=0, prefer_short_circuits=False, prefer_long_circuits=False, remove_dupe=True, sorting_function_override=None):
+    #def sort_by_fitness(population, min_fitness=0, prefer_short_circuits=False, prefer_long_circuits=False, remove_dupe=True, sorting_function_override=None):
+    def sort_by_fitness(population, min_fitness=0, remove_dupe=True, sorting_function_override=None):
         """sorts population by fitness, also removed duplicates / sorts by circuit depth if specified"""
         by_fitness = population.copy()
         if remove_dupe:
             by_fitness = remove_duplicates(by_fitness)
-        if prefer_short_circuits != prefer_long_circuits:
-            if prefer_short_circuits:
-                by_fitness = sorted(by_fitness, key=lambda genotype: genotype.get_fitness()/genotype.get_depth(), reverse=True)
-            else:
-                by_fitness = sorted(by_fitness, key=lambda genotype: genotype.get_fitness()*genotype.get_depth(), reverse=True)
+        #if prefer_short_circuits != prefer_long_circuits:
+        #    if prefer_short_circuits:
+        #        by_fitness = sorted(by_fitness, key=lambda genotype: genotype.get_fitness()/genotype.get_depth(), reverse=True)
+        #    else:
+        #        by_fitness = sorted(by_fitness, key=lambda genotype: genotype.get_fitness()*genotype.get_depth(), reverse=True)
+        #else:
+        # just fitness
+        if sorting_function_override != None:
+            by_fitness = sorted(by_fitness, key=sorting_function_override, reverse=True)
         else:
-            # just fitness
-            # by_fitness = sorted(by_fitness, key=lambda genotype: genotype.get_fitness(), reverse=True)
-            if sorting_function_override != None:
-                by_fitness = sorted(by_fitness, key=sorting_function_override, reverse=True)
-            else:
-                by_fitness = sorted(by_fitness, key=lambda genotype: genotype.get_fitness(), reverse=True)
+            by_fitness = sorted(by_fitness, key=lambda genotype: genotype.get_fitness(), reverse=True)
+
         while by_fitness[-1].get_fitness() < min_fitness:
             by_fitness.pop(-1)
         return by_fitness
     
-    def top_by_fitness(self, population, min_fitness=0, prefer_short_circuits=False, prefer_long_circuits=False, remove_dupe=True):
+    #def top_by_fitness(self, population, min_fitness=0, prefer_short_circuits=False, prefer_long_circuits=False, remove_dupe=True, elitism_only=False):
+    def top_by_fitness(self, population, min_fitness=0, remove_dupe=True, elitism_only=False):
         """finds the best circuits in the population; top sample taken as well as uniform selection of remaining circuits"""
-        by_fitness = Evolution.sort_by_fitness(population, min_fitness, prefer_short_circuits, prefer_long_circuits, remove_dupe, self.sorting_function_override)
-        step = (len(by_fitness)-self.SAMPLE_SIZE)//(self.GENERATION_SIZE-self.SAMPLE_SIZE)
-        step = 1 if step==0 else step
-        end = (1-step)*self.SAMPLE_SIZE + step*self.GENERATION_SIZE
-        return by_fitness[:self.SAMPLE_SIZE] + by_fitness[self.SAMPLE_SIZE:end:step]
+        #by_fitness = Evolution.sort_by_fitness(population, min_fitness, prefer_short_circuits, prefer_long_circuits, remove_dupe, self.sorting_function_override)
+        by_fitness = Evolution.sort_by_fitness(population, min_fitness, remove_dupe, self.sorting_function_override)
+        if elitism_only:
+            return by_fitness[:self.GENERATION_SIZE]
+        else:
+            step = (len(by_fitness)-self.SAMPLE_SIZE)//(self.GENERATION_SIZE-self.SAMPLE_SIZE)
+            step = 1 if step==0 else step
+            end = (1-step)*self.SAMPLE_SIZE + step*self.GENERATION_SIZE
+            return by_fitness[:self.SAMPLE_SIZE] + by_fitness[self.SAMPLE_SIZE:end:step]
         
         ### ---------- BASELINE ALGORITHMS ----------
 
@@ -787,10 +793,10 @@ class Evolution:
             if output:
                 print(f'Generation {i+1} Size (pre-selection): {len(population)}')
             
-            if prefer_short_circuits!=None:
-                population = self.top_by_fitness(population, min_fitness=MINIMUM_FITNESS, remove_dupe=remove_duplicates, prefer_short_circuits=prefer_short_circuits)
-            else:
-                population = self.top_by_fitness(population, min_fitness=MINIMUM_FITNESS, remove_dupe=remove_duplicates)
+            #if prefer_short_circuits!=None:
+            #    population = self.top_by_fitness(population, min_fitness=MINIMUM_FITNESS, remove_dupe=remove_duplicates, prefer_short_circuits=prefer_short_circuits, elitism_only=True)
+            #else:
+            population = self.top_by_fitness(population, min_fitness=MINIMUM_FITNESS, remove_dupe=remove_duplicates, elitism_only=True)
 
             # output / track fitness
             if output:

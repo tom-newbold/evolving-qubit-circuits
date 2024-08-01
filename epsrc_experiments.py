@@ -34,7 +34,8 @@ if __name__=="__main__":
     experiment_instance = Experiments(APP,iterations=50,multipliers=[8],generation_count=100,
                                       test_gate_sets={'overcomplete':GATE_SET}, save_filepath=f'{folder}')
     
-    for omega in [10, 100, 1000]:
+    #for omega in [10, 100, 1000]:
+    for omega in [100]:
         print(f'OMEGA: {omega}')
         experiment_instance.run_test('sorting', omega=omega)
         boxplot_from_folder(f'{folder}', fitness_reference=(2**APP.qubit_count-1)/(2**APP.qubit_count))

@@ -137,6 +137,7 @@ class Experiments:
         from qiskit import transpile
         from circuit_unoptimiser import unoptimiser
         transpiled = transpile(self.prob_params.target_circuit, basis_gates=[self.prob_params.gate_set[gate_key].name for gate_key in self.prob_params.gate_set], optimization_level=0)
+
         circuit_population = []
         for i in range(self.ITERATIONS):
             print(f'unoptimising: {"#"*(i+1)}{"-"*(self.ITERATIONS-i-1)}', end='\r')

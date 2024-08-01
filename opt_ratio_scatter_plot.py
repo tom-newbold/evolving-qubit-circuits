@@ -21,12 +21,14 @@ def plot_scatters(filepath):
         for d_i, dataframe in enumerate([read_csv(filepath+'/'+csv_filename) for csv_filename in csv_to_plot]):
             plt.clf()
             plt.title(f'{csv_to_plot[d_i][:-4].split("_")[0]} - {metric} ratios')
-            plt.scatter(dataframe[f"r_unopt_{metric}"], dataframe[f"r_unopt_{metric}"]/dataframe[f"r_opt_{metric}"], s=10)
+            min_max = [min(dataframe[f"r_unopt_{metric}"]), max(dataframe[f"r_unopt_{metric}"])]
+            plt.plot(min_max, min_max, linestyle='dashed')
+            plt.scatter(dataframe[f"r_unopt_{metric}"], dataframe[f"r_opt_{metric}"], s=10)
             plt.xlabel('$r_{unopt}$')
             if metric[0]=='d':
-                plt.ylabel('$d_{unopt}/d_{opt}$')
+                plt.ylabel('$d_{opt}$')
             if metric[0]=='l':
-                plt.ylabel('$len_{unopt}/len_{opt}$')
+                plt.ylabel('$len_{opt}$')
             plt.tight_layout()
             plt.savefig(f'{filepath}/plots/{csv_to_plot[d_i][:-4]}_{metric}_ratio_scatter.png')
 
@@ -35,13 +37,16 @@ def plot_scatters(filepath):
         plt.clf()
         plt.title(f'all {metric} ratios')
         for d_i, dataframe in enumerate([read_csv(filepath+'/'+csv_filename) for csv_filename in csv_to_plot]):
-            plt.scatter(dataframe[f"r_unopt_{metric}"], dataframe[f"r_unopt_{metric}"]/dataframe[f"r_opt_{metric}"], s=2, label=csv_to_plot[d_i][:-4])
+            if d_i==0:
+                min_max = [min(dataframe[f"r_unopt_{metric}"]), max(dataframe[f"r_unopt_{metric}"])]
+                plt.plot(min_max, min_max, linestyle='dashed')
+            plt.scatter(dataframe[f"r_unopt_{metric}"], dataframe[f"r_opt_{metric}"], s=2, label=csv_to_plot[d_i][:-4])
         plt.xlabel('$r_{unopt}$')
         if metric[0]=='d':
-            plt.ylabel('$d_{unopt}/d_{opt}$')
+            plt.ylabel('$d_{opt}$')
         if metric[0]=='l':
-            plt.ylabel('$len_{unopt}/len_{opt}$')
-        plt.legend(loc='upper right', prop={'size': 'small'})
+            plt.ylabel('$len_{opt}$')
+        plt.legend(loc='lower right', prop={'size': 'small'})
         plt.tight_layout()
         plt.savefig(f'{filepath}/plots/all_{metric}_ratio_scatter.png')
 
@@ -50,14 +55,14 @@ def plot_scatters(filepath):
         for d_i, dataframe in enumerate([read_csv(filepath+'/'+csv_filename) for csv_filename in csv_to_plot]):
             plt.clf()
             plt.title(f'{csv_to_plot[d_i][:-4].split("_")[0]} - {metric} ratios (scaled by runtime)')
-            ratio = [a/b for a,b in zip(dataframe[f"r_unopt_{metric}"],dataframe[f"r_opt_{metric}"])]
-            scaled = [a/b for a,b in zip(ratio, dataframe["runtime"])]
-            plt.scatter(dataframe[f"r_unopt_{metric}"], scaled, s=10)
+            #ratio = [a/b for a,b in zip(dataframe[f"r_unopt_{metric}"],dataframe[f"r_opt_{metric}"])]
+            #scaled = [a/b for a,b in zip(ratio, dataframe["runtime"])]
+            plt.scatter(dataframe[f"r_unopt_{metric}"], dataframe[f"r_opt_{metric}"]*dataframe["runtime"], s=10)
             plt.xlabel('$r_{unopt}$')
             if metric[0]=='d':
-                plt.ylabel('$d_{unopt}/(d_{opt}*runtime)$')
+                plt.ylabel('$d_{opt}*runtime$')
             if metric[0]=='l':
-                plt.ylabel('$len_{unopt}/(len_{opt}*runtime)$')
+                plt.ylabel('$len_{opt}*runtime$')
             plt.tight_layout()
             plt.savefig(f'{filepath}/plots/{csv_to_plot[d_i][:-4]}_{metric}_ratio_scatter_scaled.png')
 
@@ -65,15 +70,15 @@ def plot_scatters(filepath):
         plt.clf()
         plt.title(f'all {metric} ratios (scaled by runtime)')
         for d_i, dataframe in enumerate([read_csv(filepath+'/'+csv_filename) for csv_filename in csv_to_plot]):
-            ratio = [a/b for a,b in zip(dataframe[f"r_unopt_{metric}"],dataframe[f"r_opt_{metric}"])]
-            scaled = [a/b for a,b in zip(ratio, dataframe["runtime"])]
-            plt.scatter(dataframe[f"r_unopt_{metric}"], scaled, s=2, label=csv_to_plot[d_i][:-4])
+            #ratio = [a/b for a,b in zip(dataframe[f"r_unopt_{metric}"],dataframe[f"r_opt_{metric}"])]
+            #scaled = [a/b for a,b in zip(ratio, dataframe["runtime"])]
+            plt.scatter(dataframe[f"r_unopt_{metric}"], dataframe[f"r_opt_{metric}"]*dataframe["runtime"], s=2, label=csv_to_plot[d_i][:-4])
         plt.xlabel('$r_{unopt}$')
         if metric[0]=='d':
-            plt.ylabel('$d_{unopt}/(d_{opt}*runtime)$')
+            plt.ylabel('$d_{opt}*runtime)')
         if metric[0]=='l':
-            plt.ylabel('$len_{unopt}/(len_{opt}*runtime)$')
-        plt.legend(loc='upper right', prop={'size': 'small'})
+            plt.ylabel('$len_{opt}*runtime$')
+        plt.legend(loc='lower right', prop={'size': 'small'})
         plt.tight_layout()
         plt.savefig(f'{filepath}/plots/all_{metric}_ratio_scatter_scaled.png')
 
@@ -151,7 +156,7 @@ if __name__=="__main__":
         filepath = sys.argv[1]
     else:
         print('no filepath input, using prespecified')
-        filepath = 'out/epsrc_scatter_qft3'
+        filepath = 'out/epsrc_qft3'
 
     plot_scatters(filepath)
 
