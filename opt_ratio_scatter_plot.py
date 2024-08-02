@@ -30,7 +30,7 @@ def plot_scatters(filepath):
             if metric[0]=='l':
                 plt.ylabel('$len_{opt}$')
             plt.tight_layout()
-            plt.savefig(f'{filepath}/plots/{csv_to_plot[d_i][:-4]}_{metric}_ratio_scatter.png')
+            plt.savefig(f'{filepath}/plots/{csv_to_plot[d_i][:-4]}_{metric}_ratio_scatter.pdf')
 
     # all
     for metric in ['depth', 'length']:
@@ -48,7 +48,7 @@ def plot_scatters(filepath):
             plt.ylabel('$len_{opt}$')
         plt.legend(loc='lower right', prop={'size': 'small'})
         plt.tight_layout()
-        plt.savefig(f'{filepath}/plots/all_{metric}_ratio_scatter.png')
+        plt.savefig(f'{filepath}/plots/all_{metric}_ratio_scatter.pdf')
 
     # scaled by runtime
     for metric in ['depth', 'length']:
@@ -64,7 +64,7 @@ def plot_scatters(filepath):
             if metric[0]=='l':
                 plt.ylabel('$len_{opt}*runtime$')
             plt.tight_layout()
-            plt.savefig(f'{filepath}/plots/{csv_to_plot[d_i][:-4]}_{metric}_ratio_scatter_scaled.png')
+            plt.savefig(f'{filepath}/plots/{csv_to_plot[d_i][:-4]}_{metric}_ratio_scatter_scaled.pdf')
 
     for metric in ['depth', 'length']:
         plt.clf()
@@ -80,7 +80,7 @@ def plot_scatters(filepath):
             plt.ylabel('$len_{opt}*runtime$')
         plt.legend(loc='lower right', prop={'size': 'small'})
         plt.tight_layout()
-        plt.savefig(f'{filepath}/plots/all_{metric}_ratio_scatter_scaled.png')
+        plt.savefig(f'{filepath}/plots/all_{metric}_ratio_scatter_scaled.pdf')
 
     """
     for d_i, dataframe in enumerate([read_csv(filepath+'/'+csv_filename) for csv_filename in csv_to_plot]):
@@ -91,7 +91,7 @@ def plot_scatters(filepath):
             plt.xlabel('r_unopt')
             plt.ylabel('r_opt')
             plt.tight_layout()
-            plt.savefig(f'{filepath}/plots/{csv_to_plot[d_i][:-4]}_{metric}_ratio_scatter.png')
+            plt.savefig(f'{filepath}/plots/{csv_to_plot[d_i][:-4]}_{metric}_ratio_scatter.pdf')
 
 
     for metric in ['depth', 'length']:
@@ -105,7 +105,7 @@ def plot_scatters(filepath):
         plt.ylabel('r_opt * runtime')
         plt.legend(loc='upper left', prop={'size': 'small'})
         plt.tight_layout()
-        plt.savefig(f'{filepath}/plots/all_{metric}_ratio_scatter.png')
+        plt.savefig(f'{filepath}/plots/all_{metric}_ratio_scatter.pdf')
 
     for metric in ['depth', 'length']:
         plt.clf()
@@ -118,7 +118,7 @@ def plot_scatters(filepath):
         plt.ylabel('(r_opt * runtime)$^{-1}$')
         plt.legend(loc='upper left', prop={'size': 'small'})
         plt.tight_layout()
-        plt.savefig(f'{filepath}/plots/all_{metric}_ratio_scatter_inverted.png')
+        plt.savefig(f'{filepath}/plots/all_{metric}_ratio_scatter_inverted.pdf')
 
     '''
     for metric in ['depth', 'length']:
@@ -130,7 +130,7 @@ def plot_scatters(filepath):
         plt.xlabel('r_unopt')
         plt.ylabel('r_opt')
         plt.legend(loc='upper left', prop={'size': 'small'})
-        plt.savefig(f'{filepath}/all_{metric}_ratio_scatter_pure.png')
+        plt.savefig(f'{filepath}/all_{metric}_ratio_scatter_pure.pdf')
     '''
     
 
@@ -145,7 +145,7 @@ def plot_scatters(filepath):
         plt.ylabel('r_opt')
         plt.legend(loc='upper left', prop={'size': 'small'})
         plt.tight_layout()
-        plt.savefig(f'{filepath}/plots/all_{metric}_ratio_line.png')
+        plt.savefig(f'{filepath}/plots/all_{metric}_ratio_line.pdf')
     """
 
 

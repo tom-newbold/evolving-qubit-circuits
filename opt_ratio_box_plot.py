@@ -38,7 +38,7 @@ if __name__=="__main__":
             if metric[0]=='l':
                 plt.ylabel('$len_{unopt}/len_{opt}$')
             plt.tight_layout()
-            plt.savefig(f'{folder}epsrc_{problem}{q}/plots/{q}qubits_{metric}_ratio_box.png')
+            plt.savefig(f'{folder}epsrc_{problem}{q}/plots/{q}qubits_{metric}_ratio_box.pdf')
 
 
     # grouped
@@ -59,4 +59,4 @@ if __name__=="__main__":
             if metric[0]=='l':
                 plt.ylabel('$len_{unopt}/(len_{opt}*runtime)$')
             plt.tight_layout()
-            plt.savefig(f'{folder}epsrc_{problem}{q}/plots/{q}qubits_{metric}_ratio_box_scaled.png')
+            plt.savefig(f'{folder}epsrc_{problem}{q}/plots/{q}qubits_{metric}_ratio_box_scaled.pdf')
