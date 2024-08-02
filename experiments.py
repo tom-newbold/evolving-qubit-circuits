@@ -158,7 +158,6 @@ class Experiments:
             # unique identifier used to name output files
             omega_func = f'{func_name}_omega{omega}'
             print(f'<{omega_func}>')
-            print(functions[func_name])
             E = Evolution(self.prob_params, number_of_generations=self.gen_count, gen_mulpilier=gen_multiplier, sorting_function_override=functions[func_name])
 
             to_plot[omega_func], stats[omega_func] = multiple_runs(E, iterations=self.ITERATIONS, method='optimisation', plot=False, save_dir=self.base_filepath+'/',
@@ -183,12 +182,17 @@ class Experiments:
             n = int(test_param[0])
         else:
             n = self.prob_params.qubit_count
-        plot_many_averages(p[test_param], 'Generations', 'Circuit Fitness', legend=False, reference_line=(2**n-1)/(2**n))
-        #plot_many_averages(p[test_param], 'Generations', 'Circuit Fitness', legend=False)
-        if save: # saves figure if specified
-            plt.savefig(self.base_filepath+f'/{test_param}_mult{multiplier}_graph.png')
-        else:
-            plt.show()
+        try:
+            plot_many_averages(p[test_param], 'Generations', 'Circuit Fitness', legend=False, reference_line=(2**n-1)/(2**n))
+            #plot_many_averages(p[test_param], 'Generations', 'Circuit Fitness', legend=False)
+            if save: # saves figure if specified
+                plt.savefig(self.base_filepath+f'/{test_param}_mult{multiplier}_graph.png')
+            else:
+                plt.show()
+        except:
+            if test_param!='qiskit':
+                print(f'error ploting for test parameter {test_param}')
+            pass
 
     def run_test(self, test_name, circuit_constructor=None, omega=None):
         # initialise dictionary of test functions
@@ -217,8 +221,8 @@ class Experiments:
     
         with open(self.base_filepath+'/params.txt','w') as file:
             # save parameters to allow easy csv reading
-            if 'qiskit' in all_stats[0]: # TODO check this?
-                all_stats[0].remove('qiskit')
+            test_param_list = list(all_stats[0].keys())
+            test_param_list.remove('qiskit')
             file.write(f'{self.ITERATIONS}\n{",".join([str(m) for m in self.test_multipliers])}\n{",".join(all_stats[0])}')
             file.close()
 

@@ -2,9 +2,7 @@ import os
 import matplotlib.pyplot as plt
 from pandas import read_csv
 
-if __name__=="__main__":
-    folder = 'out/'
-    problem = 'qft'
+def plot_box_plots(folder, problem):
 
     subfolders = [name for name in os.listdir(folder) if os.path.isdir(folder+name)]
 
@@ -12,7 +10,7 @@ if __name__=="__main__":
     for subdir in subfolders:
         if subdir[:-1] == f'epsrc_{problem}':
             qubit_counts.append(subdir[-1])
-    
+
 
     with open(f'{folder}epsrc_{problem}{qubit_counts[0]}/params.txt','r') as file:
         # fetches run parameters in order to consruct csv filenames
@@ -21,7 +19,9 @@ if __name__=="__main__":
         multipliers = [int(m) for m in lines[1].split(',')]
         test_params = lines[2].split(',')
 
+    test_params.remove('qiskit')
     csv_to_plot = [f'{tp}_mult{m}.csv' for tp in test_params for m in multipliers]
+
 
     # per qubit count
     for metric in ['depth', 'length']:
@@ -60,3 +60,10 @@ if __name__=="__main__":
                 plt.ylabel('$len_{unopt}/(len_{opt}*runtime)$')
             plt.tight_layout()
             plt.savefig(f'{folder}epsrc_{problem}{q}/plots/{q}qubits_{metric}_ratio_box_scaled.pdf')
+
+
+if __name__=="__main__":
+    folder = 'out/'
+    problem = 'qft'
+
+    plot_box_plots(folder, problem)

@@ -18,7 +18,7 @@ def plot_scatters(filepath):
 
     # compression ratio against unopt
     for metric in ['depth', 'length']:
-        for d_i, dataframe in enumerate([read_csv(filepath+'/'+csv_filename) for csv_filename in csv_to_plot] + [read_csv(filepath+f'/qiskit_mult{m}') for m in multipliers]):
+        for d_i, dataframe in enumerate([read_csv(filepath+'/'+csv_filename) for csv_filename in csv_to_plot]):
             plt.clf()
             plt.title(f'{csv_to_plot[d_i][:-4].split("_")[0]} - {metric} ratios')
             min_max = [min(dataframe[f"r_unopt_{metric}"]), max(dataframe[f"r_unopt_{metric}"])]
@@ -50,9 +50,17 @@ def plot_scatters(filepath):
         plt.tight_layout()
         plt.savefig(f'{filepath}/plots/all_{metric}_ratio_scatter.pdf')
 
+        ## add qiskit
+        #for m in multipliers:
+        #    df = read_csv(filepath+f'/qiskit_mult{m}.csv')
+        #    plt.scatter(df[f"r_unopt_{metric}"], df[f"r_opt_{metric}"], s=2, label='qiskit')
+        #plt.savefig(f'{filepath}/plots/all_{metric}_ratio_scatter_qiskit.pdf')
+
     # scaled by runtime
     for metric in ['depth', 'length']:
         for d_i, dataframe in enumerate([read_csv(filepath+'/'+csv_filename) for csv_filename in csv_to_plot]):
+            if 'qiskit' in csv_to_plot[d_i]:
+                continue
             plt.clf()
             plt.title(f'{csv_to_plot[d_i][:-4].split("_")[0]} - {metric} ratios (scaled by runtime)')
             #ratio = [a/b for a,b in zip(dataframe[f"r_unopt_{metric}"],dataframe[f"r_opt_{metric}"])]
@@ -70,6 +78,8 @@ def plot_scatters(filepath):
         plt.clf()
         plt.title(f'all {metric} ratios (scaled by runtime)')
         for d_i, dataframe in enumerate([read_csv(filepath+'/'+csv_filename) for csv_filename in csv_to_plot]):
+            if 'qiskit' in csv_to_plot[d_i]:
+                continue
             #ratio = [a/b for a,b in zip(dataframe[f"r_unopt_{metric}"],dataframe[f"r_opt_{metric}"])]
             #scaled = [a/b for a,b in zip(ratio, dataframe["runtime"])]
             plt.scatter(dataframe[f"r_unopt_{metric}"], dataframe[f"r_opt_{metric}"]*dataframe["runtime"], s=2, label=csv_to_plot[d_i][:-4])
