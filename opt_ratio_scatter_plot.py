@@ -53,12 +53,6 @@ def plot_scatters(filepath):
         plt.savefig(f'{filepath}/plots/all_{metric}_ratio_scatter.png')
         plt.savefig(f'{filepath}/plots/all_{metric}_ratio_scatter.pdf')
 
-        ## add qiskit
-        #for m in multipliers:
-        #    df = read_csv(filepath+f'/qiskit_mult{m}.csv')
-        #    plt.scatter(df[f"r_unopt_{metric}"], df[f"r_opt_{metric}"], s=2, label='qiskit')
-        #plt.savefig(f'{filepath}/plots/all_{metric}_ratio_scatter_qiskit.pdf')
-
     # scaled by runtime
     for metric in ['depth', 'length']:
         for d_i, dataframe in enumerate([read_csv(filepath+'/'+csv_filename) for csv_filename in csv_to_plot]):

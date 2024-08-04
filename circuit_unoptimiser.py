@@ -1,7 +1,6 @@
 from qiskit.circuit.library import QFT as QFT_blueprint
 from qiskit.circuit import CircuitInstruction
 from qiskit import transpile
-#from qiskit.converters import circuit_to_dag
 from quantum_fourier_transform import GATE_SET, QFTGeneration
 from linear_genetic_programming import Genotype, AppliedProblemParameters
 
@@ -12,10 +11,6 @@ from qiskit.transpiler import PassManager
 
 import math
 from random import choice, randint
-
-#del GATE_SET[3]
-##from qiskit.circuit.library import SGate
-#GATE_SET.append(SGate())
 
 def unoptimiser(initial_circuit, app, N=3):
     '''produces an equivilent circuit (up to global phase) with 2 * N**2 extra gates.'''
@@ -53,7 +48,6 @@ def unoptimiser(initial_circuit, app, N=3):
         genotype.from_genotype(''.join(genotype.to_list()[:i]+random_addition+genotype.to_list()[i:]))
         circuit = genotype.to_circuit()
 
-    #print(circuit)
         for i in range(N):
             #print(f'swapping: {genotype.get_fitness()}')
             pm = PassManager([CommutationAnalysis()])
@@ -68,38 +62,25 @@ def unoptimiser(initial_circuit, app, N=3):
             possible_commutations = []
             for wire in wires:
                 try:
-                    #print('wire')
                     for gate_list in pm.property_set['commutation_set'][wire]:
                         if len(gate_list)>1:
                             possible_commutations.append(gate_list)
                 except:
                     pass
-                    #print(wire)
-                    #print(pm.property_set['commutation_set'][wire])
 
             # using dag circuit to swap
-            #print(circuit)
-            #or i in range(10):
             dag_form = circuit_to_dag(circuit)
-
-            #dag_drawer(dag_form, scale=0.7, filename=None, style='color')
 
             to_swap = choice(possible_commutations)
             if len(to_swap) > 2:
                 i = randint(0, len(to_swap)-2)
                 to_swap = to_swap[i:i+2]
 
-            #print(genotype.to_circuit())
-            #print(genotype.to_list())
-            #print(to_swap)
-
             try:
                 dag_form.swap_nodes(*to_swap)
                 if circuit_to_dag(dag_to_circuit(dag_form))==dag_form:
                     circuit = dag_to_circuit(dag_form, False)
                     genotype.from_circuit(circuit)
-                    #print(circuit)
-                    #print(f'> new fitness: {genotype.get_fitness()}')
                 
                 else:
                     #print('> error')
@@ -108,7 +89,6 @@ def unoptimiser(initial_circuit, app, N=3):
                 pass
                 #print('> couldnt swap')
 
-            #print(f'identity size = {circuit_to_dag(dag_to_circuit(dag_form)).size()}')
     genotype.from_circuit(circuit)
     return circuit, genotype
 
@@ -118,13 +98,8 @@ if __name__=="__main__":
     qft = transpile(qft, basis_gates=[gate.name for gate in GATE_SET], optimization_level=0)
 
     qft_gen = QFTGeneration(GATE_SET, N)
-    #genotype = Genotype(qft_gen)
-    #genotype.from_circuit(qft)
     
     qft_gen.print_gate_set()
-
-
-    #print(genotype.to_list())
     
     circuit, genotype = unoptimiser(qft, qft_gen, 3)
     print(circuit)

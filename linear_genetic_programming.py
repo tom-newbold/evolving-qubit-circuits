@@ -419,7 +419,6 @@ class ProblemParameters(ABC):
             if calc_state==output_states[i]:
                 fidelity_sum += 1.0
             else:
-                #fidelity_sum += abs(np.inner(output_states[i].data, calc_state.data).item())**2
                 fidelity_sum += abs(output_states[i].inner(calc_state))**2
                 fidelity_sum -= penalty
         return fidelity_sum/len(input_states)

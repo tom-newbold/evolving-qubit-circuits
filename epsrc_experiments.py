@@ -8,7 +8,6 @@ from opt_ratio_box_plot import plot_box_plots
 import sys
 
 if __name__=="__main__":
-    #print(sys.argv)
     # sys.argv = [filepath, algorithm, qubits, output_directory]
     if len(sys.argv)>=3:
         try:
@@ -34,7 +33,6 @@ if __name__=="__main__":
         folder = 'out/eprsc_optimisers/'
         problem = 'qft'
 
-    #QFT_GEN = QFTGeneration(GATE_SET, 3)
     experiment_instance = Experiments(APP,iterations=25,multipliers=[8],generation_count=100,
                                       test_gate_sets={'overcomplete':GATE_SET}, save_filepath=f'{folder}')
     
