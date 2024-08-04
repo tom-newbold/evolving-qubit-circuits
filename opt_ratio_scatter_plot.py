@@ -14,6 +14,7 @@ def plot_scatters(filepath):
         multipliers = [int(m) for m in lines[1].split(',')]
         test_params = lines[2].split(',')
 
+    test_params.remove('qiskit')
     csv_to_plot = [f'{tp}_mult{m}.csv' for tp in test_params for m in multipliers]
 
     # compression ratio against unopt
@@ -30,6 +31,7 @@ def plot_scatters(filepath):
             if metric[0]=='l':
                 plt.ylabel('$len_{opt}$')
             plt.tight_layout()
+            plt.savefig(f'{filepath}/plots/{csv_to_plot[d_i][:-4]}_{metric}_ratio_scatter.png')
             plt.savefig(f'{filepath}/plots/{csv_to_plot[d_i][:-4]}_{metric}_ratio_scatter.pdf')
 
     # all
@@ -48,6 +50,7 @@ def plot_scatters(filepath):
             plt.ylabel('$len_{opt}$')
         plt.legend(loc='lower right', prop={'size': 'small'})
         plt.tight_layout()
+        plt.savefig(f'{filepath}/plots/all_{metric}_ratio_scatter.png')
         plt.savefig(f'{filepath}/plots/all_{metric}_ratio_scatter.pdf')
 
         ## add qiskit
@@ -72,6 +75,7 @@ def plot_scatters(filepath):
             if metric[0]=='l':
                 plt.ylabel('$len_{opt}*runtime$')
             plt.tight_layout()
+            plt.savefig(f'{filepath}/plots/{csv_to_plot[d_i][:-4]}_{metric}_ratio_scatter_scaled.png')
             plt.savefig(f'{filepath}/plots/{csv_to_plot[d_i][:-4]}_{metric}_ratio_scatter_scaled.pdf')
 
     for metric in ['depth', 'length']:
@@ -90,6 +94,7 @@ def plot_scatters(filepath):
             plt.ylabel('$len_{opt}*runtime$')
         plt.legend(loc='lower right', prop={'size': 'small'})
         plt.tight_layout()
+        plt.savefig(f'{filepath}/plots/all_{metric}_ratio_scatter_scaled.png')
         plt.savefig(f'{filepath}/plots/all_{metric}_ratio_scatter_scaled.pdf')
 
     """

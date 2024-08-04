@@ -70,6 +70,7 @@ def boxplot_from_folder(filepath="", fitness_reference=None):
             plt.tight_layout() # refit to labels
             plt.grid(axis='y')
             plt.savefig(f'{filepath}/{["testparam","multiplier"][d_i]}_grouping/{c.replace("/","_").replace("*","_")}_boxplot.png')
+            plt.savefig(f'{filepath}/{["testparam","multiplier"][d_i]}_grouping/{c.replace("/","_").replace("*","_")}_boxplot.pdf')
             #plt.show()
 
 if __name__=="__main__":
