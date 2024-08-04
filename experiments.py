@@ -138,11 +138,17 @@ class Experiments:
         from circuit_unoptimiser import unoptimiser
         transpiled = transpile(self.prob_params.target_circuit, basis_gates=[self.prob_params.gate_set[gate_key].name for gate_key in self.prob_params.gate_set], optimization_level=0)
 
+        print(self.prob_params.target_circuit)
+        print(transpiled)
+        print(self.prob_params.circuit_fitness(transpiled))
         circuit_population = []
         for i in range(self.ITERATIONS):
             print(f'unoptimising: {"#"*(i+1)}{"-"*(self.ITERATIONS-i-1)}', end='\r')
             circuit_population.append(unoptimiser(transpiled, self.prob_params, self.prob_params.qubit_count))
         print('')
+        #print([c[1].get_fitness() for c in circuit_population])
+        #print(circuit_population[0][0])
+        #print(circuit_population[0][1].get_fitness())
 
         qiskit_optimised = [transpile(c[0].copy(), basis_gates=[self.prob_params.gate_set[gate_key].name for gate_key in self.prob_params.gate_set],
                                       optimization_level=3) for c in circuit_population]

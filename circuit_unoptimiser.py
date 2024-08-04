@@ -18,6 +18,8 @@ from random import choice, randint
 #GATE_SET.append(SGate())
 
 def unoptimiser(initial_circuit, app, N=3):
+    '''produces an equivilent circuit (up to global phase) with 2 * N**2 extra gates.'''
+
     circuit = initial_circuit.copy()
     genotype = Genotype(app)
     genotype.from_circuit(circuit)
@@ -53,6 +55,7 @@ def unoptimiser(initial_circuit, app, N=3):
 
     #print(circuit)
         for i in range(N):
+            #print(f'swapping: {genotype.get_fitness()}')
             pm = PassManager([CommutationAnalysis()])
             pm.run(circuit)
             wires = list(pm.property_set['commutation_set'].keys())[:circuit.num_qubits]
@@ -86,6 +89,10 @@ def unoptimiser(initial_circuit, app, N=3):
                 i = randint(0, len(to_swap)-2)
                 to_swap = to_swap[i:i+2]
 
+            #print(genotype.to_circuit())
+            #print(genotype.to_list())
+            #print(to_swap)
+
             try:
                 dag_form.swap_nodes(*to_swap)
                 if circuit_to_dag(dag_to_circuit(dag_form))==dag_form:
@@ -111,15 +118,15 @@ if __name__=="__main__":
     qft = transpile(qft, basis_gates=[gate.name for gate in GATE_SET], optimization_level=0)
 
     qft_gen = QFTGeneration(GATE_SET, N)
-    genotype = Genotype(qft_gen)
-    genotype.from_circuit(qft)
+    #genotype = Genotype(qft_gen)
+    #genotype.from_circuit(qft)
     
     qft_gen.print_gate_set()
 
 
     #print(genotype.to_list())
     
-    circuit = unoptimiser(qft, qft_gen)[0]
+    circuit, genotype = unoptimiser(qft, qft_gen, 3)
     print(circuit)
     print('^^ unoptimised')
 

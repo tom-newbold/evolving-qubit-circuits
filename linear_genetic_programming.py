@@ -419,7 +419,8 @@ class ProblemParameters(ABC):
             if calc_state==output_states[i]:
                 fidelity_sum += 1.0
             else:
-                fidelity_sum += abs(np.inner(output_states[i].data, calc_state.data).item())**2
+                #fidelity_sum += abs(np.inner(output_states[i].data, calc_state.data).item())**2
+                fidelity_sum += abs(output_states[i].inner(calc_state))**2
                 fidelity_sum -= penalty
         return fidelity_sum/len(input_states)
     
@@ -439,7 +440,7 @@ class AppliedProblemParameters(ProblemParameters):
            genotype_length_falloff takes one of the following values:
            ['linear','logarithmic','reciprocal','']"""
         # sets number of qubits and input states
-        self.target_circuit=target_circuit
+        self.target_circuit = target_circuit
         try:
             N = target_circuit.num_qubits
         except:
@@ -486,7 +487,7 @@ class AppliedProblemParameters(ProblemParameters):
 
 class Evolution:
     def __init__(self, problem_parameters, sample_percentage=0.1, number_of_generations=50,
-                 individuals_per_generation=100, gen_mulpilier=5, alpha=1, beta=2, gamma=2,
+                 individuals_per_generation=100, gen_mulpilier=5, alpha=2, beta=2, gamma=2,
                  sorting_function_override=None):
         self.metadata = problem_parameters
         self.SAMPLE_SIZE = int(individuals_per_generation*sample_percentage)
