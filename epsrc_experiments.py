@@ -36,7 +36,7 @@ if __name__=="__main__":
     experiment_instance = Experiments(APP,iterations=25,multipliers=[6],generation_count=100,
                                       test_gate_sets={'overcomplete':GATE_SET}, save_filepath=f'{folder}')
     
-    omega_test = [10, 100, 250, 500, 1000]:
+    omega_test = [10, 100, 250, 500, 1000]
     #omega_test = [100, 250]
     for omega in omega_test:
         print(f'OMEGA: {omega}')
