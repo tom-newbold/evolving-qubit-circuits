@@ -20,7 +20,7 @@ if __name__=="__main__":
         
         print('no file found, recalculaing')
 
-        '''
+        
         SAMPLES = 100
 
         for N in range(3, 8):
@@ -36,11 +36,6 @@ if __name__=="__main__":
                 print(f'unoptimising: {"#"*(i+1)}{"-"*(SAMPLES-i-1)}', end='\r')
                 circuits.append(unoptimiser(qft, qft_gen, N)[0])
             print('')
-            #r_unopt = []
-            #for i, c in enumerate(circuits):
-            #    print(f'calculating ratios: {"#"*(i+1)}{"-"*(SAMPLES-i-1)}', end='\r')
-            #    r_unopt.append(c.depth()/qft.depth())
-            #print('')
             r_unopt = [c.depth()/qft.depth() for c in circuits]
             data.append(r_unopt)
             labels.append(f'N={N}')
@@ -55,7 +50,7 @@ if __name__=="__main__":
             # writes dataframe to unique file, statistical analysis and further plots can be carried out externally
             file.write(DataFrame.to_csv(df))
             file.close()
-        '''
+        
 
     a = plt.subplots()[1]
     a.set_aspect(0.3)

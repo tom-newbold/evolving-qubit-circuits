@@ -30,16 +30,25 @@ if __name__=="__main__":
     else:
         print('no valid parameters provided, running with pre-specified parameters')
         APP = QFTGeneration(GATE_SET, 3)
-        folder = 'out/eprsc_optimisers/'
+        folder = 'out/epsrc_qft3/'
         problem = 'qft'
 
-    experiment_instance = Experiments(APP,iterations=25,multipliers=[8],generation_count=100,
+    experiment_instance = Experiments(APP,iterations=25,multipliers=[6],generation_count=100,
                                       test_gate_sets={'overcomplete':GATE_SET}, save_filepath=f'{folder}')
     
-    #for omega in [10, 100, 1000]:
-    for omega in [100]:
+    omega_test = [10, 100, 250, 500, 1000]:
+    #omega_test = [100, 250]
+    for omega in omega_test:
         print(f'OMEGA: {omega}')
         experiment_instance.run_test('sorting', omega=omega)
-        boxplot_from_folder(f'{folder}', fitness_reference=(2**APP.qubit_count-1)/(2**APP.qubit_count))
-        plot_scatters(folder.strip('/'))
-        plot_box_plots('/'.join(folder.strip('/').split('/')[:-1]) + '/', problem)
+         
+        with open(experiment_instance.base_filepath+'/params.txt','w') as file:
+            # save parameters to allow easy csv reading
+            test_param_list = [f'{test_param}_omega{omega}' for test_param in ['qiskit', 'base', 'length', 'count', 'depth'] for omega in omega_test]
+            file.write(f'{experiment_instance.ITERATIONS}\n{",".join([str(m) for m in experiment_instance.test_multipliers])}\n{",".join(test_param_list)}')
+            file.close()
+    
+
+    boxplot_from_folder(f'{folder}', fitness_reference=(2**APP.qubit_count-1)/(2**APP.qubit_count))
+    plot_scatters(folder.strip('/'), fitness_threshold=(2**APP.qubit_count-1)/(2**APP.qubit_count))
+    plot_box_plots('/'.join(folder.strip('/').split('/')[:-1]) + '/', problem, fitness_threshold=(2**APP.qubit_count-1)/(2**APP.qubit_count))

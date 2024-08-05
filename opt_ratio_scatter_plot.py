@@ -4,22 +4,30 @@ from pandas import read_csv
 from linear_genetic_programming_utils import list_avr
 
 
-def plot_scatters(filepath):
+def plot_scatters(filepath, fitness_threshold):
     os.makedirs(f'{filepath}/plots', exist_ok=True)
 
     with open(filepath+'/params.txt','r') as file:
         # fetches run parameters in order to consruct csv filenames
         lines = [l.strip('\n') for l in file.readlines()]
-        ITERATIONS = int(lines[0])
         multipliers = [int(m) for m in lines[1].split(',')]
         test_params = lines[2].split(',')
 
-    test_params.remove('qiskit')
+    # removing qiskit from plot
+    q_csv = list(filter(lambda key: 'qiskit' in key, test_params))
+    for key in q_csv:
+        test_params.remove(key)
     csv_to_plot = [f'{tp}_mult{m}.csv' for tp in test_params for m in multipliers]
+    dataframes = [read_csv(filepath+'/'+csv_filename) for csv_filename in csv_to_plot]
+    for i, df in enumerate(dataframes):
+        # filter non-ideal circuits
+        dataframes[i] = df[df['peak_fitness']>=fitness_threshold]
 
     # compression ratio against unopt
     for metric in ['depth', 'length']:
-        for d_i, dataframe in enumerate([read_csv(filepath+'/'+csv_filename) for csv_filename in csv_to_plot]):
+        for d_i, dataframe in enumerate(dataframes):
+            if len(dataframe[f"r_opt_{metric}"])==0:
+                continue
             plt.clf()
             plt.title(f'{csv_to_plot[d_i][:-4].split("_")[0]} - {metric} ratios')
             min_max = [min(dataframe[f"r_unopt_{metric}"]), max(dataframe[f"r_unopt_{metric}"])]
@@ -36,12 +44,16 @@ def plot_scatters(filepath):
 
     # all
     for metric in ['depth', 'length']:
+        plotted_ref_line = False
         plt.clf()
         plt.title(f'all {metric} ratios')
-        for d_i, dataframe in enumerate([read_csv(filepath+'/'+csv_filename) for csv_filename in csv_to_plot]):
-            if d_i==0:
+        for d_i, dataframe in enumerate(dataframes):
+            if len(dataframe[f"r_opt_{metric}"])==0:
+                continue
+            if not plotted_ref_line:
                 min_max = [min(dataframe[f"r_unopt_{metric}"]), max(dataframe[f"r_unopt_{metric}"])]
                 plt.plot(min_max, min_max, linestyle='dashed')
+                plotted_ref_line = True
             plt.scatter(dataframe[f"r_unopt_{metric}"], dataframe[f"r_opt_{metric}"], s=2, label=csv_to_plot[d_i][:-4])
         plt.xlabel('$r_{unopt}$')
         if metric[0]=='d':
@@ -55,7 +67,7 @@ def plot_scatters(filepath):
 
     # scaled by runtime
     for metric in ['depth', 'length']:
-        for d_i, dataframe in enumerate([read_csv(filepath+'/'+csv_filename) for csv_filename in csv_to_plot]):
+        for d_i, dataframe in enumerate(dataframes):
             if 'qiskit' in csv_to_plot[d_i]:
                 continue
             plt.clf()
@@ -75,7 +87,7 @@ def plot_scatters(filepath):
     for metric in ['depth', 'length']:
         plt.clf()
         plt.title(f'all {metric} ratios (scaled by runtime)')
-        for d_i, dataframe in enumerate([read_csv(filepath+'/'+csv_filename) for csv_filename in csv_to_plot]):
+        for d_i, dataframe in enumerate(dataframes):
             if 'qiskit' in csv_to_plot[d_i]:
                 continue
             #ratio = [a/b for a,b in zip(dataframe[f"r_unopt_{metric}"],dataframe[f"r_opt_{metric}"])]
@@ -83,79 +95,13 @@ def plot_scatters(filepath):
             plt.scatter(dataframe[f"r_unopt_{metric}"], dataframe[f"r_opt_{metric}"]*dataframe["runtime"], s=2, label=csv_to_plot[d_i][:-4])
         plt.xlabel('$r_{unopt}$')
         if metric[0]=='d':
-            plt.ylabel('$d_{opt}*runtime)')
+            plt.ylabel('$d_{opt}*runtime)$')
         if metric[0]=='l':
             plt.ylabel('$len_{opt}*runtime$')
         plt.legend(loc='lower right', prop={'size': 'small'})
         plt.tight_layout()
         plt.savefig(f'{filepath}/plots/all_{metric}_ratio_scatter_scaled.png')
         plt.savefig(f'{filepath}/plots/all_{metric}_ratio_scatter_scaled.pdf')
-
-    """
-    for d_i, dataframe in enumerate([read_csv(filepath+'/'+csv_filename) for csv_filename in csv_to_plot]):
-        for metric in ['depth', 'length']:
-            plt.clf()
-            plt.title(f'{metric} ratios')
-            plt.scatter(dataframe[f"r_unopt_{metric}"], dataframe[f"r_opt_{metric}"])
-            plt.xlabel('r_unopt')
-            plt.ylabel('r_opt')
-            plt.tight_layout()
-            plt.savefig(f'{filepath}/plots/{csv_to_plot[d_i][:-4]}_{metric}_ratio_scatter.pdf')
-
-
-    for metric in ['depth', 'length']:
-        plt.clf()
-        plt.title(f'{metric} ratios (scaled by runtime)')
-        for d_i, dataframe in enumerate([read_csv(filepath+'/'+csv_filename) for csv_filename in csv_to_plot]):
-            r_opt_scaled = [a*b for a,b in zip(dataframe[f"r_unopt_{metric}"], dataframe["runtime"])]
-            plt.scatter(dataframe[f"r_unopt_{metric}"], r_opt_scaled, label=csv_to_plot[d_i][:-4])
-        
-        plt.xlabel('r_unopt')
-        plt.ylabel('r_opt * runtime')
-        plt.legend(loc='upper left', prop={'size': 'small'})
-        plt.tight_layout()
-        plt.savefig(f'{filepath}/plots/all_{metric}_ratio_scatter.pdf')
-
-    for metric in ['depth', 'length']:
-        plt.clf()
-        plt.title(f'{metric} compression ratios (scaled by runtime)')
-        for d_i, dataframe in enumerate([read_csv(filepath+'/'+csv_filename) for csv_filename in csv_to_plot]):
-            r_opt_scaled = [1/(a*b) for a,b in zip(dataframe[f"r_unopt_{metric}"], dataframe["runtime"])]
-            plt.scatter(dataframe[f"r_unopt_{metric}"], r_opt_scaled, label=csv_to_plot[d_i][:-4])
-        
-        plt.xlabel('r_unopt')
-        plt.ylabel('(r_opt * runtime)$^{-1}$')
-        plt.legend(loc='upper left', prop={'size': 'small'})
-        plt.tight_layout()
-        plt.savefig(f'{filepath}/plots/all_{metric}_ratio_scatter_inverted.pdf')
-
-    '''
-    for metric in ['depth', 'length']:
-        plt.clf()
-        plt.title(f'{metric} ratios')
-        for d_i, dataframe in enumerate([read_csv(filepath+'/'+csv_filename) for csv_filename in csv_to_plot]):
-            plt.scatter(dataframe[f"r_unopt_{metric}"], dataframe[f"r_unopt_{metric}"], label=csv_to_plot[d_i][:-4])
-        
-        plt.xlabel('r_unopt')
-        plt.ylabel('r_opt')
-        plt.legend(loc='upper left', prop={'size': 'small'})
-        plt.savefig(f'{filepath}/all_{metric}_ratio_scatter_pure.pdf')
-    '''
-    
-
-    for metric in ['depth', 'length']:
-        plt.clf()
-        plt.title(f'{metric} ratios')
-        for d_i, dataframe in enumerate([read_csv(filepath+'/'+csv_filename) for csv_filename in csv_to_plot]):
-            grad = list_avr([1/r for r in dataframe[f"{metric}_compression_ratio"]])
-            plt.plot([0, max(dataframe[f"r_unopt_{metric}"])], [0, max(dataframe[f"r_unopt_{metric}"])*grad], linestyle='dashed', label=csv_to_plot[d_i][:-4])
-        
-        plt.xlabel('r_unopt')
-        plt.ylabel('r_opt')
-        plt.legend(loc='upper left', prop={'size': 'small'})
-        plt.tight_layout()
-        plt.savefig(f'{filepath}/plots/all_{metric}_ratio_line.pdf')
-    """
 
 
 import sys

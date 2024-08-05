@@ -2,9 +2,13 @@ import os
 import matplotlib.pyplot as plt
 from pandas import DataFrame
 
-from linear_genetic_programming import Evolution
+from qiskit import transpile
+from circuit_unoptimiser import unoptimiser
+
+from linear_genetic_programming import Evolution, Genotype
 from linear_genetic_programming_utils import plot_many_averages, list_avr
 from bulk_runs import multiple_runs
+
 
 class Experiments:
     def __init__(self, problem_parameters, iterations=20, multipliers=[2,4,8], save_filepath='out',
@@ -134,24 +138,44 @@ class Experiments:
             'depth': lambda genotype: omega*genotype.get_fitness() - genotype.to_circuit().depth()
         }
         E = Evolution(self.prob_params)
-        from qiskit import transpile
-        from circuit_unoptimiser import unoptimiser
+
         transpiled = transpile(self.prob_params.target_circuit, basis_gates=[self.prob_params.gate_set[gate_key].name for gate_key in self.prob_params.gate_set], optimization_level=0)
 
-        circuit_population = []
-        for i in range(self.ITERATIONS):
-            print(f'unoptimising: {"#"*(i+1)}{"-"*(self.ITERATIONS-i-1)}', end='\r')
-            circuit_population.append(unoptimiser(transpiled, self.prob_params, self.prob_params.qubit_count))
-        print('')
+        try:
+            # read sample
+            circuit_population = []
+            with open(self.base_filepath+'/sample_circuits.txt','r') as file:
+                genotype_strings = [l.strip('\n') for l in file.readlines()]
+                file.close()
+            for genotype_str in genotype_strings:
+                genotype = Genotype(self.prob_params, genotype_str)
+                circuit_population.append([genotype.to_circuit(), genotype])
+            if self.ITERATIONS > len(circuit_population):
+                raise ValueError
+            circuit_population = circuit_population[:self.ITERATIONS]
+        except:
+            # create sample
 
+            circuit_population = []
+            for i in range(self.ITERATIONS):
+                print(f'unoptimising: {"#"*(i+1)}{"-"*(self.ITERATIONS-i-1)}', end='\r')
+                circuit_population.append(unoptimiser(transpiled, self.prob_params, self.prob_params.qubit_count))
+            print('')
+
+            with open(self.base_filepath+'/sample_circuits.txt','w') as file:
+                # save sample
+                file.write('\n'.join([c[1].genotype_str for c in circuit_population]))
+                file.close()
+
+        key = f'qiskit_omega{omega}'
         qiskit_optimised = [transpile(c[0].copy(), basis_gates=[self.prob_params.gate_set[gate_key].name for gate_key in self.prob_params.gate_set],
                                       optimization_level=3) for c in circuit_population]
-        stats['qiskit'] = {}
-        stats['qiskit']["peak_fitness"] = [self.prob_params.circuit_fitness(c) for c in qiskit_optimised]
-        stats['qiskit']["r_opt_depth"] = [c.depth()/transpiled.depth() for c in qiskit_optimised]
-        stats['qiskit']["r_unopt_depth"] = [c[0].depth()/transpiled.depth() for c in circuit_population]
-        stats['qiskit']["r_opt_length"] = [len(c.data)/len(transpiled.data) for c in qiskit_optimised]
-        stats['qiskit']["r_unopt_length"] = [len(c[0].data)/len(transpiled.data) for c in circuit_population]
+        stats[key] = {}
+        stats[key]["peak_fitness"] = [self.prob_params.circuit_fitness(c) for c in qiskit_optimised]
+        stats[key]["r_opt_depth"] = [c.depth()/transpiled.depth() for c in qiskit_optimised]
+        stats[key]["r_unopt_depth"] = [c[0].depth()/transpiled.depth() for c in circuit_population]
+        stats[key]["r_opt_length"] = [len(c.data)/len(transpiled.data) for c in qiskit_optimised]
+        stats[key]["r_unopt_length"] = [len(c[0].data)/len(transpiled.data) for c in circuit_population]
         # save runtime??
 
         for func_name in functions:
@@ -164,7 +188,7 @@ class Experiments:
                                                                  circuit_population=circuit_population, insert_delete_proportion=0.5)
             #print(f'absolute r_opt: {list_avr(stats[func_name]["best_genotype_depth"])/transpiled.depth()}')
 
-            print([d==c[0].depth() for d, c in zip(stats[omega_func]["best_genotype_depth"],circuit_population)])
+            #print([d==c[0].depth() for d, c in zip(stats[omega_func]["best_genotype_depth"],circuit_population)])
             stats[omega_func]["r_opt_depth"] = [d/transpiled.depth() for d in stats[omega_func]["best_genotype_depth"]]
             stats[omega_func]["r_unopt_depth"] = [c[0].depth()/transpiled.depth() for c in circuit_population]
             stats[omega_func]["r_opt_length"] = [l/len(transpiled.data) for l in stats[omega_func]["best_genotype_length"]]
@@ -221,8 +245,6 @@ class Experiments:
     
         with open(self.base_filepath+'/params.txt','w') as file:
             # save parameters to allow easy csv reading
-            test_param_list = list(all_stats[0].keys())
-            test_param_list.remove('qiskit')
             file.write(f'{self.ITERATIONS}\n{",".join([str(m) for m in self.test_multipliers])}\n{",".join(all_stats[0])}')
             file.close()
 

@@ -13,6 +13,11 @@ def boxplot_from_folder(filepath="", fitness_reference=None):
         multipliers = [int(m) for m in lines[1].split(',')]
         test_params = lines[2].split(',')
 
+    # removing qiskit from plot
+    q_csv = filter(lambda key: 'qiskit' in key, test_params)
+    for key in q_csv:
+        test_params.remove(key)
+
     for g in ["testparam","multiplier"]:
         os.makedirs(f'{filepath}/{g}_grouping', exist_ok=True)
 

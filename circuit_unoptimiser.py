@@ -35,7 +35,6 @@ def unoptimiser(initial_circuit, app, N=3):
                     j_range.remove(i)
                     for j in j_range:
                         identity_chains.append([f'{base_gate_index}{i}{j}',f'{inv_gate_index}{i}{j}'])
-                        #identity_chains[-1] = [f'{x}{j}' for x in identity_chains[-1]]
                 else:
                     identity_chains.append([f'{base_gate_index}{i}',f'{inv_gate_index}{i}'])
                     identity_chains.append([f'{base_gate_index}{i}',f'{inv_gate_index}{i}']) # TWICE to balance gate probabilites with two-qubit gates

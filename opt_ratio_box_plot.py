@@ -2,7 +2,7 @@ import os
 import matplotlib.pyplot as plt
 from pandas import read_csv
 
-def plot_box_plots(folder, problem):
+def plot_box_plots(folder, problem, fitness_threshold):
 
     subfolders = [name for name in os.listdir(folder) if os.path.isdir(folder+name)]
 
@@ -15,12 +15,15 @@ def plot_box_plots(folder, problem):
     with open(f'{folder}epsrc_{problem}{qubit_counts[0]}/params.txt','r') as file:
         # fetches run parameters in order to consruct csv filenames
         lines = [l.strip('\n') for l in file.readlines()]
-        ITERATIONS = int(lines[0])
         multipliers = [int(m) for m in lines[1].split(',')]
         test_params = lines[2].split(',')
 
-    test_params.remove('qiskit')
+    # removing qiskit from plot
+    q_csv = list(filter(lambda key: 'qiskit' in key, test_params))
+    for key in q_csv:
+        test_params.remove(key)
     csv_to_plot = [f'{tp}_mult{m}.csv' for tp in test_params for m in multipliers]
+
 
 
     # per qubit count
@@ -29,6 +32,10 @@ def plot_box_plots(folder, problem):
             os.makedirs(f'{folder}epsrc_{problem}{q}/plots', exist_ok=True)
             plt.clf()
             dataframes = [read_csv(f'{folder}/epsrc_{problem}{q}/{csv_filename}') for csv_filename in csv_to_plot]
+            for i, df in enumerate(dataframes):
+                # filter non-ideal circuits
+                dataframes[i] = df[df['peak_fitness']>=fitness_threshold]
+
             data = [d[f"r_unopt_{metric}"]/d[f"r_opt_{metric}"] for d in dataframes]
             plt.boxplot(data, labels=test_params)
             plt.title(f'compression ratio ({metric})')
@@ -51,6 +58,10 @@ def plot_box_plots(folder, problem):
             os.makedirs(f'{folder}epsrc_{problem}{q}/plots', exist_ok=True)
             plt.clf()
             dataframes = [read_csv(f'{folder}/epsrc_{problem}{q}/{csv_filename}') for csv_filename in csv_to_plot]
+            for i, df in enumerate(dataframes):
+                # filter non-ideal circuits
+                dataframes[i] = df[df['peak_fitness']>=fitness_threshold]
+
             data = [d[f"r_unopt_{metric}"]/(d[f"r_opt_{metric}"]*d["runtime"]) for d in dataframes]
             plt.boxplot(data, labels=test_params)
             plt.title(f'compression ratio ({metric}) - runtime scaling')
