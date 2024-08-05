@@ -28,7 +28,10 @@ def multiple_runs(evolution, iterations=10, method='evolution', min_length=None,
     to_plot = []
     out = []
     stats = {'peak_fitness':[],'runtime':[], 'generations_taken_to_converge':[], 'best_genotype_length':[],
-             'best_genotype_depth':[], 'depth_compression_ratio':[], 'length_compression_ratio':[]}
+             'best_genotype_depth':[]}
+    if method=='optimisation':
+        stats['depth_compression_ratio'] = []
+        stats['length_compression_ratio'] = []
     if method=='optimisation' and circuit_population==None:
         raise ValueError('Missing circuit_population')
     for i in range(iterations):
@@ -53,6 +56,12 @@ def multiple_runs(evolution, iterations=10, method='evolution', min_length=None,
                                                                     crossover_proportion=crossover_proportion,
                                                                     insert_delete_proportion=insert_delete_proportion,
                                                                     output=False, prefer_short_circuits=short_circuit_preference)
+        elif method=='combined':
+            # sorting_override
+            population, fitness_trace = evolution.evolutionary_opsearch(MINIMUM_FITNESS=MINIMUM_FITNESS,
+                                                                        remove_duplicates=remove_duplicates,
+                                                                        use_double_point_crossover=use_double_point_crossover,
+                                                                        output=False)
         else:
             raise ValueError('Invalid method parameter')
         to_plot.append(fitness_trace)
@@ -77,8 +86,9 @@ def multiple_runs(evolution, iterations=10, method='evolution', min_length=None,
         #stats['best_genotype_length'].append(len(population[0].genotype_str))
         stats['best_genotype_length'].append(len(population[0].to_circuit().data))
         stats['best_genotype_depth'].append(population[0].to_circuit().depth())
-        stats['depth_compression_ratio'].append(circuit_population[i][0].depth()/list_avr([g.to_circuit().depth() for g in population[:evolution.SAMPLE_SIZE]]))
-        stats['length_compression_ratio'].append(len(circuit_population[i][0].data)/list_avr([len(g.to_circuit().data) for g in population[:evolution.SAMPLE_SIZE]]))
+        if method=='optimisation':
+            stats['depth_compression_ratio'].append(circuit_population[i][0].depth()/list_avr([g.to_circuit().depth() for g in population[:evolution.SAMPLE_SIZE]]))
+            stats['length_compression_ratio'].append(len(circuit_population[i][0].data)/list_avr([len(g.to_circuit().data) for g in population[:evolution.SAMPLE_SIZE]]))
 
     if plot:
         plot_many_averages(to_plot, 'Generations', 'Circuit Fitness', legend=legend, reference_line=peak_fitness_non_global)

@@ -12,7 +12,7 @@ GATE_SET = [HGate(), XGate(), CXGate(), PhaseGate(0),
 GATE_SET_SIMPLE = [HGate(), CXGate(), TGate(), TdgGate()]
 from toffoli_gate_generation import UNIVERSAL_GATE_SET
 
-def QFTGeneration(set_of_gates, N=3):
+def QFTGeneration(set_of_gates=GATE_SET, N=3):
     '''creates a ProblemParameters object with the desired input and output states,
        a sample of the specified size generated based on the number of qubits'''
     lower_bound = N**2 + N

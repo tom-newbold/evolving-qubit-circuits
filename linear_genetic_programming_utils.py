@@ -41,6 +41,10 @@ def int_handled(x):
         return int(x)
     except:
         return 10+letter_to_int(x)
+    
+def non_linear_mapping(x, power=4, a=0, b=1):
+    """maps x (between 0 and 1) to interval [a,b] using a polynomial with degree 'power'"""
+    return (b-a) * x**power * b + a
 
 def basis_states(N=3):
     """returns a list of the 2**N basis states for an N-qubit system"""

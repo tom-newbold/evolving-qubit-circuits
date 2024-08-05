@@ -211,6 +211,7 @@ class Experiments:
             #plot_many_averages(p[test_param], 'Generations', 'Circuit Fitness', legend=False)
             if save: # saves figure if specified
                 plt.savefig(self.base_filepath+f'/{test_param}_mult{multiplier}_graph.png')
+                plt.savefig(self.base_filepath+f'/{test_param}_mult{multiplier}_graph.pdf')
             else:
                 plt.show()
         except:

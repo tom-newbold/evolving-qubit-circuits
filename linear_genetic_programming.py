@@ -526,17 +526,20 @@ class Evolution:
         return by_fitness
     
     #def top_by_fitness(self, population, min_fitness=0, prefer_short_circuits=False, prefer_long_circuits=False, remove_dupe=True, elitism_only=False):
-    def top_by_fitness(self, population, min_fitness=0, remove_dupe=True, elitism_only=False):
+    def top_by_fitness(self, population, min_fitness=0, remove_dupe=True, elitism_only=False, elitism_percentage=None):
         """finds the best circuits in the population; top sample taken as well as uniform selection of remaining circuits"""
         #by_fitness = Evolution.sort_by_fitness(population, min_fitness, prefer_short_circuits, prefer_long_circuits, remove_dupe, self.sorting_function_override)
         by_fitness = Evolution.sort_by_fitness(population, min_fitness, remove_dupe, self.sorting_function_override)
         if elitism_only:
             return by_fitness[:self.GENERATION_SIZE]
+        elif elitism_percentage!=None:
+            sample_size = int(self.GENERATION_SIZE*elitism_percentage)
         else:
-            step = (len(by_fitness)-self.SAMPLE_SIZE)//(self.GENERATION_SIZE-self.SAMPLE_SIZE)
-            step = 1 if step==0 else step
-            end = (1-step)*self.SAMPLE_SIZE + step*self.GENERATION_SIZE
-            return by_fitness[:self.SAMPLE_SIZE] + by_fitness[self.SAMPLE_SIZE:end:step]
+            sample_size = self.SAMPLE_SIZE
+        step = (len(by_fitness)-sample_size)//(self.GENERATION_SIZE-sample_size)
+        step = 1 if step==0 else step
+        end = (1-step)*sample_size + step*self.GENERATION_SIZE
+        return by_fitness[:sample_size] + by_fitness[sample_size:end:step]
         
         ### ---------- BASELINE ALGORITHMS ----------
 
@@ -737,6 +740,136 @@ class Evolution:
         #return population_uniform + population_random
         return population_random
     """
+
+    def evolutionary_opsearch(self, remove_duplicates=True,
+                            MINIMUM_FITNESS=0,
+                            output=True, plot_fitness=True, plot_depth=False,
+                            random_sample_size=0, use_double_point_crossover=True, prefer_short_circuits=None):
+        """generates random population, evolves over generation using input parameters
+           returns final population and fitness trace"""
+        
+        population = []
+        while len(population) < self.SAMPLE_SIZE:
+            for _ in range(self.GENERATION_SIZE):
+                g = Genotype(self.metadata)
+                g.get_fitness()
+                population.append(g)
+            population = self.top_by_fitness(population)
+            if population[-1].get_fitness() >= MINIMUM_FITNESS:
+                break
+            else:
+                for i in range(len(population)):
+                    if population[i].get_fitness() < MINIMUM_FITNESS:
+                        population = population[:i]
+                        break
+        if output:
+            print(f'Generation 0 (initial) Best Genotype: {population[0].genotype_str}')
+            print(f'Generation 0 (initial) Size: {len(population)}')
+        
+        fitness_trace = [[] for _ in range(self.SAMPLE_SIZE)]
+        depth_trace = [[] for _ in range(self.SAMPLE_SIZE)]
+
+        if len(population) < self.SAMPLE_SIZE:
+            raise ValueError('Incorrect population size')
+
+        if plot_fitness:
+            for k in range(self.SAMPLE_SIZE):
+                try:
+                    fitness_trace[k].append(population[k].get_fitness())
+                except:
+                    fitness_trace[k].append(0)
+        if plot_depth:
+            for k in range(self.SAMPLE_SIZE):
+                try:
+                    depth_trace[k].append(population[k].get_depth())
+                except:
+                    depth_trace[k].append(0)
+
+        start_time = time()
+        stagnation_counter = 0
+        for i in range(self.GENERATION_COUNT):
+            prev_average = list_avr([p.get_fitness() for p in population[:self.SAMPLE_SIZE]])
+
+            if not output:
+                if i!=1:
+                    remaining_time = (time()-start_time) * (self.GENERATION_COUNT-i)/(i+1)
+                    remaining_time = remaining_time_calc(remaining_time)
+                    if remaining_time:
+                        print(" "*(os.get_terminal_size().columns-1), end='\r')
+                        x = math.ceil(self.GENERATION_COUNT/50)
+                        print(f"run progress: [{(i//x)*'#'}{(self.GENERATION_COUNT//x-i//x)*'_'}] "+
+                            f"// estimated time remaining for run ~ {remaining_time}", end='\r')
+
+            avr_fitness = list_avr([g.get_fitness() for g in population])
+            # create new circuits
+            population = self.develop_circuits_random(population, int(self.GENERATION_SIZE*(self.GENERATION_MULTIPLIER-1)),
+                                                      use_double_point_crossover, non_linear_mapping(avr_fitness, a=0.5, b=0.2), non_linear_mapping(avr_fitness, a=0.1, b=0.5))
+            #for g in population:
+            #    g.get_fitness()
+            avr_fitness = list_avr([g.get_fitness() for g in population])
+
+            if output:
+                print(f'Generation {i+1} Size (pre-selection): {len(population)}')
+
+            # recalculate sorting function
+            omega = non_linear_mapping(avr_fitness, 10, 10000, 100)
+            self.sorting_function_override = lambda genotype: omega*genotype.get_fitness() - genotype.to_circuit().depth()
+
+            population = self.top_by_fitness(population, min_fitness=MINIMUM_FITNESS, remove_dupe=remove_duplicates,
+                                             elitism_percentage=min(1, avr_fitness + 1/(2**self.metadata.qubit_count)))
+
+            # output / track fitness
+            if output:
+                print(f'Generation {i+1} Best Genotype: {population[0].genotype_str}')
+                print(f'Generation {i+1} Best Fitness: {population[0].get_fitness()}')
+            if plot_fitness:
+                for k in range(self.SAMPLE_SIZE):
+                    try:
+                        fitness_trace[k].append(population[k].get_fitness())
+                        #fitness_trace[k].append(self.metadata.alt_fitness_TEMP(population[k].to_circuit())) # TODO
+                    except:
+                        fitness_trace[k].append(0)
+            if plot_depth:
+                for k in range(self.SAMPLE_SIZE):
+                    try:
+                        depth_trace[k].append(population[k].get_depth())
+                    except:
+                        depth_trace[k].append(0)
+            
+
+            # check for convergence
+            #current_average = list_avr([p.get_fitness() for p in population[:self.SAMPLE_SIZE]])
+            #current_average = list_avr([p.to_circuit().depth() for p in population[:self.SAMPLE_SIZE]])
+            current_average = list_avr([len(p.genotype_str) for p in population[:self.SAMPLE_SIZE]])
+            if math.isclose(current_average,prev_average, abs_tol=0.005):
+                stagnation_counter += 1
+            else:
+                stagnation_counter = 0
+                prev_average = current_average
+            if stagnation_counter > self.GENERATION_COUNT//8:
+                break
+                        
+        if not output: print(" "*(os.get_terminal_size().columns-1), end='\r') # print((80+self.GENERATION_COUNT)*" ", end='\r') 
+
+        # output
+        if output:
+            print(f'Top {self.SAMPLE_SIZE} genotypes:')
+            for i in range(self.SAMPLE_SIZE):
+                print(population[i].genotype_str)
+                print(population[i].get_fitness())
+            print('best circuit:')
+            print(population[0].to_circuit())
+
+            if plot_fitness:
+                plot_list(fitness_trace, 'Generations', 'Circuit Fitness')
+                plt.show()
+                plot_list(fitness_trace, 'Generations', 'Circuit Fitness', False)
+                plt.show()
+            if plot_depth:
+                plot_list(depth_trace, 'Generations', 'Genotype Length')#'Circuit Depth')
+                plt.show()
+
+        return population, fitness_trace
     
     def evolutionary_optimisation(self, population=[], remove_duplicates=True,
                             MINIMUM_FITNESS=0, crossover_proportion=0.25, insert_delete_proportion=0.2, 
