@@ -4,7 +4,7 @@ from pandas import read_csv
 from linear_genetic_programming_utils import list_avr
 
 
-def plot_scatters(filepath, fitness_threshold):
+def plot_scatters(filepath, fitness_threshold=None):
     os.makedirs(f'{filepath}/plots', exist_ok=True)
 
     with open(filepath+'/params.txt','r') as file:
@@ -19,11 +19,14 @@ def plot_scatters(filepath, fitness_threshold):
         test_params.remove(key)
     csv_to_plot = [f'{tp}_mult{m}.csv' for tp in test_params for m in multipliers]
     dataframes = [read_csv(filepath+'/'+csv_filename) for csv_filename in csv_to_plot]
-    for i, df in enumerate(dataframes):
-        # filter non-ideal circuits
-        dataframes[i] = df[df['peak_fitness']>=fitness_threshold]
+
+    if fitness_threshold != None:
+        for i, df in enumerate(dataframes):
+            # filter non-ideal circuits
+            dataframes[i] = df[df['peak_fitness']>=fitness_threshold]
 
     # compression ratio against unopt
+    '''
     for metric in ['depth', 'length']:
         for d_i, dataframe in enumerate(dataframes):
             if len(dataframe[f"r_opt_{metric}"])==0:
@@ -41,31 +44,35 @@ def plot_scatters(filepath, fitness_threshold):
             plt.tight_layout()
             plt.savefig(f'{filepath}/plots/{csv_to_plot[d_i][:-4]}_{metric}_ratio_scatter.png')
             plt.savefig(f'{filepath}/plots/{csv_to_plot[d_i][:-4]}_{metric}_ratio_scatter.pdf')
+    '''
 
     # all
     for metric in ['depth', 'length']:
-        plotted_ref_line = False
         plt.clf()
+        min_max = [min([min(df[f"r_unopt_{metric}"]) for df in dataframes]), max([max(df[f"r_unopt_{metric}"]) for df in dataframes])]
+        plt.plot(min_max, min_max, linestyle='dashed', label='reference')
         plt.title(f'all {metric} ratios')
         for d_i, dataframe in enumerate(dataframes):
             if len(dataframe[f"r_opt_{metric}"])==0:
                 continue
-            if not plotted_ref_line:
-                min_max = [min(dataframe[f"r_unopt_{metric}"]), max(dataframe[f"r_unopt_{metric}"])]
-                plt.plot(min_max, min_max, linestyle='dashed')
-                plotted_ref_line = True
+            gradient = list_avr((dataframe[f"r_opt_{metric}"]/dataframe[f"r_unopt_{metric}"]).to_list())
+            plt.plot(min_max, [y*gradient for y in min_max], linestyle='dashed', label=csv_to_plot[d_i][:-4]+' avr comp. ratio (inv.)')
             plt.scatter(dataframe[f"r_unopt_{metric}"], dataframe[f"r_opt_{metric}"], s=2, label=csv_to_plot[d_i][:-4])
         plt.xlabel('$r_{unopt}$')
         if metric[0]=='d':
             plt.ylabel('$d_{opt}$')
         if metric[0]=='l':
             plt.ylabel('$len_{opt}$')
-        plt.legend(loc='lower right', prop={'size': 'small'})
+        
         plt.tight_layout()
+        plt.savefig(f'{filepath}/plots/all_{metric}_ratio_scatter_nolegend.png')
+        plt.savefig(f'{filepath}/plots/all_{metric}_ratio_scatter_nolegend.pdf')
+        plt.legend(loc='lower right', prop={'size': 'small'})
         plt.savefig(f'{filepath}/plots/all_{metric}_ratio_scatter.png')
         plt.savefig(f'{filepath}/plots/all_{metric}_ratio_scatter.pdf')
 
     # scaled by runtime
+    '''
     for metric in ['depth', 'length']:
         for d_i, dataframe in enumerate(dataframes):
             if 'qiskit' in csv_to_plot[d_i]:
@@ -83,6 +90,7 @@ def plot_scatters(filepath, fitness_threshold):
             plt.tight_layout()
             plt.savefig(f'{filepath}/plots/{csv_to_plot[d_i][:-4]}_{metric}_ratio_scatter_scaled.png')
             plt.savefig(f'{filepath}/plots/{csv_to_plot[d_i][:-4]}_{metric}_ratio_scatter_scaled.pdf')
+    '''
 
     for metric in ['depth', 'length']:
         plt.clf()
@@ -95,11 +103,14 @@ def plot_scatters(filepath, fitness_threshold):
             plt.scatter(dataframe[f"r_unopt_{metric}"], dataframe[f"r_opt_{metric}"]*dataframe["runtime"], s=2, label=csv_to_plot[d_i][:-4])
         plt.xlabel('$r_{unopt}$')
         if metric[0]=='d':
-            plt.ylabel('$d_{opt}*runtime)$')
+            plt.ylabel('$d_{opt}*runtime$')
         if metric[0]=='l':
             plt.ylabel('$len_{opt}*runtime$')
-        plt.legend(loc='lower right', prop={'size': 'small'})
         plt.tight_layout()
+        
+        plt.savefig(f'{filepath}/plots/all_{metric}_ratio_scatter_scaled_nolegend.png')
+        plt.savefig(f'{filepath}/plots/all_{metric}_ratio_scatter_scaled_nolegend.pdf')
+        plt.legend(loc='lower right', prop={'size': 'small'})
         plt.savefig(f'{filepath}/plots/all_{metric}_ratio_scatter_scaled.png')
         plt.savefig(f'{filepath}/plots/all_{metric}_ratio_scatter_scaled.pdf')
 
@@ -113,6 +124,12 @@ if __name__=="__main__":
         print('no filepath input, using prespecified')
         filepath = 'out/epsrc_qft3'
 
-    plot_scatters(filepath)
+    try:
+        n = int(filepath.strip('/')[-1])
+        threshold = (2**n - 1)/2**n
+    except:
+        threshold = None
+
+    plot_scatters(filepath, threshold)
 
     #out/epsrc_qft3_new

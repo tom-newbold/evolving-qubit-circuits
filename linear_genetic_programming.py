@@ -741,7 +741,7 @@ class Evolution:
         return population_random
     """
 
-    def evolutionary_opsearch(self, remove_duplicates=True,
+    def evolutionary_opsearch(self, sort_lambda, remove_duplicates=True, omega_base=100,
                             MINIMUM_FITNESS=0,
                             output=True, plot_fitness=True, plot_depth=False,
                             random_sample_size=0, use_double_point_crossover=True, prefer_short_circuits=None):
@@ -812,8 +812,9 @@ class Evolution:
                 print(f'Generation {i+1} Size (pre-selection): {len(population)}')
 
             # recalculate sorting function
-            omega = non_linear_mapping(avr_fitness, 10, 10000, 100)
-            self.sorting_function_override = lambda genotype: omega*genotype.get_fitness() - genotype.to_circuit().depth()
+            omega = non_linear_mapping(avr_fitness, 10, 10000, omega_base)
+            #self.sorting_function_override = lambda genotype: omega*genotype.get_fitness() - genotype.to_circuit().depth()
+            self.sorting_function_override = sort_lambda(omega)
 
             population = self.top_by_fitness(population, min_fitness=MINIMUM_FITNESS, remove_dupe=remove_duplicates,
                                              elitism_percentage=min(1, avr_fitness + 1/(2**self.metadata.qubit_count)))

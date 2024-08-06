@@ -5,9 +5,10 @@ from experiments import Experiments
 
 from box_plot import boxplot_from_folder
 from opt_ratio_scatter_plot import plot_scatters
+from opt_ratio_box_plot import plot_box_plots
 
 QFT_GEN = QFTGeneration()
-evolution = Evolution(QFT_GEN, number_of_generations=100, gen_mulpilier=5)
+evolution = Evolution(QFT_GEN, number_of_generations=100, gen_mulpilier=8)
 ITERATIONS = 5
 
 experiment_instance = Experiments(QFT_GEN,iterations=ITERATIONS,multipliers=[evolution.GENERATION_MULTIPLIER],
@@ -25,3 +26,4 @@ with open(experiment_instance.base_filepath+'/params.txt','w') as file:
 
 boxplot_from_folder('out/combined_algorithm/', fitness_reference=(2**QFT_GEN.qubit_count-1)/(2**QFT_GEN.qubit_count))
 #plot_scatters('out/combined_algorithm', fitness_threshold=(2**QFT_GEN.qubit_count-1)/(2**QFT_GEN.qubit_count))
+plot_box_plots('out/combined_algorithm')

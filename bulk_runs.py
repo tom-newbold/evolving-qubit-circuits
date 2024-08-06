@@ -57,8 +57,8 @@ def multiple_runs(evolution, iterations=10, method='evolution', min_length=None,
                                                                     insert_delete_proportion=insert_delete_proportion,
                                                                     output=False, prefer_short_circuits=short_circuit_preference)
         elif method=='combined':
-            # sorting_override
-            population, fitness_trace = evolution.evolutionary_opsearch(MINIMUM_FITNESS=MINIMUM_FITNESS,
+            sorting_override = lambda omega: lambda genotype: omega*genotype.get_fitness() - genotype.to_circuit().depth()
+            population, fitness_trace = evolution.evolutionary_opsearch(sorting_override, MINIMUM_FITNESS=MINIMUM_FITNESS,
                                                                         remove_duplicates=remove_duplicates,
                                                                         use_double_point_crossover=use_double_point_crossover,
                                                                         output=False)

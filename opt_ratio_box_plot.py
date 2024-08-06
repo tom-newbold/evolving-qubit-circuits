@@ -2,14 +2,14 @@ import os
 import matplotlib.pyplot as plt
 from pandas import read_csv
 
-def plot_box_plots(folder, problem, fitness_threshold):
+def plot_box_plots(folder, problem, sort_params=False):
 
     subfolders = [name for name in os.listdir(folder) if os.path.isdir(folder+name)]
 
     qubit_counts = []
     for subdir in subfolders:
         if subdir[:-1] == f'epsrc_{problem}':
-            qubit_counts.append(subdir[-1])
+            qubit_counts.append(int(subdir[-1]))
 
 
     with open(f'{folder}epsrc_{problem}{qubit_counts[0]}/params.txt','r') as file:
@@ -17,6 +17,11 @@ def plot_box_plots(folder, problem, fitness_threshold):
         lines = [l.strip('\n') for l in file.readlines()]
         multipliers = [int(m) for m in lines[1].split(',')]
         test_params = lines[2].split(',')
+
+    fsize = (len(test_params)/2,5)
+
+    if sort_params:
+        test_params = sorted(test_params)
 
     # removing qiskit from plot
     q_csv = list(filter(lambda key: 'qiskit' in key, test_params))
@@ -31,15 +36,23 @@ def plot_box_plots(folder, problem, fitness_threshold):
         for q in qubit_counts:
             os.makedirs(f'{folder}epsrc_{problem}{q}/plots', exist_ok=True)
             plt.clf()
+            a = plt.subplots(figsize=fsize)[1]
+            #a.set_aspect(3)
             dataframes = [read_csv(f'{folder}/epsrc_{problem}{q}/{csv_filename}') for csv_filename in csv_to_plot]
+            fitness_threshold = (2**q - 1)/2**q
             for i, df in enumerate(dataframes):
                 # filter non-ideal circuits
                 dataframes[i] = df[df['peak_fitness']>=fitness_threshold]
 
+            plt.axhline(1, c='r', linewidth=0.5, linestyle='dashed')
             data = [d[f"r_unopt_{metric}"]/d[f"r_opt_{metric}"] for d in dataframes]
-            plt.boxplot(data, labels=test_params)
+            labels = []
+            for t in test_params:
+                t = t.split('_')
+                labels.append(f'{t[0]}\n$\\omega={t[1][5:]}$')
+            plt.boxplot(data, labels=labels, widths=0.8)
             plt.title(f'compression ratio ({metric})')
-            plt.xlabel('$r_{unopt}$')
+            plt.xlabel('method and $\omega$')
             if metric[0]=='d':
                 plt.ylabel('$d_{unopt}/d_{opt}$')
             if metric[0]=='l':
@@ -49,6 +62,66 @@ def plot_box_plots(folder, problem, fitness_threshold):
             plt.savefig(f'{folder}epsrc_{problem}{q}/plots/{q}qubits_{metric}_ratio_box.pdf')
 
 
+    # per qubit count (opt)
+    for metric in ['depth', 'length']:
+        for q in qubit_counts:
+            os.makedirs(f'{folder}epsrc_{problem}{q}/plots', exist_ok=True)
+            plt.clf()
+            a = plt.subplots(figsize=fsize)[1]
+            #a.set_aspect(3)
+            dataframes = [read_csv(f'{folder}/epsrc_{problem}{q}/{csv_filename}') for csv_filename in csv_to_plot]
+            fitness_threshold = (2**q - 1)/2**q
+            for i, df in enumerate(dataframes):
+                # filter non-ideal circuits
+                dataframes[i] = df[df['peak_fitness']>=fitness_threshold]
+
+            plt.axhline(1, c='r', linewidth=0.5, linestyle='dashed')
+            data = [d[f"r_opt_{metric}"] for d in dataframes]
+            labels = []
+            for t in test_params:
+                t = t.split('_')
+                labels.append(f'{t[0]}\n$\\omega={t[1][5:]}$')
+            plt.boxplot(data, labels=labels, widths=0.8)
+            plt.title(f'absolute r_opt ({metric})')
+            plt.xlabel('method and $\omega$')
+            if metric[0]=='d':
+                plt.ylabel('$d_{opt}$')
+            if metric[0]=='l':
+                plt.ylabel('$len_{opt}$')
+            plt.tight_layout()
+            plt.savefig(f'{folder}epsrc_{problem}{q}/plots/{q}qubits_{metric}_r_opt_box.png')
+            plt.savefig(f'{folder}epsrc_{problem}{q}/plots/{q}qubits_{metric}_r_opt_box.pdf')
+
+    # as above, scaled by fitness
+    for metric in ['depth', 'length']:
+        for q in qubit_counts:
+            os.makedirs(f'{folder}epsrc_{problem}{q}/plots', exist_ok=True)
+            plt.clf()
+            a = plt.subplots(figsize=fsize)[1]
+            #a.set_aspect(3)
+            dataframes = [read_csv(f'{folder}/epsrc_{problem}{q}/{csv_filename}') for csv_filename in csv_to_plot]
+            fitness_threshold = (2**q - 1)/2**q
+            for i, df in enumerate(dataframes):
+                # filter non-ideal circuits
+                dataframes[i] = df[df['peak_fitness']>=fitness_threshold]
+
+            plt.axhline(1, c='r', linewidth=0.5, linestyle='dashed')
+            data = [d[f"r_opt_{metric}"]/d["peak_fitness"] for d in dataframes]
+            labels = []
+            for t in test_params:
+                t = t.split('_')
+                labels.append(f'{t[0]}\n$\\omega={t[1][5:]}$')
+            plt.boxplot(data, labels=labels, widths=0.8)
+            plt.title(f'r_opt / fitness ({metric})')
+            plt.xlabel('method and $\omega$')
+            if metric[0]=='d':
+                plt.ylabel('$d_{opt}$')
+            if metric[0]=='l':
+                plt.ylabel('$len_{opt}$')
+            plt.tight_layout()
+            plt.savefig(f'{folder}epsrc_{problem}{q}/plots/{q}qubits_{metric}_r_opt_box_scaled.png')
+            plt.savefig(f'{folder}epsrc_{problem}{q}/plots/{q}qubits_{metric}_r_opt_box_scaled.pdf')
+
     # grouped
     # TODO
 
@@ -57,15 +130,22 @@ def plot_box_plots(folder, problem, fitness_threshold):
         for q in qubit_counts:
             os.makedirs(f'{folder}epsrc_{problem}{q}/plots', exist_ok=True)
             plt.clf()
+            a = plt.subplots(figsize=fsize)[1]
+            #a.set_aspect(3)
             dataframes = [read_csv(f'{folder}/epsrc_{problem}{q}/{csv_filename}') for csv_filename in csv_to_plot]
+            fitness_threshold = (2**q - 1)/2**q
             for i, df in enumerate(dataframes):
                 # filter non-ideal circuits
                 dataframes[i] = df[df['peak_fitness']>=fitness_threshold]
 
             data = [d[f"r_unopt_{metric}"]/(d[f"r_opt_{metric}"]*d["runtime"]) for d in dataframes]
-            plt.boxplot(data, labels=test_params)
+            labels = []
+            for t in test_params:
+                t = t.split('_')
+                labels.append(f'{t[0]}\n$\\omega={t[1][5:]}$')
+            plt.boxplot(data, labels=labels, widths=0.8)
             plt.title(f'compression ratio ({metric}) - runtime scaling')
-            plt.xlabel('$r_{unopt}$')
+            plt.xlabel('method and $\omega$')
             if metric[0]=='d':
                 plt.ylabel('$d_{unopt}/(d_{opt}*runtime)$')
             if metric[0]=='l':
@@ -79,4 +159,4 @@ if __name__=="__main__":
     folder = 'out/'
     problem = 'qft'
 
-    plot_box_plots(folder, problem)
+    plot_box_plots(folder, problem, True)

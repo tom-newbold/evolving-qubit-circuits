@@ -44,11 +44,11 @@ if __name__=="__main__":
          
         with open(experiment_instance.base_filepath+'/params.txt','w') as file:
             # save parameters to allow easy csv reading
-            test_param_list = [f'{test_param}_omega{omega}' for test_param in ['qiskit', 'base', 'length', 'count', 'depth'] for omega in omega_test]
+            test_param_list = [f'{test_param}_omega{omega}' for omega in omega_test for test_param in ['qiskit', 'base', 'length', 'count', 'depth']]
             file.write(f'{experiment_instance.ITERATIONS}\n{",".join([str(m) for m in experiment_instance.test_multipliers])}\n{",".join(test_param_list)}')
             file.close()
     
 
     boxplot_from_folder(f'{folder}', fitness_reference=(2**APP.qubit_count-1)/(2**APP.qubit_count))
     plot_scatters(folder.strip('/'), fitness_threshold=(2**APP.qubit_count-1)/(2**APP.qubit_count))
-    plot_box_plots('/'.join(folder.strip('/').split('/')[:-1]) + '/', problem, fitness_threshold=(2**APP.qubit_count-1)/(2**APP.qubit_count))
+    plot_box_plots('/'.join(folder.strip('/').split('/')[:-1]) + '/', problem)
