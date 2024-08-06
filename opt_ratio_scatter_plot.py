@@ -2,6 +2,7 @@ import os
 import matplotlib.pyplot as plt
 from pandas import read_csv
 from linear_genetic_programming_utils import list_avr
+from opt_ratio_box_plot import labels_handled
 
 
 def plot_scatters(filepath, fitness_threshold=None):
@@ -46,18 +47,23 @@ def plot_scatters(filepath, fitness_threshold=None):
             plt.savefig(f'{filepath}/plots/{csv_to_plot[d_i][:-4]}_{metric}_ratio_scatter.pdf')
     '''
 
+    labels = labels_handled(test_params)
     # all
     for metric in ['depth', 'length']:
         plt.clf()
-        min_max = [min([min(df[f"r_unopt_{metric}"]) for df in dataframes]), max([max(df[f"r_unopt_{metric}"]) for df in dataframes])]
+        min_max = [min([min(df[f"r_unopt_{metric}"]) if len(df[f"r_opt_{metric}"])!=0 else 0 for df in dataframes]),
+                   max([max(df[f"r_unopt_{metric}"]) if len(df[f"r_unopt_{metric}"])!=0 else 0 for df in dataframes])]
+        if min_max==[0,0]:
+            print('ALL EMPTY')
+            return
         plt.plot(min_max, min_max, linestyle='dashed', label='reference')
         plt.title(f'all {metric} ratios')
         for d_i, dataframe in enumerate(dataframes):
             if len(dataframe[f"r_opt_{metric}"])==0:
                 continue
             gradient = list_avr((dataframe[f"r_opt_{metric}"]/dataframe[f"r_unopt_{metric}"]).to_list())
-            plt.plot(min_max, [y*gradient for y in min_max], linestyle='dashed', label=csv_to_plot[d_i][:-4]+' avr comp. ratio (inv.)')
-            plt.scatter(dataframe[f"r_unopt_{metric}"], dataframe[f"r_opt_{metric}"], s=2, label=csv_to_plot[d_i][:-4])
+            plt.plot(min_max, [y*gradient for y in min_max], linestyle='dashed', label=labels[d_i]+' avr comp. ratio (inv.)')
+            plt.scatter(dataframe[f"r_unopt_{metric}"], dataframe[f"r_opt_{metric}"], s=2, label=labels[d_i])
         plt.xlabel('$r_{unopt}$')
         if metric[0]=='d':
             plt.ylabel('$d_{opt}$')
@@ -100,7 +106,7 @@ def plot_scatters(filepath, fitness_threshold=None):
                 continue
             #ratio = [a/b for a,b in zip(dataframe[f"r_unopt_{metric}"],dataframe[f"r_opt_{metric}"])]
             #scaled = [a/b for a,b in zip(ratio, dataframe["runtime"])]
-            plt.scatter(dataframe[f"r_unopt_{metric}"], dataframe[f"r_opt_{metric}"]*dataframe["runtime"], s=2, label=csv_to_plot[d_i][:-4])
+            plt.scatter(dataframe[f"r_unopt_{metric}"], dataframe[f"r_opt_{metric}"]*dataframe["runtime"], s=2, label=labels[d_i])
         plt.xlabel('$r_{unopt}$')
         if metric[0]=='d':
             plt.ylabel('$d_{opt}*runtime$')

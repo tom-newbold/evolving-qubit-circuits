@@ -701,7 +701,10 @@ class Evolution:
             operation = random.choices(population=operations, weights=w, k=1)[0]
             # randomly select a genotype
             #g_1 = random.choices(inital_population, weights=[g.get_fitness() for g in inital_population], k=1)[0]
-            g_1, g_2 = random.choices(inital_population, weights=[g.get_fitness() for g in inital_population], k=2)
+            try:
+                g_1, g_2 = random.choices(inital_population, weights=[g.get_fitness() for g in inital_population], k=2)
+            except:
+                g_1, g_2 = random.choices(inital_population, weights=[1+g.get_fitness() for g in inital_population], k=2)
             if operation == 'crossover':
                 #g_2 = g_1
                 #while g_2 == g_1:
@@ -741,30 +744,12 @@ class Evolution:
         return population_random
     """
 
-    def evolutionary_opsearch(self, sort_lambda, remove_duplicates=True, omega_base=100,
+    def evolutionary_opsearch(self, sort_lambda, population, remove_duplicates=True, omega_base=100,
                             MINIMUM_FITNESS=0,
                             output=True, plot_fitness=True, plot_depth=False,
                             random_sample_size=0, use_double_point_crossover=True, prefer_short_circuits=None):
         """generates random population, evolves over generation using input parameters
            returns final population and fitness trace"""
-        
-        population = []
-        while len(population) < self.SAMPLE_SIZE:
-            for _ in range(self.GENERATION_SIZE):
-                g = Genotype(self.metadata)
-                g.get_fitness()
-                population.append(g)
-            population = self.top_by_fitness(population)
-            if population[-1].get_fitness() >= MINIMUM_FITNESS:
-                break
-            else:
-                for i in range(len(population)):
-                    if population[i].get_fitness() < MINIMUM_FITNESS:
-                        population = population[:i]
-                        break
-        if output:
-            print(f'Generation 0 (initial) Best Genotype: {population[0].genotype_str}')
-            print(f'Generation 0 (initial) Size: {len(population)}')
         
         fitness_trace = [[] for _ in range(self.SAMPLE_SIZE)]
         depth_trace = [[] for _ in range(self.SAMPLE_SIZE)]

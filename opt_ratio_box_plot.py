@@ -2,6 +2,21 @@ import os
 import matplotlib.pyplot as plt
 from pandas import read_csv
 
+def labels_handled(test_params):
+    labels = []
+    for t in test_params:
+        try:
+            t = t.split('_')
+            labels.append(f'{t[0]}\n$\\omega={t[1][5:]}$')
+        except:
+            labels.append(t[0])
+    return labels
+
+def save(filename):
+    plt.tight_layout()
+    for file_extension in ['png','pdf']:
+        plt.savefig(f'{filename}.{file_extension}')
+
 def plot_box_plots(folder, problem, sort_params=False):
 
     subfolders = [name for name in os.listdir(folder) if os.path.isdir(folder+name)]
@@ -46,10 +61,7 @@ def plot_box_plots(folder, problem, sort_params=False):
 
             plt.axhline(1, c='r', linewidth=0.5, linestyle='dashed')
             data = [d[f"r_unopt_{metric}"]/d[f"r_opt_{metric}"] for d in dataframes]
-            labels = []
-            for t in test_params:
-                t = t.split('_')
-                labels.append(f'{t[0]}\n$\\omega={t[1][5:]}$')
+            labels = labels_handled(test_params)
             plt.boxplot(data, labels=labels, widths=0.8)
             plt.title(f'compression ratio ({metric})')
             plt.xlabel('method and $\omega$')
@@ -57,15 +69,13 @@ def plot_box_plots(folder, problem, sort_params=False):
                 plt.ylabel('$d_{unopt}/d_{opt}$')
             if metric[0]=='l':
                 plt.ylabel('$len_{unopt}/len_{opt}$')
-            plt.tight_layout()
-            plt.savefig(f'{folder}epsrc_{problem}{q}/plots/{q}qubits_{metric}_ratio_box.png')
-            plt.savefig(f'{folder}epsrc_{problem}{q}/plots/{q}qubits_{metric}_ratio_box.pdf')
+            save(f'{folder}epsrc_{problem}{q}/plots/{q}qubits_{metric}_ratio_box')
 
 
     # per qubit count (opt)
     for metric in ['depth', 'length']:
         for q in qubit_counts:
-            os.makedirs(f'{folder}epsrc_{problem}{q}/plots', exist_ok=True)
+            #os.makedirs(f'{folder}epsrc_{problem}{q}/plots', exist_ok=True)
             plt.clf()
             a = plt.subplots(figsize=fsize)[1]
             #a.set_aspect(3)
@@ -77,10 +87,7 @@ def plot_box_plots(folder, problem, sort_params=False):
 
             plt.axhline(1, c='r', linewidth=0.5, linestyle='dashed')
             data = [d[f"r_opt_{metric}"] for d in dataframes]
-            labels = []
-            for t in test_params:
-                t = t.split('_')
-                labels.append(f'{t[0]}\n$\\omega={t[1][5:]}$')
+            labels = labels_handled(test_params)
             plt.boxplot(data, labels=labels, widths=0.8)
             plt.title(f'absolute r_opt ({metric})')
             plt.xlabel('method and $\omega$')
@@ -88,9 +95,7 @@ def plot_box_plots(folder, problem, sort_params=False):
                 plt.ylabel('$d_{opt}$')
             if metric[0]=='l':
                 plt.ylabel('$len_{opt}$')
-            plt.tight_layout()
-            plt.savefig(f'{folder}epsrc_{problem}{q}/plots/{q}qubits_{metric}_r_opt_box.png')
-            plt.savefig(f'{folder}epsrc_{problem}{q}/plots/{q}qubits_{metric}_r_opt_box.pdf')
+            save(f'{folder}epsrc_{problem}{q}/plots/{q}qubits_{metric}_r_opt_box')
 
     # as above, scaled by fitness
     for metric in ['depth', 'length']:
@@ -107,10 +112,7 @@ def plot_box_plots(folder, problem, sort_params=False):
 
             plt.axhline(1, c='r', linewidth=0.5, linestyle='dashed')
             data = [d[f"r_opt_{metric}"]/d["peak_fitness"] for d in dataframes]
-            labels = []
-            for t in test_params:
-                t = t.split('_')
-                labels.append(f'{t[0]}\n$\\omega={t[1][5:]}$')
+            labels = labels_handled(test_params)
             plt.boxplot(data, labels=labels, widths=0.8)
             plt.title(f'r_opt / fitness ({metric})')
             plt.xlabel('method and $\omega$')
@@ -118,9 +120,7 @@ def plot_box_plots(folder, problem, sort_params=False):
                 plt.ylabel('$d_{opt}$')
             if metric[0]=='l':
                 plt.ylabel('$len_{opt}$')
-            plt.tight_layout()
-            plt.savefig(f'{folder}epsrc_{problem}{q}/plots/{q}qubits_{metric}_r_opt_box_scaled.png')
-            plt.savefig(f'{folder}epsrc_{problem}{q}/plots/{q}qubits_{metric}_r_opt_box_scaled.pdf')
+            save(f'{folder}epsrc_{problem}{q}/plots/{q}qubits_{metric}_r_opt_box_scaled')
 
     # grouped
     # TODO
@@ -139,10 +139,7 @@ def plot_box_plots(folder, problem, sort_params=False):
                 dataframes[i] = df[df['peak_fitness']>=fitness_threshold]
 
             data = [d[f"r_unopt_{metric}"]/(d[f"r_opt_{metric}"]*d["runtime"]) for d in dataframes]
-            labels = []
-            for t in test_params:
-                t = t.split('_')
-                labels.append(f'{t[0]}\n$\\omega={t[1][5:]}$')
+            labels = labels_handled(test_params)
             plt.boxplot(data, labels=labels, widths=0.8)
             plt.title(f'compression ratio ({metric}) - runtime scaling')
             plt.xlabel('method and $\omega$')
@@ -150,9 +147,7 @@ def plot_box_plots(folder, problem, sort_params=False):
                 plt.ylabel('$d_{unopt}/(d_{opt}*runtime)$')
             if metric[0]=='l':
                 plt.ylabel('$len_{unopt}/(len_{opt}*runtime)$')
-            plt.tight_layout()
-            plt.savefig(f'{folder}epsrc_{problem}{q}/plots/{q}qubits_{metric}_ratio_box_scaled.png')
-            plt.savefig(f'{folder}epsrc_{problem}{q}/plots/{q}qubits_{metric}_ratio_box_scaled.pdf')
+            save(f'{folder}epsrc_{problem}{q}/plots/{q}qubits_{metric}_ratio_box_scaled')
 
 
 if __name__=="__main__":

@@ -16,7 +16,7 @@ def remaining_time_calc(remaining_time):
         return remaining_time
 
 def multiple_runs(evolution, iterations=10, method='evolution', min_length=None, max_length=None, MINIMUM_FITNESS=0,
-                  crossover_proportion=0.5, insert_delete_proportion=0.1, remove_duplicates=True,
+                  crossover_proportion=0.5, insert_delete_proportion=0.1, remove_duplicates=True, sorting_override=None,
                   use_double_point_crossover=True, short_circuit_preference=None, output=True, plot=True, legend=True, save_dir='out/', circuit_population=None):
     if min_length==None or max_length==None:
         if evolution.metadata.genotype_length_bounds!=None and len(evolution.metadata.genotype_length_bounds)==2:
@@ -34,6 +34,8 @@ def multiple_runs(evolution, iterations=10, method='evolution', min_length=None,
         stats['length_compression_ratio'] = []
     if method=='optimisation' and circuit_population==None:
         raise ValueError('Missing circuit_population')
+    if method=='combined' and sorting_override==None:
+        raise ValueError('Missing sorting_override')
     for i in range(iterations):
         # run with desired algoirithm
         if method=='evolution':
@@ -57,8 +59,9 @@ def multiple_runs(evolution, iterations=10, method='evolution', min_length=None,
                                                                     insert_delete_proportion=insert_delete_proportion,
                                                                     output=False, prefer_short_circuits=short_circuit_preference)
         elif method=='combined':
-            sorting_override = lambda omega: lambda genotype: omega*genotype.get_fitness() - genotype.to_circuit().depth()
-            population, fitness_trace = evolution.evolutionary_opsearch(sorting_override, MINIMUM_FITNESS=MINIMUM_FITNESS,
+            population = [circuit_population[i][1] for _ in range(evolution.SAMPLE_SIZE)]
+            #sorting_override = lambda omega: lambda genotype: omega*genotype.get_fitness() - genotype.to_circuit().depth()
+            population, fitness_trace = evolution.evolutionary_opsearch(sorting_override, population, MINIMUM_FITNESS=MINIMUM_FITNESS,
                                                                         remove_duplicates=remove_duplicates,
                                                                         use_double_point_crossover=use_double_point_crossover,
                                                                         output=False)

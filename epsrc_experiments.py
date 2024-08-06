@@ -33,20 +33,26 @@ if __name__=="__main__":
         folder = 'out/epsrc_qft3/'
         problem = 'qft'
 
-    experiment_instance = Experiments(APP,iterations=25,multipliers=[6],generation_count=100,
+    experiment_instance = Experiments(APP,iterations=10,multipliers=[5],generation_count=100,
                                       test_gate_sets={'overcomplete':GATE_SET}, save_filepath=f'{folder}')
     
-    omega_test = [10, 100, 250, 500, 1000]
-    #omega_test = [100, 250]
+
+    for m in experiment_instance.test_multipliers:
+        s, p = experiment_instance.sorting_test_baseline(m)
+        experiment_instance.output(p, s, 'base', m)
+
+    #omega_test = [10, 100, 250, 500, 1000]
+    omega_test = [10, 100]
     for omega in omega_test:
         print(f'OMEGA: {omega}')
         experiment_instance.run_test('sorting', omega=omega)
          
         with open(experiment_instance.base_filepath+'/params.txt','w') as file:
             # save parameters to allow easy csv reading
-            test_param_list = [f'{test_param}_omega{omega}' for omega in omega_test for test_param in ['qiskit', 'base', 'length', 'count', 'depth']]
+            test_param_list = ['base'] + [f'{test_param}_omega{omega}' for omega in omega_test for test_param in ['length', 'count', 'depth']]
             file.write(f'{experiment_instance.ITERATIONS}\n{",".join([str(m) for m in experiment_instance.test_multipliers])}\n{",".join(test_param_list)}')
             file.close()
+
     
 
     boxplot_from_folder(f'{folder}', fitness_reference=(2**APP.qubit_count-1)/(2**APP.qubit_count))
