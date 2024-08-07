@@ -139,8 +139,8 @@ class Experiments:
         stats[key]["peak_fitness"] = [self.prob_params.circuit_fitness(c) for c in qiskit_optimised]
         stats[key]["r_opt_depth"] = [c.depth()/transpiled.depth() for c in qiskit_optimised]
         stats[key]["r_unopt_depth"] = [c[0].depth()/transpiled.depth() for c in circuit_population]
-        stats[key]["r_opt_length"] = [len(c.data)/len(transpiled.data) for c in qiskit_optimised]
-        stats[key]["r_unopt_length"] = [len(c[0].data)/len(transpiled.data) for c in circuit_population]
+        stats[key]["r_opt_gate_count"] = [len(c.data)/len(transpiled.data) for c in qiskit_optimised]
+        stats[key]["r_unopt_gate_count"] = [len(c[0].data)/len(transpiled.data) for c in circuit_population]
         save runtime??
         '''
         
@@ -159,8 +159,8 @@ class Experiments:
 
         stats['base']["r_opt_depth"] = [d/transpiled.depth() for d in stats['base']["best_genotype_depth"]]
         stats['base']["r_unopt_depth"] = [c[0].depth()/transpiled.depth() for c in circuit_population]
-        stats['base']["r_opt_length"] = [l/len(transpiled.data) for l in stats['base']["best_genotype_length"]]
-        stats['base']["r_unopt_length"] = [len(c[0].data)/len(transpiled.data) for c in circuit_population]
+        stats['base']["r_opt_gate_count"] = [l/len(transpiled.data) for l in stats['base']["best_genotype_gate_count"]]
+        stats['base']["r_unopt_gate_count"] = [len(c[0].data)/len(transpiled.data) for c in circuit_population]
         return stats, to_plot
 
     def load_circuits(self):        
@@ -226,8 +226,8 @@ class Experiments:
 
             stats[omega_func]["r_opt_depth"] = [d/transpiled.depth() for d in stats[omega_func]["best_genotype_depth"]]
             stats[omega_func]["r_unopt_depth"] = [c[0].depth()/transpiled.depth() for c in circuit_population]
-            stats[omega_func]["r_opt_length"] = [l/len(transpiled.data) for l in stats[omega_func]["best_genotype_gate_count"]]
-            stats[omega_func]["r_unopt_length"] = [len(c[0].data)/len(transpiled.data) for c in circuit_population]
+            stats[omega_func]["r_opt_gate_count"] = [l/len(transpiled.data) for l in stats[omega_func]["best_genotype_gate_count"]]
+            stats[omega_func]["r_unopt_gate_count"] = [len(c[0].data)/len(transpiled.data) for c in circuit_population]
         return stats, to_plot
 
     def output(self, p, s, test_param, multiplier, save=True):
