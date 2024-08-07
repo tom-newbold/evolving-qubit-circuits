@@ -33,7 +33,7 @@ def plot_box_plots(folder, problem, sort_params=False):
         multipliers = [int(m) for m in lines[1].split(',')]
         test_params = lines[2].split(',')
 
-    fsize = (len(test_params)/2,5)
+    fsize = (len(test_params),5)
 
     if sort_params:
         test_params = sorted(test_params)
@@ -45,9 +45,41 @@ def plot_box_plots(folder, problem, sort_params=False):
     csv_to_plot = [f'{tp}_mult{m}.csv' for tp in test_params for m in multipliers]
 
 
+    # depth / length for ideal circuits
+    for metric in ['depth', 'gate_count']:
+        for q in qubit_counts:
+            os.makedirs(f'{folder}epsrc_{problem}{q}/plots', exist_ok=True)
+            plt.clf()
+            a = plt.subplots(figsize=fsize)[1]
+            #a.set_aspect(3)
+            dataframes = [read_csv(f'{folder}/epsrc_{problem}{q}/{csv_filename}') for csv_filename in csv_to_plot]
+            fitness_threshold = (2**q - 1)/2**q
+            for i, df in enumerate(dataframes):
+                # filter non-ideal circuits
+                dataframes[i] = df[df['peak_fitness']>=fitness_threshold]
+
+            if problem=='qft':
+                from quantum_fourier_transform import QFT_blueprint, GATE_SET
+                from qiskit import transpile
+                qft = QFT_blueprint(q)
+                qft = transpile(qft, basis_gates=[gate.name for gate in GATE_SET], optimization_level=0)
+                if metric=='depth':
+                    best_depth = qft.depth()
+                    plt.axhline(best_depth, c='r', linewidth=0.5, linestyle='dashed')
+                elif metric=='gate_count':
+                    best_count = len(qft.data)
+                    plt.axhline(best_count, c='r', linewidth=0.5, linestyle='dashed')
+            data = [d[f"best_genotype_{metric}"] for d in dataframes]
+            labels = labels_handled(test_params)
+            plt.boxplot(data, labels=labels, widths=0.8)
+            plt.title(f'{metric} of ideal circuits')
+            plt.xlabel('method and $\omega$')
+            plt.ylabel(metric)
+            save(f'{folder}epsrc_{problem}{q}/plots/{q}qubits_{metric}_box')
+
 
     # per qubit count
-    for metric in ['depth', 'length']:
+    for metric in ['depth', 'gate_count']:
         for q in qubit_counts:
             os.makedirs(f'{folder}epsrc_{problem}{q}/plots', exist_ok=True)
             plt.clf()
@@ -73,7 +105,7 @@ def plot_box_plots(folder, problem, sort_params=False):
 
 
     # per qubit count (opt)
-    for metric in ['depth', 'length']:
+    for metric in ['depth', 'gate_count']:
         for q in qubit_counts:
             #os.makedirs(f'{folder}epsrc_{problem}{q}/plots', exist_ok=True)
             plt.clf()
@@ -98,7 +130,7 @@ def plot_box_plots(folder, problem, sort_params=False):
             save(f'{folder}epsrc_{problem}{q}/plots/{q}qubits_{metric}_r_opt_box')
 
     # as above, scaled by fitness
-    for metric in ['depth', 'length']:
+    for metric in ['depth', 'gate_count']:
         for q in qubit_counts:
             os.makedirs(f'{folder}epsrc_{problem}{q}/plots', exist_ok=True)
             plt.clf()
@@ -126,7 +158,7 @@ def plot_box_plots(folder, problem, sort_params=False):
     # TODO
 
     # scaled by runtime
-    for metric in ['depth', 'length']:
+    for metric in ['depth', 'gate_count']:
         for q in qubit_counts:
             os.makedirs(f'{folder}epsrc_{problem}{q}/plots', exist_ok=True)
             plt.clf()

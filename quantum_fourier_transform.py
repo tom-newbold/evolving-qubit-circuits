@@ -21,18 +21,18 @@ def QFTGeneration(set_of_gates=GATE_SET, N=3):
                                     genotype_length_falloff='linear')
     
 if __name__=="__main__":
-    N=4
+    N=3
     #print(QFT_blueprint(3).decompose().draw('text'))
     QFT_GEN = QFTGeneration(GATE_SET, N)
     QFT_GEN.print_gate_set()
 
-    E = Evolution(QFT_GEN, individuals_per_generation=25 * 2**(N-1), number_of_generations=100,
+    E = Evolution(QFT_GEN, individuals_per_generation=25 * 2**(N-1), number_of_generations=10,
                   sample_percentage=0.1, gen_mulpilier=8, beta=4)
     
     
     #null_f = QFT_GEN.get_null_circuit_fitness()
     #MINIMUM_FITNESS=min(null_f, 0),
-    population = E.evolutionary_search(use_double_point_crossover=True)[0]#,plot_fitness=False
+    population = E.evolutionary_search(use_double_point_crossover=True, plot_fitness=False)[0]#,plot_fitness=False
 
     '''
 

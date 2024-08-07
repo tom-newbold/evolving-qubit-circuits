@@ -26,30 +26,10 @@ def plot_scatters(filepath, fitness_threshold=None):
             # filter non-ideal circuits
             dataframes[i] = df[df['peak_fitness']>=fitness_threshold]
 
-    # compression ratio against unopt
-    '''
-    for metric in ['depth', 'length']:
-        for d_i, dataframe in enumerate(dataframes):
-            if len(dataframe[f"r_opt_{metric}"])==0:
-                continue
-            plt.clf()
-            plt.title(f'{csv_to_plot[d_i][:-4].split("_")[0]} - {metric} ratios')
-            min_max = [min(dataframe[f"r_unopt_{metric}"]), max(dataframe[f"r_unopt_{metric}"])]
-            plt.plot(min_max, min_max, linestyle='dashed')
-            plt.scatter(dataframe[f"r_unopt_{metric}"], dataframe[f"r_opt_{metric}"], s=10)
-            plt.xlabel('$r_{unopt}$')
-            if metric[0]=='d':
-                plt.ylabel('$d_{opt}$')
-            if metric[0]=='l':
-                plt.ylabel('$len_{opt}$')
-            plt.tight_layout()
-            plt.savefig(f'{filepath}/plots/{csv_to_plot[d_i][:-4]}_{metric}_ratio_scatter.png')
-            plt.savefig(f'{filepath}/plots/{csv_to_plot[d_i][:-4]}_{metric}_ratio_scatter.pdf')
-    '''
 
     labels = labels_handled(test_params)
     # all
-    for metric in ['depth', 'length']:
+    for metric in ['depth', 'gate_count']:
         plt.clf()
         min_max = [min([min(df[f"r_unopt_{metric}"]) if len(df[f"r_opt_{metric}"])!=0 else 0 for df in dataframes]),
                    max([max(df[f"r_unopt_{metric}"]) if len(df[f"r_unopt_{metric}"])!=0 else 0 for df in dataframes])]
@@ -77,28 +57,8 @@ def plot_scatters(filepath, fitness_threshold=None):
         plt.savefig(f'{filepath}/plots/all_{metric}_ratio_scatter.png')
         plt.savefig(f'{filepath}/plots/all_{metric}_ratio_scatter.pdf')
 
-    # scaled by runtime
-    '''
-    for metric in ['depth', 'length']:
-        for d_i, dataframe in enumerate(dataframes):
-            if 'qiskit' in csv_to_plot[d_i]:
-                continue
-            plt.clf()
-            plt.title(f'{csv_to_plot[d_i][:-4].split("_")[0]} - {metric} ratios (scaled by runtime)')
-            #ratio = [a/b for a,b in zip(dataframe[f"r_unopt_{metric}"],dataframe[f"r_opt_{metric}"])]
-            #scaled = [a/b for a,b in zip(ratio, dataframe["runtime"])]
-            plt.scatter(dataframe[f"r_unopt_{metric}"], dataframe[f"r_opt_{metric}"]*dataframe["runtime"], s=10)
-            plt.xlabel('$r_{unopt}$')
-            if metric[0]=='d':
-                plt.ylabel('$d_{opt}*runtime$')
-            if metric[0]=='l':
-                plt.ylabel('$len_{opt}*runtime$')
-            plt.tight_layout()
-            plt.savefig(f'{filepath}/plots/{csv_to_plot[d_i][:-4]}_{metric}_ratio_scatter_scaled.png')
-            plt.savefig(f'{filepath}/plots/{csv_to_plot[d_i][:-4]}_{metric}_ratio_scatter_scaled.pdf')
-    '''
 
-    for metric in ['depth', 'length']:
+    for metric in ['depth', 'gate_count']:
         plt.clf()
         plt.title(f'all {metric} ratios (scaled by runtime)')
         for d_i, dataframe in enumerate(dataframes):

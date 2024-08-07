@@ -27,8 +27,7 @@ def multiple_runs(evolution, iterations=10, method='evolution', min_length=None,
     start_time = time()
     to_plot = []
     out = []
-    stats = {'peak_fitness':[],'runtime':[], 'generations_taken_to_converge':[], 'best_genotype_length':[],
-             'best_genotype_depth':[]}
+    stats = {'peak_fitness':[],'runtime':[], 'generations_taken_to_converge':[], 'best_genotype_length':[],'best_genotype_gate_count':[],'best_genotype_depth':[]}
     if method=='optimisation':
         stats['depth_compression_ratio'] = []
         stats['length_compression_ratio'] = []
@@ -86,12 +85,12 @@ def multiple_runs(evolution, iterations=10, method='evolution', min_length=None,
         #        stats['generations_taken_to_converge'].append(i)
         #        break
         stats['generations_taken_to_converge'].append(len(fitness_trace[0])) # TODO Check this matches run length
-        #stats['best_genotype_length'].append(len(population[0].genotype_str))
-        stats['best_genotype_length'].append(len(population[0].to_circuit().data))
+        stats['best_genotype_length'].append(len(population[0].genotype_str))
+        stats['best_genotype_gate_count'].append(len(population[0].to_circuit().data))
         stats['best_genotype_depth'].append(population[0].to_circuit().depth())
         if method=='optimisation':
             stats['depth_compression_ratio'].append(circuit_population[i][0].depth()/list_avr([g.to_circuit().depth() for g in population[:evolution.SAMPLE_SIZE]]))
-            stats['length_compression_ratio'].append(len(circuit_population[i][0].data)/list_avr([len(g.to_circuit().data) for g in population[:evolution.SAMPLE_SIZE]]))
+            stats['gate_count_compression_ratio'].append(len(circuit_population[i][0].data)/list_avr([len(g.to_circuit().data) for g in population[:evolution.SAMPLE_SIZE]]))
 
     if plot:
         plot_many_averages(to_plot, 'Generations', 'Circuit Fitness', legend=legend, reference_line=peak_fitness_non_global)

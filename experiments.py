@@ -226,7 +226,7 @@ class Experiments:
 
             stats[omega_func]["r_opt_depth"] = [d/transpiled.depth() for d in stats[omega_func]["best_genotype_depth"]]
             stats[omega_func]["r_unopt_depth"] = [c[0].depth()/transpiled.depth() for c in circuit_population]
-            stats[omega_func]["r_opt_length"] = [l/len(transpiled.data) for l in stats[omega_func]["best_genotype_length"]]
+            stats[omega_func]["r_opt_length"] = [l/len(transpiled.data) for l in stats[omega_func]["best_genotype_gate_count"]]
             stats[omega_func]["r_unopt_length"] = [len(c[0].data)/len(transpiled.data) for c in circuit_population]
         return stats, to_plot
 

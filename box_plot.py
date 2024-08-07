@@ -25,7 +25,7 @@ def boxplot_from_folder(filepath="", fitness_reference=None):
     if len(multipliers)==1:
         csv_to_plot = [csv_to_plot[0]]
     columns_to_plot = [("peak_fitness",[0,1]),("generations_taken_to_converge",[0,50]),("runtime",[]),("peak_fitness/runtime",[]),
-                       ("best_genotype_length",[0,40]),("best_genotype_depth",[0,10]),("depth_compression_ratio",[]),("length_compression_ratio",[])]
+                       ("best_genotype_gate_count",[0,40]),("best_genotype_depth",[0,10]),("depth_compression_ratio",[]),("gate_count_compression_ratio",[])]
     # extracts dataframes
     dataframe_orders = [[read_csv(filepath+'/'+csv_filename) for csv_filename in c] for c in csv_to_plot]
 
