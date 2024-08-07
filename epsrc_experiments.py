@@ -1,9 +1,10 @@
 from experiments import Experiments
 from quantum_fourier_transform import QFTGeneration, GATE_SET
 from toffoli_gate_generation import ToffoliGeneration
-from box_plot import boxplot_from_folder
-from opt_ratio_scatter_plot import plot_scatters
-from opt_ratio_box_plot import plot_box_plots
+#from box_plot import boxplot_from_folder
+#from opt_ratio_scatter_plot import plot_scatters
+#from opt_ratio_box_plot import plot_box_plots
+from epsrc_final_plots import final_plots
 
 import sys
 
@@ -33,10 +34,7 @@ if __name__=="__main__":
         folder = 'out/epsrc_qft3/'
         problem = 'qft'
 
-    experiment_instance = Experiments(APP,iterations=3,multipliers=[8],generation_count=100,
-                                      test_gate_sets={'overcomplete':GATE_SET}, save_filepath=f'{folder}')
-    
-
+    experiment_instance = Experiments(APP,iterations=10,multipliers=[8],generation_count=200, save_filepath=f'{folder}')
     
     for m in experiment_instance.test_multipliers:
         s, p = experiment_instance.sorting_test_baseline(m)
@@ -54,9 +52,8 @@ if __name__=="__main__":
         test_param_list = ['base'] + [f'{test_param}_omega{omega}' for omega in omega_test for test_param in ['length', 'count', 'depth']]
         file.write(f'{experiment_instance.ITERATIONS}\n{",".join([str(m) for m in experiment_instance.test_multipliers])}\n{",".join(test_param_list)}\n{",".join(omega_test)}')
         file.close()
-    
-    
 
-    boxplot_from_folder(f'{folder}', fitness_reference=(2**APP.qubit_count-1)/(2**APP.qubit_count))
-    plot_scatters(folder.strip('/'), fitness_threshold=(2**APP.qubit_count-1)/(2**APP.qubit_count))
-    plot_box_plots('/'.join(folder.strip('/').split('/')[:-1]) + '/', problem)
+    #boxplot_from_folder(f'{folder}', fitness_reference=(2**APP.qubit_count-1)/(2**APP.qubit_count))
+    #plot_scatters(folder.strip('/'), fitness_threshold=(2**APP.qubit_count-1)/(2**APP.qubit_count))
+    #plot_box_plots('/'.join(folder.strip('/').split('/')[:-1]) + '/', problem)
+    final_plots('out/', problem)

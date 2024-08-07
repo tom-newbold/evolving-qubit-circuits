@@ -788,7 +788,7 @@ class Evolution:
             avr_fitness = list_avr([g.get_fitness() for g in population])
             # create new circuits
             population = self.develop_circuits_random(population, int(self.GENERATION_SIZE*(self.GENERATION_MULTIPLIER-1)),
-                                                      use_double_point_crossover, non_linear_mapping(avr_fitness, a=0.5, b=0.2), non_linear_mapping(avr_fitness, a=0.1, b=0.5))
+                                                      use_double_point_crossover, 0.5, non_linear_mapping(avr_fitness, 2**self.metadata.qubit_count, a=0.1, b=0.5))
             #for g in population:
             #    g.get_fitness()
             avr_fitness = list_avr([g.get_fitness() for g in population])
@@ -797,7 +797,7 @@ class Evolution:
                 print(f'Generation {i+1} Size (pre-selection): {len(population)}')
 
             # recalculate sorting function
-            omega = non_linear_mapping(avr_fitness, 10, 10000, omega_base)
+            omega = non_linear_mapping(avr_fitness, 2**self.metadata.qubit_count, omega_base**(3/2), omega_base)
             #self.sorting_function_override = lambda genotype: omega*genotype.get_fitness() - genotype.to_circuit().depth()
             self.sorting_function_override = sort_lambda(omega)
 
