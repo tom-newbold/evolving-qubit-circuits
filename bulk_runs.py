@@ -58,7 +58,8 @@ def multiple_runs(evolution, iterations=10, method='evolution', min_length=None,
                                                                     insert_delete_proportion=insert_delete_proportion,
                                                                     output=False, prefer_short_circuits=short_circuit_preference)
         elif method=='combined':
-            population = [circuit_population[i][1] for _ in range(evolution.SAMPLE_SIZE)]
+            #population = [circuit_population[i][1] for _ in range(evolution.SAMPLE_SIZE)]
+            population = [c[1] for c in circuit_population[i*evolution.SAMPLE_SIZE:(i+1)*evolution.SAMPLE_SIZE]]
             #sorting_override = lambda omega: lambda genotype: omega*genotype.get_fitness() - genotype.to_circuit().depth()
             population, fitness_trace = evolution.evolutionary_opsearch(sorting_override, population, MINIMUM_FITNESS=MINIMUM_FITNESS,
                                                                         remove_duplicates=remove_duplicates,

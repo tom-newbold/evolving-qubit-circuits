@@ -149,7 +149,7 @@ class Experiments:
         E = Evolution(self.prob_params)
 
         transpiled = transpile(self.prob_params.target_circuit, basis_gates=[self.prob_params.gate_set[gate_key].name for gate_key in self.prob_params.gate_set], optimization_level=0)
-        circuit_population = self.load_circuits()
+        circuit_population = self.load_circuits(sample_size=E.SAMPLE_SIZE)
 
         print(f'<base>')
         E = Evolution(self.prob_params, number_of_generations=self.gen_count, gen_mulpilier=gen_multiplier, sorting_function_override=None)
@@ -158,12 +158,12 @@ class Experiments:
                                                        circuit_population=circuit_population, sorting_override=lambda o: None)
 
         stats['base']["r_opt_depth"] = [d/transpiled.depth() for d in stats['base']["best_genotype_depth"]]
-        stats['base']["r_unopt_depth"] = [c[0].depth()/transpiled.depth() for c in circuit_population]
+        #stats['base']["r_unopt_depth"] = [c[0].depth()/transpiled.depth() for c in circuit_population]
         stats['base']["r_opt_gate_count"] = [l/len(transpiled.data) for l in stats['base']["best_genotype_gate_count"]]
-        stats['base']["r_unopt_gate_count"] = [len(c[0].data)/len(transpiled.data) for c in circuit_population]
+        #stats['base']["r_unopt_gate_count"] = [len(c[0].data)/len(transpiled.data) for c in circuit_population]
         return stats, to_plot
 
-    def load_circuits(self):        
+    def load_circuits(self, sample_size):        
         circuit_population = []
 
         try:
@@ -174,9 +174,9 @@ class Experiments:
             for genotype_str in genotype_strings:
                 genotype = Genotype(self.prob_params, genotype_str)
                 circuit_population.append([genotype.to_circuit(), genotype])
-            if self.ITERATIONS > len(circuit_population):
+            if self.ITERATIONS*sample_size > len(circuit_population):
                 raise ValueError
-            circuit_population = circuit_population[:self.ITERATIONS]
+            circuit_population = circuit_population[:self.ITERATIONS*sample_size]
         except:
             # create sample
             '''
@@ -187,7 +187,7 @@ class Experiments:
                 circuit_population.append(unoptimiser(transpiled, self.prob_params, self.prob_params.qubit_count))
             print('')
             '''
-            for i in range(self.ITERATIONS):
+            for i in range(self.ITERATIONS*sample_size):
                 genotype = Genotype(self.prob_params)
                 circuit_population.append([genotype.to_circuit(), genotype])
 
@@ -211,7 +211,7 @@ class Experiments:
         E = Evolution(self.prob_params)
 
         transpiled = transpile(self.prob_params.target_circuit, basis_gates=[self.prob_params.gate_set[gate_key].name for gate_key in self.prob_params.gate_set], optimization_level=0)
-        circuit_population = self.load_circuits()
+        circuit_population = self.load_circuits(sample_size=E.SAMPLE_SIZE)
 
         for func_name in functions:
             # unique identifier used to name output files
@@ -225,9 +225,9 @@ class Experiments:
                                                                    circuit_population=circuit_population, sorting_override=functions[func_name])
 
             stats[omega_func]["r_opt_depth"] = [d/transpiled.depth() for d in stats[omega_func]["best_genotype_depth"]]
-            stats[omega_func]["r_unopt_depth"] = [c[0].depth()/transpiled.depth() for c in circuit_population]
+            #stats[omega_func]["r_unopt_depth"] = [c[0].depth()/transpiled.depth() for c in circuit_population]
             stats[omega_func]["r_opt_gate_count"] = [l/len(transpiled.data) for l in stats[omega_func]["best_genotype_gate_count"]]
-            stats[omega_func]["r_unopt_gate_count"] = [len(c[0].data)/len(transpiled.data) for c in circuit_population]
+            #stats[omega_func]["r_unopt_gate_count"] = [len(c[0].data)/len(transpiled.data) for c in circuit_population]
         return stats, to_plot
 
     def output(self, p, s, test_param, multiplier, save=True):
