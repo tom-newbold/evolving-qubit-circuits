@@ -60,10 +60,10 @@ def final_plots(folder, problem, sort_params=False):
         data = [d[f"peak_fitness"] for d in dataframes[q]]
         labels = labels_handled(test_params)
 
-        plt.axhline((2**q-1)/(2**q), c='r', linewidth=0.5, linestyle='dashed')
+        plt.axhline((2**q-1)/(2**q), c='r', linewidth=0.8, linestyle='dashed')
         plt.boxplot(data, labels=labels, widths=0.8)
 
-        plt.title('peak fitness')
+        plt.title('Peak fitness')
         plt.ylabel('fitness')
         plt.xlabel('method and $\omega$')
 
@@ -83,7 +83,7 @@ def final_plots(folder, problem, sort_params=False):
         plt.clf()
         plt.bar(labels, data)
 
-        plt.title('percentage of circuits over ideal fitness threshold')
+        plt.title('Percentage of circuits over ideal fitness threshold')
         plt.ylabel('$\%$')
         plt.xlabel('method and $\omega$')
         plt.ylim([0,100])
@@ -102,12 +102,12 @@ def final_plots(folder, problem, sort_params=False):
             qft = transpile(qft, basis_gates=[gate.name for gate in GATE_SET], optimization_level=0)
             g = Genotype(QFTGeneration(N=q))
             g.from_circuit(qft)
-            plt.axhline(len(g.genotype_str)/len(qft.data), c='r', linewidth=0.5, linestyle='dashed')
+            plt.axhline(len(g.genotype_str)/len(qft.data), c='r', linewidth=0.8, linestyle='dashed')
 
         data = [d["best_genotype_length"]/d["best_genotype_gate_count"] for d in dataframes[q]]
         labels = labels_handled(test_params)
         plt.boxplot(data, labels=labels, widths=0.8)
-        plt.title(f'complexity of ideal circuits')
+        plt.title(f'Complexity of ideal circuits')
         plt.xlabel('method and $\omega$')
         plt.ylabel('string length / gate count')
         save(f'{folder}epsrc_{problem}{q}/plots/{q}qubits_complexity_box')
@@ -123,12 +123,21 @@ def final_plots(folder, problem, sort_params=False):
         if problem=='qft':
             qft = QFT_blueprint(q)
             qft = transpile(qft, basis_gates=[gate.name for gate in GATE_SET], optimization_level=0)
-            plt.axhline(qft.depth() * len(qft.data), c='r', linewidth=0.5, linestyle='dashed')
+            plt.axhline(qft.depth() * len(qft.data), c='r', linewidth=0.8, linestyle='dashed')
 
+        i = next(csv_to_plot.index(csv) for csv in csv_to_plot if 'base' in csv)
+        base = dataframes[q][i]
         data = [d["best_genotype_depth"]*d["best_genotype_gate_count"] for d in dataframes[q]]
+        data.pop(i)
         labels = labels_handled(test_params)
+        labels.remove('base')
+        base['scaled_size'] = base["best_genotype_depth"]*base["best_genotype_gate_count"]
+        stats = base.describe()
+        for percentile in [25,50,75]:
+            plt.axhline(stats['scaled_size'][f'{percentile}%'], c='b', linewidth=0.75, linestyle='dashed')
+
         plt.boxplot(data, labels=labels, widths=0.8)
-        plt.title(f'size of ideal circuits')
+        plt.title(f'Size of ideal circuits')
         plt.xlabel('method and $\omega$')
         plt.ylabel('circuit depth * gate count')
         save(f'{folder}epsrc_{problem}{q}/plots/{q}qubits_size_box')
@@ -146,12 +155,16 @@ def final_plots(folder, problem, sort_params=False):
         labels.remove('base')
         base['scaled_size'] = base["best_genotype_depth"]*base["best_genotype_gate_count"]*base["runtime"]
         stats = base.describe()
-        plt.axhline(stats['scaled_size']['50%'], c='orange', linewidth=0.5, linestyle='dashed')
-        plt.axhline(stats['scaled_size']['25%'], c='b', linewidth=0.5, linestyle='dashed')
-        plt.axhline(stats['scaled_size']['75%'], c='b', linewidth=0.5, linestyle='dashed')
+        for percentile in [25,50,75]:
+            plt.axhline(stats['scaled_size'][f'{percentile}%'], c='b', linewidth=0.75, linestyle='dashed')
 
         plt.boxplot(data, labels=labels, widths=0.8)
-        plt.title(f'size of ideal circuits (runtime scaled)')
+
+        '''xy = (a.transData + a.transAxes.inverted()).transform((0,stats['scaled_size']['50%']))
+        print(xy)
+        plt.gcf().text(1, xy[1], '$Q_2$', c='orange', fontsize=12)'''
+
+        plt.title(f'Size of ideal circuits (runtime scaled)')
         plt.xlabel('method and $\omega$')
         plt.ylabel('circuit depth * gate count * runtime')
         save(f'{folder}epsrc_{problem}{q}/plots/{q}qubits_size_box_scaled')
@@ -177,10 +190,13 @@ def final_plots(folder, problem, sort_params=False):
                 g = Genotype(QFTGeneration(N=q))
                 g.from_circuit(qft)
                 optimal_size = qft.depth() * len(qft.data)
+
             
+            fitness_threshold = (2**q - 1)/2**q            
             data = []
             for key in labels:
                 d = dataframes[key]
+                d = d[d['peak_fitness']>=fitness_threshold]
                 data.append(d["best_genotype_depth"]*d["best_genotype_gate_count"]/optimal_size)
             positions = [1+i*len(labels)+j for j in range(len(labels))]
             
@@ -192,7 +208,7 @@ def final_plots(folder, problem, sort_params=False):
                 for item in ['boxes', 'whiskers', 'fliers', 'medians', 'caps']:
                     plt.setp(boxplot[item], color=c)
 
-        plt.axhline(1, c='r', linewidth=0.5, linestyle='dashed')
+        plt.axhline(1, c='r', linewidth=0.8, linestyle='dashed')
 
 
         plt.xticks(x_ticks, qubit_counts)
