@@ -824,15 +824,13 @@ class Evolution:
             
 
             # check for convergence
-            #current_average = list_avr([p.get_fitness() for p in population[:self.SAMPLE_SIZE]])
-            #current_average = list_avr([p.to_circuit().depth() for p in population[:self.SAMPLE_SIZE]])
-            current_average = list_avr([len(p.genotype_str) for p in population[:self.SAMPLE_SIZE]])
+            current_average = list_avr([p.get_fitness()*len(p.genotype_str) for p in population[:self.SAMPLE_SIZE]])
             if math.isclose(current_average,prev_average, abs_tol=0.005):
                 stagnation_counter += 1
             else:
                 stagnation_counter = 0
                 prev_average = current_average
-            if stagnation_counter > self.GENERATION_COUNT//8:
+            if stagnation_counter > math.floor(math.sqrt(self.GENERATION_COUNT)):
                 break
                         
         if not output: print(" "*(os.get_terminal_size().columns-1), end='\r') # print((80+self.GENERATION_COUNT)*" ", end='\r') 
