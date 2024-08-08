@@ -1,5 +1,6 @@
 import os
 import matplotlib.pyplot as plt
+from matplotlib.patches import Patch
 from pandas import read_csv
 
 from opt_ratio_box_plot import labels_handled, save
@@ -137,9 +138,18 @@ def final_plots(folder, problem, sort_params=False):
         plt.clf()
         a = plt.subplots(figsize=fsize)[1]
         
-
+        i = next(csv_to_plot.index(csv) for csv in csv_to_plot if 'base' in csv)
+        base = dataframes[q][i]
         data = [d["best_genotype_depth"]*d["best_genotype_gate_count"]*d["runtime"] for d in dataframes[q]]
+        data.pop(i)
         labels = labels_handled(test_params)
+        labels.remove('base')
+        base['scaled_size'] = base["best_genotype_depth"]*base["best_genotype_gate_count"]*base["runtime"]
+        stats = base.describe()
+        plt.axhline(stats['scaled_size']['50%'], c='orange', linewidth=0.5, linestyle='dashed')
+        plt.axhline(stats['scaled_size']['25%'], c='b', linewidth=0.5, linestyle='dashed')
+        plt.axhline(stats['scaled_size']['75%'], c='b', linewidth=0.5, linestyle='dashed')
+
         plt.boxplot(data, labels=labels, widths=0.8)
         plt.title(f'size of ideal circuits (runtime scaled)')
         plt.xlabel('method and $\omega$')
@@ -158,6 +168,8 @@ def final_plots(folder, problem, sort_params=False):
         
         x_ticks = []
         
+        colours = ['red', 'green', 'blue']
+        
         for i, q in enumerate(qubit_counts):
             if problem=='qft':
                 qft = QFT_blueprint(q)
@@ -171,8 +183,14 @@ def final_plots(folder, problem, sort_params=False):
                 d = dataframes[key]
                 data.append(d["best_genotype_depth"]*d["best_genotype_gate_count"]/optimal_size)
             positions = [1+i*len(labels)+j for j in range(len(labels))]
-            plt.boxplot(data, labels=labels, positions=positions)
+            
             x_ticks.append(list_avr(positions))
+            
+            #boxplot = plt.boxplot(data, labels=labels, positions=positions)
+            for d, l, p, c in zip(data, labels, positions, colours):
+                boxplot = plt.boxplot([d], labels=[l], positions=[p], widths=[0.8])
+                for item in ['boxes', 'whiskers', 'fliers', 'medians', 'caps']:
+                    plt.setp(boxplot[item], color=c)
 
         plt.axhline(1, c='r', linewidth=0.5, linestyle='dashed')
 
@@ -183,8 +201,10 @@ def final_plots(folder, problem, sort_params=False):
         plt.xlabel('qubit count')
         plt.ylabel('size ratio (produced / ideal)')
 
-        plt.legend(loc='lower right', prop={'size': 'small'})
-        save(f'{folder}size_box')
+        legend_def = [Patch(facecolor=c, edgecolor=c, label=l)
+                      for c,l in zip(colours, [l.split('_')[0] for l in labels])]
+        plt.legend(handles=legend_def, loc='upper left', prop={'size': 'small'})
+        save(f'{folder}omega_{omega}_size_box')
         #
     ### TODO SCALE BY RUNTIME
 
