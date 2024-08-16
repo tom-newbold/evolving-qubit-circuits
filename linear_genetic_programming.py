@@ -787,8 +787,8 @@ class Evolution:
 
         start_time = time()
         stagnation_counter = 0
+        prev_average = list_avr([p.get_fitness() for p in population[:self.SAMPLE_SIZE]])
         for i in range(self.GENERATION_COUNT):
-            prev_average = list_avr([p.get_fitness() for p in population[:self.SAMPLE_SIZE]])
 
             if not output:
                 if i!=1:
@@ -840,11 +840,13 @@ class Evolution:
 
             # check for convergence
             current_average = list_avr([p.get_fitness()*len(p.genotype_str) for p in population[:self.SAMPLE_SIZE]])
+            
+            print(current_average-prev_average)
             if math.isclose(current_average,prev_average, abs_tol=0.005):
                 stagnation_counter += 1
             else:
                 stagnation_counter = 0
-                prev_average = current_average
+            prev_average = current_average
             if stagnation_counter > math.floor(math.sqrt(self.GENERATION_COUNT)):
                 break
                         
@@ -898,9 +900,8 @@ class Evolution:
 
         start_time = time()
         stagnation_counter = 0
+        prev_average = list_avr([p.get_fitness() for p in population[:self.SAMPLE_SIZE]])
         for i in range(self.GENERATION_COUNT):
-            prev_average = list_avr([p.get_fitness() for p in population[:self.SAMPLE_SIZE]])
-
             if not output:
                 if i!=1:
                     remaining_time = (time()-start_time) * (self.GENERATION_COUNT-i)/(i+1)
@@ -958,7 +959,7 @@ class Evolution:
                 stagnation_counter += 1
             else:
                 stagnation_counter = 0
-                prev_average = current_average
+            prev_average = current_average
             if stagnation_counter > self.GENERATION_COUNT//8:
                 break
                         
