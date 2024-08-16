@@ -1,6 +1,7 @@
 from experiments import Experiments
 from quantum_fourier_transform import QFTGeneration, GATE_SET
 from toffoli_gate_generation import ToffoliGeneration
+from grover_operator import grover_operator_generation
 #from box_plot import boxplot_from_folder
 #from opt_ratio_scatter_plot import plot_scatters
 #from opt_ratio_box_plot import plot_box_plots
@@ -19,6 +20,8 @@ if __name__=="__main__":
                     APP = QFTGeneration(GATE_SET, N)
                 elif sys.argv[1]=='toffoli':
                     APP = ToffoliGeneration(GATE_SET, N)
+                elif sys.argv[1]=='grover':
+                    APP = grover_operator_generation(GATE_SET, N)
                 else:
                     raise ValueError('first argument (algorithm) specified incorrectly')
         except:
@@ -34,7 +37,7 @@ if __name__=="__main__":
         folder = 'out/epsrc_qft3/'
         problem = 'qft'
 
-    experiment_instance = Experiments(APP,iterations=10,multipliers=[8],generation_count=200, save_filepath=f'{folder}')
+    experiment_instance = Experiments(APP,iterations=50,multipliers=[8],generation_count=250, save_filepath=f'{folder}')
     
     for m in experiment_instance.test_multipliers:
         s, p = experiment_instance.sorting_test_baseline(m)

@@ -755,7 +755,22 @@ class Evolution:
         depth_trace = [[] for _ in range(self.SAMPLE_SIZE)]
 
         if len(population) < self.SAMPLE_SIZE:
-            raise ValueError('Incorrect population size')
+            print('Incorrect population size, regenerating...')
+            population = []
+            while len(population) < self.SAMPLE_SIZE:
+                for _ in range(self.GENERATION_SIZE):
+                    g = Genotype(self.metadata)
+                    g.get_fitness()
+                    population.append(g)
+                population = self.top_by_fitness(population)
+                if population[-1].get_fitness() >= MINIMUM_FITNESS:
+                    break
+                else:
+                    for i in range(len(population)):
+                        if population[i].get_fitness() < MINIMUM_FITNESS:
+                            population = population[:i]
+                            break
+            #raise ValueError('Incorrect population size')
 
         if plot_fitness:
             for k in range(self.SAMPLE_SIZE):

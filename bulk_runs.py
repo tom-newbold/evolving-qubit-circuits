@@ -105,7 +105,7 @@ def multiple_runs(evolution, iterations=10, method='evolution', min_length=None,
                 plt.show()
             # save optimal circuits to file
             with open(f'{save_dir}optimal_circuits.txt','a+',encoding='utf-8') as file:
-                file.write(f'Run {run+1}: Top {evolution.SAMPLE_SIZE} genotypes:\n')
+                file.write(f'Run {run+1}:\n')
                 for i in range(evolution.SAMPLE_SIZE):
                     file.write(f'{pop[i].genotype_str}\n{pop[i].get_fitness()}\n')
                 file.write(f'best circuit:\n{str(pop[0].to_circuit().draw("text"))}\n\n')

@@ -8,6 +8,8 @@ from opt_ratio_box_plot import labels_handled, save
 from linear_genetic_programming import Genotype
 from linear_genetic_programming_utils import list_avr
 from quantum_fourier_transform import QFTGeneration, QFT_blueprint, GATE_SET
+from toffoli_gate_generation import genericToffoliConstructor
+from grover_operator import generic_grover_operator
 from qiskit import transpile
 
 def labels_handled(test_params):
@@ -38,7 +40,7 @@ def final_plots(folder, problem, sort_params=False):
         test_params = lines[2].split(',')
         omega_list = [int(x) for x in lines[3].split(',')]
 
-    fsize = (len(test_params),5)
+    fsize = (len(test_params)*0.8,5*0.8)
 
     if sort_params:
         test_params = sorted(test_params)
@@ -57,6 +59,7 @@ def final_plots(folder, problem, sort_params=False):
 
         labels = labels_handled(test_params)
         plt.clf()
+        a = plt.subplots(figsize=fsize)[1]
         data = [d[f"peak_fitness"] for d in dataframes[q]]
         labels = labels_handled(test_params)
 
@@ -80,17 +83,58 @@ def final_plots(folder, problem, sort_params=False):
 
         data = [100*len(d['peak_fitness'])/ITERATIONS for d in dataframes[q]]
         labels = labels_handled(test_params)
+
         plt.clf()
-        plt.bar(labels, data)
+        a = plt.subplots(figsize=fsize)[1]
+        plt.grid(True, axis='y', zorder=0)
+        plt.bar(labels, data, zorder=3)
 
         plt.title('Percentage of circuits over ideal fitness threshold')
         plt.ylabel('$\%$')
         plt.xlabel('method and $\omega$')
-        plt.ylim([0,100])
+        #plt.yticks([i*10 for i in range(11)])
+        plt.ylim([0,60])
         
         save(f'{folder}epsrc_{problem}{q}/plots/{q}qubits_ideal_percent')
 
+        averages = [d.describe()['50%'] for d in [df["best_genotype_length"]/df["best_genotype_gate_count"] for df in dataframes[q]]]
 
+        plt.clf()
+        plt.grid(True, axis='y', zorder=0)
+        plt.bar(labels, [d*a for d,a in zip(data, averages)], zorder=3)
+        plt.title('Percentage of circuits over ideal fitness threshold times size')
+        plt.ylabel('$\% * size$')
+        plt.xlabel('method and $\omega$')
+        #plt.yticks([i*10 for i in range(11)])
+        #plt.ylim([0,60])
+        save(f'{folder}epsrc_{problem}{q}/plots/{q}qubits_ideal_percent_scaled')
+
+        combined = zip(labels, data)
+        #combined = sorted(combined, key=lambda x: x[1], reverse=True)
+        #print([f'{l}:{p}' for l, p in combined])
+        #print([f'{l}:{p/combined[0][1]}' for l, p in combined[1:]])
+        #combined = sorted(combined, key=lambda x: x[0])
+        combined = sorted(combined, key=lambda x: ['b','l','c','d'].index(x[0][0]))
+        combined = [combined[0]] + sorted(combined[1:6], key=lambda x: x[1], reverse=True) + sorted(combined[6:11], key=lambda x: x[1], reverse=True) + sorted(combined[11:16], key=lambda x: x[1], reverse=True)
+        labels = [x[0] for x in combined]
+        data = [x[1] for x in combined]
+
+        plt.clf()
+        plt.grid(True, axis='y', zorder=0)
+        plt.bar(labels, data, zorder=3)
+
+        plt.title('Percentage of circuits over ideal fitness threshold')
+        plt.ylabel('$\%$')
+        plt.xlabel('method and $\omega$')
+        #plt.yticks([i*10 for i in range(11)])
+        plt.ylim([0,60])
+        
+        save(f'{folder}epsrc_{problem}{q}/plots/{q}qubits_ideal_percent_sorted')
+
+
+
+
+    '''
     ## complexity
     for q in qubit_counts:
         plt.clf()
@@ -112,6 +156,34 @@ def final_plots(folder, problem, sort_params=False):
         plt.ylabel('string length / gate count')
         save(f'{folder}epsrc_{problem}{q}/plots/{q}qubits_complexity_box')
 
+        plt.clf()
+        a = plt.subplots(figsize=fsize)[1]
+
+        # plot reference line
+        if problem=='qft':
+            qft = QFT_blueprint(q)
+            qft = transpile(qft, basis_gates=[gate.name for gate in GATE_SET], optimization_level=0)
+            g = Genotype(QFTGeneration(N=q))
+            g.from_circuit(qft)
+            plt.axhline(len(g.genotype_str)/len(qft.data), c='r', linewidth=0.8, linestyle='dashed')
+
+        combined = zip(labels, data)
+
+        averages = [d.describe()['50%'] for d in data]
+        combined = zip(labels, data, averages)
+        #combined = sorted(combined, key=lambda x: ['l','c','d'].index(x[0][0]))
+        #combined = sorted(combined[0:5], key=lambda x: x[2]) + sorted(combined[5:10], key=lambda x: x[2]) + sorted(combined[10:15], key=lambda x: x[2])
+        combined = sorted(combined, key=lambda x: x[2])
+        labels = [x[0] for x in combined]
+        data = [x[1] for x in combined]
+        averages = [x[2] for x in combined]
+
+        plt.boxplot(data, labels=labels, widths=0.8)
+        plt.title(f'Complexity of ideal circuits')
+        plt.xlabel('method and $\omega$')
+        plt.ylabel('string length / gate count')
+        save(f'{folder}epsrc_{problem}{q}/plots/{q}qubits_complexity_box_sorted')
+    '''
 
     ## size
     for q in qubit_counts:
@@ -141,6 +213,46 @@ def final_plots(folder, problem, sort_params=False):
         plt.xlabel('method and $\omega$')
         plt.ylabel('circuit depth * gate count')
         save(f'{folder}epsrc_{problem}{q}/plots/{q}qubits_size_box')
+
+
+        #print([f'{l}:{p}' for l, p in combined])
+        #print([f'{l}:{p/combined[0][1]}' for l, p in combined[1:]])
+        averages = [d.describe()['50%'] for d in data]
+        combined = zip(labels, data, averages)
+        combined = sorted(combined, key=lambda x: x[2])
+        labels = [x[0] for x in combined]
+        data = [x[1] for x in combined]
+        averages = [x[2] for x in combined]
+        #for i in range(len(combined)):
+        #    l = labels[i].split('\n')
+        #    print(f'{averages[i]} & {l[0]} & {l[1].split("=")[1].strip("$")}')
+
+        plt.clf()
+        
+        for percentile in [25,50,75]:
+            plt.axhline(stats['scaled_size'][f'{percentile}%'], c='b', linewidth=0.75, linestyle='dashed')
+        # plot reference line
+        if problem=='qft':
+            qft = QFT_blueprint(q)
+            qft = transpile(qft, basis_gates=[gate.name for gate in GATE_SET], optimization_level=0)
+            plt.axhline(qft.depth() * len(qft.data), c='r', linewidth=0.8, linestyle='dashed')
+
+        plt.boxplot(data, labels=labels, widths=0.8)
+        plt.title(f'Size of ideal circuits')
+        plt.xlabel('method and $\omega$')
+        plt.ylabel('circuit depth * gate count')
+        save(f'{folder}epsrc_{problem}{q}/plots/{q}qubits_size_box_sorted')
+
+        plt.clf()
+        plt.xscale('log')
+        combined = sorted(combined, key=lambda x: int(x[0].split('\n')[1].split("=")[1].strip("$")))
+        combined = sorted(combined, key=lambda x: ['l','c','d'].index(x[0][0]))
+        for i in range(3):
+            plt.plot(omega_list, [y[2] for y in combined[i*5:(i+1)*5]], label=['length', 'count', 'depth'][i])
+        plt.legend()
+        plt.xticks(omega_list)
+        save(f'{folder}epsrc_{problem}{q}/plots/{q}qubits_size_line')
+    
 
     ## size (scaled by runtime)
     for q in qubit_counts:
@@ -187,9 +299,17 @@ def final_plots(folder, problem, sort_params=False):
             if problem=='qft':
                 qft = QFT_blueprint(q)
                 qft = transpile(qft, basis_gates=[gate.name for gate in GATE_SET], optimization_level=0)
-                g = Genotype(QFTGeneration(N=q))
-                g.from_circuit(qft)
+                #g = Genotype(QFTGeneration(N=q))
+                #g.from_circuit(qft)
                 optimal_size = qft.depth() * len(qft.data)
+            elif problem=='toffoli':
+                toffoli = genericToffoliConstructor(q)
+                toffoli = transpile(toffoli, basis_gates=[gate.name for gate in GATE_SET], optimization_level=0)
+                optimal_size = toffoli.depth() * len(toffoli.data)
+            elif problem=='grover':
+                grover = generic_grover_operator(N=q)
+                grover = transpile(grover, basis_gates=[gate.name for gate in GATE_SET], optimization_level=0)
+                optimal_size = grover.depth() * len(grover.data)
 
             
             fitness_threshold = (2**q - 1)/2**q            
@@ -226,6 +346,6 @@ def final_plots(folder, problem, sort_params=False):
 
 if __name__=="__main__":
     folder = 'out/'
-    problem = 'qft'
+    problem = 'toffoli'
 
-    final_plots(folder, problem, True)
+    final_plots(folder, problem, False)
