@@ -18,9 +18,9 @@ def grover_operator_generation(set_of_gates, marked_qubit=0, N=3):
 
 
 if __name__=="__main__":
-    G_GEN = grover_operator_generation(GATE_SET, N=2)
+    G_GEN = grover_operator_generation(GATE_SET, N=3)
 
-    E = Evolution(G_GEN, individuals_per_generation=100, number_of_generations=200,
+    E = Evolution(G_GEN, individuals_per_generation=250, number_of_generations=200,
                     sample_percentage=0.1, gen_mulpilier=8)
 
 

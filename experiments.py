@@ -12,7 +12,7 @@ from bulk_runs import multiple_runs
 
 class Experiments:
     def __init__(self, problem_parameters, iterations=20, multipliers=[2,4,8], save_filepath='out',
-                 generation_count=50, default_sample_percent=0.1,
+                 generation_count=50, individuals_per_generation=100, default_sample_percent=0.1,
                  test_gate_sets={}):
         self.set_save_dir(save_filepath)
         self.prob_params = problem_parameters
@@ -20,6 +20,7 @@ class Experiments:
         self.test_multipliers = multipliers
         self.default_sample_percent = default_sample_percent
         self.gen_count = generation_count
+        self.population_size = individuals_per_generation
         self.test_gate_sets = test_gate_sets
 
     def set_save_dir(self, save_filepath):
@@ -32,7 +33,7 @@ class Experiments:
         to_plot = {}
         for algorithm in algorithms:
             print(f'<{algorithm}>') # unique identifier used to name output files
-            E = Evolution(self.prob_params, number_of_generations=self.gen_count,
+            E = Evolution(self.prob_params, individuals_per_generation=self.population_size, number_of_generations=self.gen_count,
                           sample_percentage=self.default_sample_percent, gen_mulpilier=gen_multiplier)
 
             to_plot[algorithm], stats[algorithm] = multiple_runs(E, method=algorithm, iterations=self.ITERATIONS,
@@ -50,7 +51,7 @@ class Experiments:
             print(f'<{set_name}>') # unique identifier used to name output files
             self.prob_params.set_gate_set(sets[set_name])
             self.prob_params.print_gate_set()
-            E = Evolution(self.prob_params, number_of_generations=self.gen_count,
+            E = Evolution(self.prob_params, individuals_per_generation=self.population_size, number_of_generations=self.gen_count,
                           sample_percentage=self.default_sample_percent, gen_mulpilier=gen_multiplier)
 
             to_plot[set_name], stats[set_name] = multiple_runs(E, iterations=self.ITERATIONS, plot=False, save_dir=self.base_filepath+'/')
@@ -86,7 +87,7 @@ class Experiments:
             dist_str = f'crossover{crossover}'
             # unique identifier used to name output files
             print(f'<{dist_str}>')
-            E = Evolution(self.prob_params, number_of_generations=self.gen_count,
+            E = Evolution(self.prob_params, individuals_per_generation=self.population_size, number_of_generations=self.gen_count,
                             sample_percentage=self.default_sample_percent, gen_mulpilier=gen_multiplier)
 
             to_plot[dist_str], stats[dist_str] = multiple_runs(E, crossover_proportion=crossover/10,
@@ -104,7 +105,7 @@ class Experiments:
             multobj_str = 'preferlength'+multobj_str
             # unique identifier used to name output files
             print(f'<{multobj_str}>')
-            E = Evolution(self.prob_params, number_of_generations=self.gen_count,
+            E = Evolution(self.prob_params, individuals_per_generation=self.population_size, number_of_generations=self.gen_count,
                           sample_percentage=self.default_sample_percent, gen_mulpilier=gen_multiplier)
 
             to_plot[multobj_str], stats[multobj_str] = multiple_runs(E, iterations=self.ITERATIONS, short_circuit_preference=circuit_preference,
@@ -119,7 +120,7 @@ class Experiments:
             elite_str = f'elitepercent{int(elitism_percent*100)}'
             # unique identifier used to name output files
             print(f'<{elite_str}>')
-            E = Evolution(self.prob_params, number_of_generations=self.gen_count,
+            E = Evolution(self.prob_params, individuals_per_generation=self.population_size, number_of_generations=self.gen_count,
                           sample_percentage=elitism_percent, gen_mulpilier=gen_multiplier)
 
             to_plot[elite_str], stats[elite_str] = multiple_runs(E, iterations=self.ITERATIONS, plot=False, save_dir=self.base_filepath+'/')
@@ -152,7 +153,7 @@ class Experiments:
         circuit_population = self.load_circuits(sample_size=E.SAMPLE_SIZE)
 
         print(f'<base>')
-        E = Evolution(self.prob_params, number_of_generations=self.gen_count, gen_mulpilier=gen_multiplier, sorting_function_override=None)
+        E = Evolution(self.prob_params, individuals_per_generation=self.population_size, number_of_generations=self.gen_count, gen_mulpilier=gen_multiplier, sorting_function_override=None)
 
         to_plot['base'], stats['base'] = multiple_runs(E, iterations=self.ITERATIONS, method='combined', plot=False, save_dir=self.base_filepath+'/',
                                                        circuit_population=circuit_population, sorting_override=lambda o: None)
@@ -217,7 +218,7 @@ class Experiments:
             # unique identifier used to name output files
             omega_func = f'{func_name}_omega{omega}'
             print(f'<{omega_func}>')
-            E = Evolution(self.prob_params, number_of_generations=self.gen_count, gen_mulpilier=gen_multiplier, sorting_function_override=functions[func_name](omega))
+            E = Evolution(self.prob_params, individuals_per_generation=self.population_size, number_of_generations=self.gen_count, gen_mulpilier=gen_multiplier, sorting_function_override=functions[func_name](omega))
 
             #to_plot[omega_func], stats[omega_func] = multiple_runs(E, iterations=self.ITERATIONS, method='optimisation', plot=False, save_dir=self.base_filepath+'/',
             #                                                     circuit_population=circuit_population, insert_delete_proportion=0.5)

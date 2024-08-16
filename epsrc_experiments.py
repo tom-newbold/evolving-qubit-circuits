@@ -38,7 +38,7 @@ if __name__=="__main__":
         folder = 'out/epsrc_qft3/'
         problem = 'qft'
 
-    experiment_instance = Experiments(APP,iterations=50,multipliers=[8],generation_count=250, save_filepath=f'{folder}')
+    experiment_instance = Experiments(APP,iterations=50,multipliers=[8],generation_count=250,individuals_per_generation=250,save_filepath=f'{folder}')
     
     for m in experiment_instance.test_multipliers:
         s, p = experiment_instance.sorting_test_baseline(m)
