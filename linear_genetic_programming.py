@@ -840,8 +840,6 @@ class Evolution:
 
             # check for convergence
             current_average = list_avr([p.get_fitness()*len(p.genotype_str) for p in population[:self.SAMPLE_SIZE]])
-            
-            print(current_average-prev_average)
             if math.isclose(current_average,prev_average, abs_tol=0.005):
                 stagnation_counter += 1
             else:

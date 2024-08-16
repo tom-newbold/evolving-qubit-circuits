@@ -17,10 +17,11 @@ def grover_operator_generation(set_of_gates, marked_qubit=0, N=3):
                                     genotype_length_falloff='linear')
 
 
-G_GEN = grover_operator_generation(GATE_SET, N=2)
+if __name__=="__main__":
+    G_GEN = grover_operator_generation(GATE_SET, N=2)
 
-E = Evolution(G_GEN, individuals_per_generation=100, number_of_generations=200,
-                sample_percentage=0.1, gen_mulpilier=8)
+    E = Evolution(G_GEN, individuals_per_generation=100, number_of_generations=200,
+                    sample_percentage=0.1, gen_mulpilier=8)
 
 
-population = E.evolutionary_opsearch(lambda o: None, [], use_double_point_crossover=True)[0]
+    population = E.evolutionary_opsearch(lambda o: None, [], use_double_point_crossover=True)[0]

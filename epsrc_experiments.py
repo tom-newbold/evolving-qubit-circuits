@@ -16,12 +16,13 @@ if __name__=="__main__":
             N = int(sys.argv[2])
             if N > 0 and N < 10:
                 problem = sys.argv[1]
-                if sys.argv[1]=='qft':
+                print(problem)
+                if problem=='qft':
                     APP = QFTGeneration(GATE_SET, N)
-                elif sys.argv[1]=='toffoli':
+                elif problem=='toffoli':
                     APP = ToffoliGeneration(GATE_SET, N)
-                elif sys.argv[1]=='grover':
-                    APP = grover_operator_generation(GATE_SET, N)
+                elif problem=='grover':
+                    APP = grover_operator_generation(GATE_SET, N=N)
                 else:
                     raise ValueError('first argument (algorithm) specified incorrectly')
         except:
