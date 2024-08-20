@@ -414,10 +414,17 @@ class ProblemParameters(ABC):
         M = Operator(candidate_circuit)
         fidelity_sum = 0
         penalty = 1/len(input_states)
+        global_phase = []
         for i, state in enumerate(input_states):
             calc_state = state.evolve(M)
-            if calc_state==output_states[i]:
+            if calc_state.equiv(output_states[i]):
                 fidelity_sum += 1.0
+                gp = list_avr([np.round(calc_state[psi]/output_states[i][psi], 5) for psi in range(len(calc_state))])
+                # TODO check rounding tolerance
+                if gp not in global_phase:
+                    if len(global_phase)==0:
+                        fidelity_sum -= penalty
+                    global_phase.append(gp)
             else:
                 fidelity_sum += abs(output_states[i].inner(calc_state))**2
                 fidelity_sum -= penalty
