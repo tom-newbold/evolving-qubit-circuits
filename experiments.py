@@ -147,7 +147,7 @@ class Experiments:
         
         stats = {}
         to_plot = {}
-        E = Evolution(self.prob_params)
+        E = Evolution(self.prob_params, individuals_per_generation=self.population_size)
 
         transpiled = transpile(self.prob_params.target_circuit, basis_gates=[self.prob_params.gate_set[gate_key].name for gate_key in self.prob_params.gate_set], optimization_level=0)
         circuit_population = self.load_circuits(sample_size=E.SAMPLE_SIZE)
@@ -209,7 +209,7 @@ class Experiments:
             'count': lambda o: lambda genotype: o*genotype.get_fitness() - len(genotype.to_circuit().data),
             'depth': lambda o: lambda genotype: o*genotype.get_fitness() - genotype.to_circuit().depth()
         }
-        E = Evolution(self.prob_params)
+        E = Evolution(self.prob_params, individuals_per_generation=self.population_size)
 
         transpiled = transpile(self.prob_params.target_circuit, basis_gates=[self.prob_params.gate_set[gate_key].name for gate_key in self.prob_params.gate_set], optimization_level=0)
         circuit_population = self.load_circuits(sample_size=E.SAMPLE_SIZE)

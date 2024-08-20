@@ -45,7 +45,6 @@ if __name__=="__main__":
         experiment_instance.output(p, s, 'base', m)
 
     #omega_test = [10, 100, 250, 500, 1000]
-    omega_test = [10, 100]
     omega_test = [100]
     for omega in omega_test:
         print(f'OMEGA: {omega}')
