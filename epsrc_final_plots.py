@@ -77,12 +77,16 @@ def final_plots(folder, problem, sort_params=False):
     ## percent of runs generating ideal circuits
     for q in qubit_counts:
         # filter non-ideal circuits
-        fitness_threshold = (2**q - 1)/2**q
+        fitness_threshold = 1.0 # (2**q - 1)/2**q
         for i, df in enumerate(dataframes[q]):
             dataframes[q][i] = df[df['peak_fitness']>=fitness_threshold]
 
         data = [100*len(d['peak_fitness'])/ITERATIONS for d in dataframes[q]]
         labels = labels_handled(test_params)
+
+        relative_percent = [d/data[0] for d in data[1:]]
+        print(list(zip(labels[1:], relative_percent)))
+        print('----------------')
 
         plt.clf()
         a = plt.subplots(figsize=fsize)[1]
@@ -97,7 +101,19 @@ def final_plots(folder, problem, sort_params=False):
         
         save(f'{folder}epsrc_{problem}{q}/plots/{q}qubits_ideal_percent')
 
-        averages = [d.describe()['50%'] for d in [df["best_genotype_length"]/df["best_genotype_gate_count"] for df in dataframes[q]]]
+        averages = [d.describe()['50%'] for d in [df["best_genotype_depth"]*df["best_genotype_gate_count"] for df in dataframes[q]]]
+        print(f'base average size: {averages[0]}')
+
+        scaled_size = [size/success for size, success in zip(averages[1:], relative_percent)]
+        for j in range(3):
+            print(labels[1+j].split('\n')[0])
+            print(round(sum([scaled_size[3*i+j] for i in range(len(scaled_size)//3)]), 2))
+        scaled_size = [round(ss, 2) for ss in scaled_size]
+        out_list = list(zip(labels[1:], scaled_size))
+        for i in range(len(out_list)//3):
+            print(sorted(out_list[3*i:3*(i+1)], key=lambda x: x[0][0]))
+            print(round(sum(scaled_size[3*i:3*(i+1)]), 2))
+        print('----------------')
 
         plt.clf()
         plt.grid(True, axis='y', zorder=0)
@@ -312,7 +328,7 @@ def final_plots(folder, problem, sort_params=False):
                 optimal_size = grover.depth() * len(grover.data)
 
             
-            fitness_threshold = (2**q - 1)/2**q            
+            fitness_threshold = 1.0 # (2**q - 1)/2**q            
             data = []
             for key in labels:
                 d = dataframes[key]
@@ -346,6 +362,6 @@ def final_plots(folder, problem, sort_params=False):
 
 if __name__=="__main__":
     folder = 'out/'
-    problem = 'toffoli'
+    problem = 'qft'
 
     final_plots(folder, problem, False)
