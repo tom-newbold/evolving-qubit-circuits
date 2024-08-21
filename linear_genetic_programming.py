@@ -5,16 +5,12 @@ import matplotlib.pyplot as plt
 from time import time
 
 from qiskit import QuantumCircuit
-from qiskit.transpiler.passes import CommutativeInverseCancellation, HoareOptimizer
-from qiskit.transpiler import PassManager
 from qiskit.quantum_info import Operator
 from qiskit.circuit.library import *
 
 from linear_genetic_programming_utils import *
 from bulk_runs import remaining_time_calc
 
-import pandas
-CLIFFORD_T = [HGate(), XGate(), SGate(), SdgGate(), CXGate(), TGate(), TdgGate()]
 
 class Genotype:
     def __init__(self, problem_parameters, genotype_string=None, min_length=None, max_length=None, falloff=None):            
