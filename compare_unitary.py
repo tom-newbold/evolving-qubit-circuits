@@ -8,8 +8,7 @@ from linear_genetic_programming import Genotype
 from linear_genetic_programming_utils import basis_states, list_avr
 
 QFT_GEN = QFTGeneration(GATE_SET)
-genotype = Genotype(QFT_GEN, '2016017410260224062112027011311015000202220')
-#022202026101620201612102
+genotype = Genotype(QFT_GEN, '022202026101620201612102')
 
 qft = QFT_blueprint(3).decompose()
 qft = transpile(qft, basis_gates=[gate.name for gate in GATE_SET], optimization_level=0)

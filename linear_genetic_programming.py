@@ -417,11 +417,11 @@ class ProblemParameters(ABC):
         global_phase = []
         for i, state in enumerate(input_states):
             calc_state = state.evolve(M)
-            gp = output_states[i].inner(calc_state)
+            gp = np.round(output_states[i].inner(calc_state), 10)
             fidelity_sum += abs(gp)**2
             if calc_state.equiv(output_states[i]):
                 if gp not in global_phase:
-                    if len(global_phase)==0:
+                    if len(global_phase)>0:
                         fidelity_sum -= penalty
                     global_phase.append(gp)
             else:
