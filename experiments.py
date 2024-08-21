@@ -3,7 +3,6 @@ import matplotlib.pyplot as plt
 from pandas import DataFrame
 
 from qiskit import transpile
-from circuit_unoptimiser import unoptimiser
 
 from linear_genetic_programming import Evolution, Genotype
 from linear_genetic_programming_utils import plot_many_averages, list_avr
@@ -180,14 +179,6 @@ class Experiments:
             circuit_population = circuit_population[:self.ITERATIONS*sample_size]
         except:
             # create sample
-            '''
-            transpiled = transpile(self.prob_params.target_circuit, basis_gates=[self.prob_params.gate_set[gate_key].name for gate_key in self.prob_params.gate_set], optimization_level=0)
-
-            for i in range(self.ITERATIONS):
-                print(f'unoptimising: {"#"*(i+1)}{"-"*(self.ITERATIONS-i-1)}', end='\r')
-                circuit_population.append(unoptimiser(transpiled, self.prob_params, self.prob_params.qubit_count))
-            print('')
-            '''
             for i in range(self.ITERATIONS*sample_size):
                 genotype = Genotype(self.prob_params)
                 circuit_population.append([genotype.to_circuit(), genotype])
